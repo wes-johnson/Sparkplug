@@ -898,6 +898,10 @@ long as they have different timestamps.
 * [tck-testable tck-id-operational-behavior-data-publish-nbirth-order]#[yellow-background]*[tck-id-operational-behavior-data-publish-nbirth-order] For
 all metrics where is_historical=false, NBIRTH and NDATA messages MUST keep metric values in
 chronological order in the list of metrics in the payload.*#
+* [tck-testable tck-id-operational-behavior-data-publish-node-metric-datatype]#[yellow-background]*[tck-id-operational-behavior-data-publish-node-metric-datatype] For
+all metrics in an NBIRTH, the datatype and corresponding protobuf datatype MUST NOT change in
+subsequent NDATA messages. If it does, the Host Application MUST send a rebirth request to the
+offending Edge Node.*#
 
 Rules for Device data (DBIRTH and DDATA) messages:
 
@@ -920,6 +924,10 @@ long as they have different timestamps.
 * [tck-testable tck-id-operational-behavior-data-publish-dbirth-order]#[yellow-background]*[tck-id-operational-behavior-data-publish-dbirth-order] For
 all metrics where is_historical=false, DBIRTH and DDATA messages MUST keep metric values in
 chronological order in the list of metrics in the payload.*#
+* [tck-testable tck-id-operational-behavior-data-publish-device-metric-datatype]#[yellow-background]*[tck-id-operational-behavior-data-publish-device-metric-datatype] For
+all metrics in an DBIRTH, the datatype and corresponding protobuf datatype MUST NOT change in
+subsequent DDATA messages. If it does, the Host Application MUST send a rebirth request to the
+offending Edge Node.*#
 
 [[operational_behavior_commands]]
 === Commands
