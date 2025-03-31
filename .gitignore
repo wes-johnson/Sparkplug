@@ -14,3 +14,4 @@ Sparkplug_TCK_*.zip
 tck/Sparkplug_TCK_*.zip
 .pydevproject
 tck/webconsole/yarn.lock
+tck/webconsole/package-lock.json

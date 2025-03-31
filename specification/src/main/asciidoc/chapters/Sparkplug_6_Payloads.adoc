@@ -599,7 +599,6 @@ string to represent it.
 ** This is a freeform field with a UTF-8 string to represent any other pertinent metadata for this
 metric. It can contain JSON, XML, text, or anything else that can be understood by both the
 publisher and the subscriber.
-
 [[payloads_b_propertyset]]
 ==== PropertySet
 
@@ -657,6 +656,22 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 **** Defined link:#payloads_b_propertyset[here].
 *** Sparkplug _PropertySetList_
 **** Defined link:#payloads_b_propertysetlist[here].
+
+[[payloads_b_well_known_properties]]
+==== Well Known Properties
+
+[cols="1,5"]
+|===
+|*Key Name*
+|*Value*
+
+|engUnit
+|UNECE codes for 'units of measure' are recommended
+
+|readOnly
+|True or False
+|===
+
 
 [[payloads_b_quality_codes]]
 ===== Quality Codes
