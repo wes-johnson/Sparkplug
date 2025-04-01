@@ -1982,7 +1982,7 @@ whether or not the Sparkplug Host Application is online and operational or not.
 * [tck-testable tck-id-payloads-state-will-message]#[yellow-background]*[tck-id-payloads-state-will-message] Sparkplug
 Host Applications MUST register a Will Message in the MQTT CONNECT packet on the topic
 'spBv1.0/STATE/[sparkplug_host_id]'.*#
-** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be any
+** The [sparkplug_host_id] must be replaced with the Sparkplug Host Application's ID. This can be any
 UTF-8 string.
 * [tck-testable tck-id-payloads-state-will-message-qos]#[yellow-background]*[tck-id-payloads-state-will-message-qos] The
 Sparkplug Host Application MUST set the the MQTT Will QoS to 1 in the MQTT CONNECT packet.*#
