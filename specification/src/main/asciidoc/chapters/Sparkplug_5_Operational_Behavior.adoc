@@ -143,11 +143,11 @@ was connected to that MQTT Server and known by the Host Application MUST be upda
 quality if the Host Application loses connection to the MQTT Server.*#
 
 [tck-testable tck-id-message-flow-hid-sparkplug-state-message-delivered]#[yellow-background]*[tck-id-message-flow-hid-sparkplug-state-message-delivered] After
-publishing its own Host Application STATE message, if at any point the Host Application is delivered
-a STATE message on its own Host Application ID with a 'online' value of false, it MUST immediately
-republish its STATE message to the same MQTT Server with a 'online' value of true and the
-'timestamp' set to the same value that was used for the timestamp in its own prior MQTT CONNECT
-packet Will Message payload.*#
+publishing its own Host Application online STATE message, if at any point the Host Application is delivered
+a STATE message on its own Host Application ID with a timestamp that is newer than the timestamp
+that was used in its own immediately prior MQTT CONNECT packet Will Message, it MUST immediately
+disconnect from the MQTT Server and reconnect. It MUST follow the standard rules for Host
+Applications when establishing the connection to the MQTT Server.
 
 [[operational_behavior_edge_node_session_establishment]]
 === Edge Node Session Establishment
@@ -634,8 +634,11 @@ plantuml::{assetsdir}assets/plantuml/primary-host-application-state-flow-diagram
 . When an Edge Node is configured with multiple available MQTT Servers in the infrastructure it
 should issue a subscription to the Primary Host Application STATE message. The Edge Nodes are free
 to establish an MQTT Session to any of the available servers over any available network at any time
-and examine the current STATE value. If the STATE message payload is online=false then the Edge Node
-should disconnect and walk to the next available server.
+and examine the current STATE value. If the STATE message payload is online=false and the timestamp
+in the payload is older than the previous timestamp received for this Host Application, then the
+Edge Node must disconnect and walk to the next available server. If the Edge Node had never
+received a previous STATE message for this Host Application, it must honor the online flag and store
+the timestamp for future comparisons.
 
 . Upon startup, the configured Primary Host Application's MQTT Client MUST include the Primary Host
 Application DEATH Certificate that indicates STATE is online=false with the message RETAIN flag set
@@ -647,7 +650,10 @@ number and represent the number of UTC nanoseconds since Epoch.
 . As the Edge Node walks its available MQTT Server list, it will establish an MQTT Session with a
 server that has a STATE message with a JSON payload that has online=true. The Edge Node can stay
 connected to this server if its MQTT Session stays intact and it does not receive the Primary Host
-Application DEATH Certificate.
+Application DEATH Certificate. The Edge Node MUST only honor STATE messages if the incoming
+timestamp is newer than or equal to the previous timestamp for this Host Application. If the Edge
+Node has not seen a STATE message within its current MQTT Session, it also MUST honor the STATE
+message.
 
 . Having a subscription registered to the MQTT Server on the STATE topic will result in any change
 to the current Primary Host Application STATE being received immediately. In this case, a
