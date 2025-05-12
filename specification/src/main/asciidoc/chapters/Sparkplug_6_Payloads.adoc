@@ -260,6 +260,8 @@ message Payload {
         message PropertyValueExtension {
             extensions                             1 to max;
         }
+
+        extensions 16 to max;
     }
 
     message PropertySet {
@@ -326,6 +328,8 @@ message Payload {
         message MetricValueExtension {
             extensions  1 to max;
         }
+
+        extensions 23 to max;
     }
 
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
