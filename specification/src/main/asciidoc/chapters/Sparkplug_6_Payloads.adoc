@@ -300,7 +300,7 @@ message Payload {
         optional string   name          = 1;        // Metric name - Required in BIRTH messages, optional in DATA messages if using aliases
         optional uint64   alias         = 2;        // Metric alias - tied to name on BIRTH and included in all later DATA messages
         optional uint64   timestamp     = 3;        // Timestamp associated with data acquisition time - if omitted, the overall payload timestamp is assumed as the data acquisition time
-        optional uint32   datatype      = 4;        // DataType of the metric/tag value
+        optional DataType datatype      = 4;        // DataType of the metric/tag value
         optional string   source        = 5;        // Source for CMD messages if unique to the Metric (typically for forwarded writes in CMD messages)
         optional bool     is_historical = 6;        // If this is historical data and should not update real time tag
         optional bool     is_transient  = 7;        // Tells consuming clients such as MQTT Engine to not store this as a tag
