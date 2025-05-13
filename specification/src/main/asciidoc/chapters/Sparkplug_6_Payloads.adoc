@@ -182,29 +182,40 @@ enum DataType {
 
 message Payload {
 
+    message TypedValue {
+        optional DataType datatype = 1;
+        optional bool     is_null  = 2;
+
+        oneof value {
+            int32    int32_value                    = 3;
+            int64    int64_value                    = 4;
+            uint32   uint32_value                   = 5;
+            uint64   uint64_value                   = 6;
+            float    float_value                    = 7;
+            double   double_value                   = 8;
+            bool     boolean_value                  = 9;
+            string   string_value                   = 10;
+            bytes    bytes_value                    = 11;
+            DataSet  dataset_value                  = 12;
+            Template template_value                 = 13;
+            PropertySet     propertyset_value       = 14;
+            PropertySetList propertysets_value      = 15;
+            TypedValueExtension extension_value     = 16;
+        }
+
+        message TypedValueExtension {
+            extensions  1 to max;
+        }
+
+        extensions 17 to max;
+    }
+
     message Template {
 
         message Parameter {
-            optional string name        = 1;
-            optional uint32 type        = 2;
-
-            oneof value {
-                int32    int32_value    = 3;
-                int64    int64_value    = 4;
-                uint32   uint32_value   = 5;
-                uint64   uint64_value   = 6;
-                float    float_value    = 7;
-                double   double_value   = 8;
-                bool     boolean_value  = 9;
-                string   string_value   = 10;
-                bytes    bytes_value    = 11;
-
-                ParameterValueExtension extension_value = 12;
-            }
-
-            message ParameterValueExtension {
-                extensions              1 to max;
-            }
+            optional string name            = 1;
+            optional TypedValue typed_value = 2;
+            extensions                      3 to max;
         }
 
         optional string version         = 1;          // The version of the Template to prevent mismatches
@@ -218,8 +229,8 @@ message Payload {
     message DataSet {
 
         message Column {
-            optional string name = 1;
-            optional uint32 type = 2;
+            optional string name     = 1;
+            optional DataType datatype = 2;
 
             // Only one type of repeated value shall be used per Column
             repeated uint32 int_values       = 3 [packed=true];
@@ -236,37 +247,9 @@ message Payload {
         extensions                           2 to max;
     }
 
-    message PropertyValue {
-
-        optional uint32     type                    = 1;
-        optional bool       is_null                 = 2;
-
-        oneof value {
-            int32    int32_value                    = 3;
-            int64    int64_value                    = 4;
-            uint32   uint32_value                   = 5;
-            uint64   uint64_value                   = 6;
-            float    float_value                    = 7;
-            double   double_value                   = 8;
-            bool     boolean_value                  = 9;
-            string   string_value                   = 10;
-            bytes    bytes_value                    = 11;      // Bytes, File
-            DataSet  dataset_value                  = 12;
-            PropertySet     propertyset_value       = 13;
-            PropertySetList propertysets_value      = 14;      // List of Property Values
-            PropertyValueExtension extension_value  = 15;
-        }
-
-        message PropertyValueExtension {
-            extensions                             1 to max;
-        }
-
-        extensions 16 to max;
-    }
-
     message PropertySet {
         repeated string        keys     = 1;         // Names of the properties
-        repeated PropertyValue values   = 2;
+        repeated TypedValue    values   = 2;         // The Property Values
         extensions                      3 to max;
     }
 
@@ -309,27 +292,8 @@ message Payload {
         optional bool     is_null       = 8;        // If this is null - explicitly say so rather than using -1, false, etc for some datatypes.
         optional MetaData metadata      = 9;        // Metadata for the Metric
         optional PropertySet properties = 10;       // Properties of the Metric
-
-        oneof value {
-            int32    int32_value                    = 11;
-            int64    int64_value                    = 12;
-            uint32   uint32_value                   = 13;
-            uint64   uint64_value                   = 14;
-            float    float_value                    = 15;
-            double   double_value                   = 16;
-            bool     boolean_value                  = 17;
-            string   string_value                   = 18;
-            bytes    bytes_value                    = 19;       // Bytes, File
-            DataSet  dataset_value                  = 20;
-            Template template_value                 = 21;
-            MetricValueExtension extension_value    = 22;
-        }
-
-        message MetricValueExtension {
-            extensions  1 to max;
-        }
-
-        extensions 23 to max;
+        optional TypedValue value       = 11;
+        extensions 12 to max;
     }
 
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
