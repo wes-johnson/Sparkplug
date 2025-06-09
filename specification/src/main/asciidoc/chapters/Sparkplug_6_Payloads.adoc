@@ -107,7 +107,7 @@ Buffer schema was developed that could be used to represent and encode the more 
 being requested. The entire Google Protocol Buffers definition is below.
 
 ----
-// * Copyright (c) 2015-2021 Cirrus Link Solutions and others
+// * Copyright (c) 2015-2025 Cirrus Link Solutions and others
 // *
 // * This program and the accompanying materials are made available under the
 // * terms of the Eclipse Public License 2.0 which is available at
@@ -1188,7 +1188,7 @@ This would result in a structure as follows on the Host Application.
 .Figure 10 – Sparkplug B Metric Structure 1
 plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-1.puml[format=svg, alt="Sparkplug B Metric Structure 1"]
 
-[[payloads_b_nbirth]]
+[[payloads_b_nrebirth]]
 ==== NREBIRTH
 
 The NREBIRTH is responsible for informing a specific host application of all of the information
