@@ -282,18 +282,20 @@ message Payload {
 
     message Metric {
 
-        optional string   name          = 1;        // Metric name - Required in BIRTH messages, optional in DATA messages if using aliases
-        optional uint64   alias         = 2;        // Metric alias - tied to name on BIRTH and included in all later DATA messages
-        optional uint64   timestamp     = 3;        // Timestamp associated with data acquisition time - if omitted, the overall payload timestamp is assumed as the data acquisition time
-        optional DataType datatype      = 4;        // DataType of the metric/tag value
-        optional string   source        = 5;        // Source for CMD messages if unique to the Metric (typically for forwarded writes in CMD messages)
-        optional bool     is_historical = 6;        // If this is historical data and should not update real time tag
-        optional bool     is_transient  = 7;        // Tells consuming clients such as MQTT Engine to not store this as a tag
-        optional bool     is_null       = 8;        // If this is null - explicitly say so rather than using -1, false, etc for some datatypes.
-        optional MetaData metadata      = 9;        // Metadata for the Metric
-        optional PropertySet properties = 10;       // Properties of the Metric
-        optional TypedValue value       = 11;
-        extensions 12 to max;
+        optional string   name            = 1;        // Metric name - Required in BIRTH messages, optional in DATA messages if using aliases
+        optional uint64   alias           = 2;        // Metric alias - tied to name on BIRTH and included in all later DATA messages
+        optional uint64   timestamp       = 3;        // Timestamp associated with data acquisition time - if omitted, the overall payload timestamp is assumed as the data acquisition time
+        optional DataType datatype        = 4;        // DataType of the metric/tag value
+        optional int32    quality         = 5;        // Quality code of the metric/tag value
+        optional string   quality_context = 6;        // The optional quality context of the metric/tag value
+        optional string   source          = 7;        // Source for CMD messages if unique to the Metric (typically for forwarded writes in CMD messages)
+        optional bool     is_historical   = 8;        // If this is historical data and should not update real time tag
+        optional bool     is_transient    = 9;        // Tells consuming clients such as MQTT Engine to not store this as a tag
+        optional bool     is_null         = 10;       // If this is null - explicitly say so rather than using -1, false, etc for some datatypes.
+        optional MetaData metadata        = 11;       // Metadata for the Metric
+        optional PropertySet properties   = 12;       // Properties of the Metric
+        optional TypedValue value         = 13;
+        extensions 14 to max;
     }
 
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
@@ -452,7 +454,6 @@ name MUST be included with every metric unless aliases are being used.*#
 ** All UTF-8 characters are allowed in the metric name. However, special characters including but
 not limited to the following are discouraged: . , \ @ # $ % ^ & * ( ) [ ] { } | ! ` ~ : ; ' " < > ?.
 This is because many Sparkplug Host Applications may have issues handling them.
-
 * *alias*
 ** This is an unsigned 64-bit integer representing an optional alias for a Sparkplug B payload.
 Aliases are optional and not required. *If aliases are used, the following rules apply.*
@@ -493,6 +494,22 @@ link:#payloads_b_datatypes[valid Sparkplug Data Types].*#
 datatype MUST be included with each metric definition in NBIRTH and DBIRTH messages.*#
 ** [tck-testable tck-id-payloads-metric-datatype-not-req]#[yellow-background]*[tck-id-payloads-metric-datatype-not-req] The
 datatype SHOULD NOT be included with metric definitions in NDATA, NCMD, DDATA, and DCMD messages.*#
+* *quality*
+** This defines the quality of the value associated with the metric. This property is optional and
+is only required if the quality of the metric is not GOOD. If the quality is not present, it is
+implicitly GOOD.
+** There are three defined qualities. These are defined below with their associated meanings.
+*** *0*
+**** BAD
+*** *192*
+**** GOOD
+*** *500*
+**** STALE
+** [tck-testable tck-id-payloads-quality-value]#[yellow-background]*[tck-id-payloads-quality-value] The
+value of quality MUST be an int32.*#
+* *quality_context*
+** This is an optional string value used to provide additional context to the quality code of the
+metric.
 * *source*
 ** This is the source field which represents the Sparkplug Host Application ID of the publisher for
 NCMD, DCMD, and REBIRTH messages if it differs from the overall payload source value. This may be
@@ -628,42 +645,20 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 [[payloads_b_well_known_properties]]
 ==== Well Known Properties
 
-[cols="1,5"]
+[cols="1,1,5"]
 |===
 |*Key Name*
+|*Type*
 |*Value*
 
 |engUnit
+|_string_
 |UNECE codes for 'units of measure' are recommended
 
 |readOnly
+|_bool_
 |True or False
 |===
-
-
-[[payloads_b_quality_codes]]
-===== Quality Codes
-
-There is one specific property key in Sparkplug called 'Quality'. This defines the quality of the
-value associated with the metric. This property is optional and is only required if the quality of
-the metric is not GOOD.
-
-There are three possible quality code values. These are defined below with their associated
-meanings.
-
-* *0*
-** BAD
-* *192*
-** GOOD
-* *500*
-** STALE
-
-[tck-testable tck-id-payloads-propertyset-quality-value-type]#[yellow-background]*[tck-id-payloads-propertyset-quality-value-type] The
-'type' of the Property Value MUST be a value of 3 which represents a Signed 32-bit Integer.*#
-
-[tck-testable tck-id-payloads-propertyset-quality-value-value]#[yellow-background]*[tck-id-payloads-propertyset-quality-value-value] The
-'value' of the Property Value MUST be an int_value and be one of the valid quality codes of 0, 192,
-or 500.*#
 
 [[payloads_b_propertysetlist]]
 ==== PropertySetList
