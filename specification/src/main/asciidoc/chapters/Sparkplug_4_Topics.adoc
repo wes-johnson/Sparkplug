@@ -450,8 +450,8 @@ NCMD MUST include the metrics that need to be written to on the Edge Node.*#
 NCMD MUST have the 'source' field set in the payload and it MUST have a string value representing
 the Host ID of the Sparkplug Host Application that sent the NCMD message.*#
 
-[[topics_device_sensor]]  
-==== Device/Sensor
+[[topics_device]]
+==== Device
 [upperalpha, start=1]
 
 [[birth_message_dbirth]]

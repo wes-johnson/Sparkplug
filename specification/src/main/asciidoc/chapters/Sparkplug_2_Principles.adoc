@@ -109,19 +109,20 @@ link:#payloads_b_state[Host Application Birth Certificates]
 === Persistent vs Non-Persistent Connections for Edge Nodes
 
 Persistent connections are intended to remain connected to the MQTT infrastructure at all times.
-They never send an MQTT DISCONNECT control packet [MQTTV5-3.14] during normal operation. This fact lets the
-Host Applications provide the real-time state of every persistent node in the infrastructure within
-the configured MQTT Keep Alive period using the BIRTH/DEATH mechanisms defined above.
+They never send an MQTT DISCONNECT control packet [MQTTV5-3.14] during normal operation. This fact
+lets the Host Applications provide the real-time state of every persistent node in the infrastructure
+within the configured MQTT Keep Alive period using the BIRTH/DEATH mechanisms defined above.
 
 But in some use cases, such as sending GPS coordinates for asset tracking or other IOT applications
-with periodic data from sensors, MQTT enabled devices do not need to remain connected to the MQTT
-infrastructure. In these use cases, all the Device needs to do is to issue an MQTT DISCONNECT
-control packet prior to going offline to leave the MQTT infrastructure “gracefully”. In this case an
-MQTT device or associated DEATH certificate will not be sent to Sparkplug Host Applications. System
-designers just need to be aware that the metric in the Host Application will represent “Last Known
-Good” values with a timestamp of this data where the current state of the of the MQTT Device is not
-a real-time indication. The Host Application metric timestamp values can be used to determine when
-the values from this Edge Node were last updated.
+with periodic data from sensors, Sparkplug Edge Nodes do not need to remain connected to the MQTT
+infrastructure. In these use cases, all the component needs to do is to send an MQTT DISCONNECT
+control packet prior to going offline to leave the MQTT infrastructure “gracefully”. In this case a
+DEATH certificate will not be delivered to Sparkplug Host Applications. As a result, the Host
+Applications will not set the qualities of the metrics associated with the Edge Node to STALE.
+System designers just need to be aware that the metric in the Host Application will represent “Last
+Known Good” values with a timestamp of this data where the current state of the of the MQTT Device
+is not a real-time indication. The Host Application metric timestamp values can be used to determine
+when the values from this Edge Node were last updated.
 
 Non-persistent MQTT Enabled Devices should still register a proper DEATH Certificate upon the
 establishment of an MQTT session. In this manner, the Host Application can still have a good

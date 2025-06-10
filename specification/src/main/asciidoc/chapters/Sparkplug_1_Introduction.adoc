@@ -240,20 +240,20 @@ I/O, and/or any logical internal process variables (PVs).
 
 Physical or logical device that makes sense in the context of a distributed Sparkplug application. 
 Often times a Sparkplug Device will be a physical PLC, RTU, Flow Computer, Sensor, etc. However, a 
-Sparkplug device could also represent a logical grouping of data  points as makes sense for the 
+Sparkplug Device could also represent a logical grouping of data  points as makes sense for the 
 specific Sparkplug Application being developed. For example, it could represent a set of data points 
 across multiple PLCs that make up a logical device that makes sense within the context of that 
 application.
 
-[[introduction_mqtt_sparkplug_enabled_device]]
-===== MQTT/Sparkplug Enabled Device
+[[introduction_mqtt_sparkplug_enabled_component]]
+===== MQTT/Sparkplug Enabled Component
 
-Any device, sensor, or hardware that directly connects to MQTT infrastructure using
-a compliant MQTT v3.1.1 or v5.0 connection with the payload and topic notation as outlined in this
-Sparkplug Specification. With MQTT/Sparkplug enabled directly in the device this could bypass the
-use of a Sparkplug Edge Node in the infrastructure. In this case, the physical device or sensor is
-the Edge Node. It is up to the developer of the application to decide if the concept of a 'Sparkplug
-Device' is to be used within their application.
+Any sensor or hardware component that directly connects to MQTT infrastructure using a compliant MQTT
+v3.1.1 or v5.0 connection with the payload and topic notation as outlined in this Sparkplug
+Specification. With MQTT/Sparkplug enabled directly in the component, the application could omit the
+use of a 'Sparkplug Device'. In this case, the physical component is represented by a Sparkplug
+Edge Node without any attached Sparkplug Devices. It is up to the developer of the application to
+decide if the concept of a 'Sparkplug Device' is to be used within their application.
 
 [[introduction_host_applications]]
 ===== Host Applications

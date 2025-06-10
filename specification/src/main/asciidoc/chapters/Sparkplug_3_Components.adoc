@@ -35,28 +35,34 @@ also be sized to properly manage all MQTT message traffic.
 One can implement the use (if required) of multiple MQTT servers for redundancy, high availability,
 and scalability within any given infrastructure.
 
-[[components_mqtt_edge_node]]
-=== MQTT Edge Node
+[[components_sparkplug_edge_node]]
+=== Sparklplug Edge Node
 
 In the context of this specification, an MQTT Edge Node is any MQTT v3.1.1 [MQTTV3.1.1] or v5.0
 [MQTTV5] compliant MQTT Client application that manages an MQTT session and provides the physical
 and/or logical gateway functions required to participate in the topic namespace and payload
 definitions described in this document. The Edge Node is responsible for any local protocol
-interface to existing legacy devices (PLCs, RTUs, Flow Computers, Sensors, etc.) and/or any local
-discrete I/O, and/or any logical internal process variables(PVs).
+interface to existing legacy hardware components (PLCs, RTUs, Flow Computers, Sensors, etc.) and/or
+any local discrete I/O, and/or any logical internal process variables(PVs).
 
-[[components_device_sensor]]
-=== Device/Sensor
+[[components_sparkplug_device]]
+=== Sparkplug Device
 
-The Device/Sensor represents any physical or logical device connected to the MQTT Edge Node
-providing any data, process variables or metrics.
+Sparkplug Devices typically represent hardware components including, but not limited to PLCs, RTUs,
+Flow Computers, and Sensors. However, a Sparkplug Device can also represent a logical grouping of
+data across multiple physical or logical hardware or software components. Sparkplug Devices exist
+under the scope of a Sparkplug Edge Node and have their own lifecycle within the context of the
+Sparkplug Edge Node.
 
-[[components_mqtt_enabled_device]]
-=== MQTT Enabled Device (Sparkplug)
+[[components_mqtt_sparkplug_enabled_component]]
+=== MQTT/Sparkplug Enabled Component
 
-This represents any device, sensor, or hardware that directly connects to MQTT infrastructure using
-a compliant MQTT v3.1.1 or v5.0 connection with the payload and topic notation as outlined in this
-Sparkplug Specification. Note that it will be represented as an Edge Node in the Sparkplug topic.
+This represents any hardware component that directly connects to MQTT infrastructure using a
+compliant MQTT v3.1.1 or v5.0 connection with the payload and topic notation as outlined in this
+Sparkplug Specification. Hardware components can be represented as 'Sparkplug Edge Nodes' or as
+'Sparkplug Devices'. This is up to the developers of the Sparkplug Application. Note if it is
+represented as a Sparkplug Device, a Sparkplug Edge Node must also be present in the application. It
+is not possible to have a Sparkplug Device outside of the scope of a Sparkplug Edge Node.
 
 [[components_primary_host_application]]
 === Primary Host Application
