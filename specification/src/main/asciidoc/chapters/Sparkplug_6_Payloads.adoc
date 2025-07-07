@@ -452,8 +452,11 @@ MQTT publishers a defined folder should always remain a folder.
 ** [tck-testable tck-id-payloads-name-requirement]#[yellow-background]*[tck-id-payloads-name-requirement] The
 name MUST be included with every metric unless aliases are being used.*#
 ** All UTF-8 characters are allowed in the metric name. However, special characters including but
-not limited to the following are discouraged: . , \ @ # $ % ^ & * ( ) [ ] { } | ! ` ~ : ; ' " < > ?.
-This is because many Sparkplug Host Applications may have issues handling them.
+not limited to the following SHOULD NOT be used: . , \ @ # $ % ^ & * ( ) [ ] { } | ! ` ~ : ; ' " < > ?.
+Many Sparkplug Host Applications may have issues handling these characters. In addition, leading and
+trailing whitespace characters and control characters such as NULL (0x00) SHOULD NOT be used in
+metric names.
+
 * *alias*
 ** This is an unsigned 64-bit integer representing an optional alias for a Sparkplug B payload.
 Aliases are optional and not required. *If aliases are used, the following rules apply.*
