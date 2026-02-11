@@ -996,7 +996,7 @@ the Will Message of the immediately previous MQTT CONNECT packet.*#
 ** Because a new MQTT Session is not being established, there is no reason to update the bdSeq number
 * [tck-testable tck-id-operational-behavior-rebirth-action-4]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-4] The
 NREBIRTH payload MUST use a seq number that specified to integrate into the existing DATA stream
-from the Edge Node.
+from the Edge Node.*#
 ** For example, if the next pending DATA message sequence number will be 100 and the Edge Node has
 two devices, the NBIRTHs sequence number value must be 97. This means the sequence numbers will be:
 NBIRTH: 97, DBIRTH 1: 98, DBIRTH 2: 99, DATA: 100
@@ -1004,16 +1004,16 @@ NBIRTH: 97, DBIRTH 1: 98, DBIRTH 2: 99, DATA: 100
 Application getting in sync with the data stream.
 * [tck-testable tck-id-operational-behavior-rebirth-action-5]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-5] The
 NREBIRTH payload MUST account for sequence number rollover if required based on the next pending
-DATA message and the number of devices under the scope of the Edge Node.
+DATA message and the number of devices under the scope of the Edge Node.*#
 ** For example, if the next pending DATA message sequence number will be 1 and the Edge Node has
 two devices, the NBIRTHs sequence number value must be 18446744073709551614. This means the sequence
 numbers will be: NBIRTH: 18446744073709551614, DBIRTH 1: 18446744073709551615, DBIRTH 2: 0, DATA: 1
 ** The above example is based on the fact that the max value of a UINT64 is 18446744073709551615
 * [tck-testable tck-id-operational-behavior-rebirth-action-6]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-6] Each
-DREBIRTH payload MUST use a seq number that is incremented by one from the previous message.
+DREBIRTH payload MUST use a seq number that is incremented by one from the previous message.*#
 * [tck-testable tck-id-operational-behavior-rebirth-action-7]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-7] Each
 NREBIRTH  and DREBIRTH payload MUST include the current values for all metrics to properly integrate
-into the existing DATA stream.
+into the existing DATA stream.*#
 * After the new REBIRTH sequence is published, the Edge Node MAY continue sending DATA messages.
 
 Sparkplug commands are used to 'write' to outputs on Sparkplug Edge Nodes or Devices. Often these
