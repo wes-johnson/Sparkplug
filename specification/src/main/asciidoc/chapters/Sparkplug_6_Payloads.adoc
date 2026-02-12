@@ -65,7 +65,7 @@ https://developers.google.com/protocol-buffers/
 As described in the link:#introduction_define_the_mqtt_payload[Introduction Section] Sparkplug A is
 deprecated and is not included in this document.
 
-[[payloads_sparkplug_b_mqtt_payload_definition]]
+[[payloads_sparkplug_c_mqtt_payload_definition]]
 === Sparkplug B MQTT Payload Definition
 
 The goal of Sparkplug is to provide a specification that both OEM device manufactures and
@@ -99,7 +99,7 @@ Sparkplug B selected an existing, open, and highly available encoding scheme tha
 encodes register based process variables. The encoding technology selected for Sparkplug B is Google
 Protocol Buffers.
 
-[[payloads_b_google_protocol_buffer_schema]]
+[[payloads_c_google_protocol_buffer_schema]]
 ==== Google Protocol Buffer Schema
 
 Using lessons learned on the feedback from the Sparkplug A implementation a new Google Protocol
@@ -121,7 +121,7 @@ being requested. The entire Google Protocol Buffers definition is below.
 //
 // To compile:
 // cd client_libraries/java
-// protoc --proto_path=../../ --java_out=src/main/java ../../sparkplug_b.proto
+// protoc --proto_path=../../ --java_out=src/main/java ../../sparkplug_c.proto
 //
 
 syntax = "proto2";
@@ -309,7 +309,7 @@ message Payload {
 }
 ----
 
-[[payloads_b_payload_metric_naming_convention]]
+[[payloads_c_payload_metric_naming_convention]]
 ==== Payload Metric Naming Convention
 
 For the remainder of this document JSON will be used to represent components of a Sparkplug B
@@ -362,7 +362,7 @@ fashion:
 .Figure 9 – Payload Metric Folder Structure
 plantuml::{assetsdir}assets/plantuml/payload-metric-folder-structure.puml[format=svg, alt="Payload Metric Folder Structure"]
 
-[[payloads_b_sparkplug_bv1_0_payload_components]]
+[[payloads_c_sparkplug_cv1_0_payload_components]]
 ==== Sparkplug B v1.0 Payload Components
 
 The Sparkplug specification link:#topics[Topics Section] defines the Topic Namespace that Sparkplug
@@ -370,13 +370,13 @@ uses to publish and subscribe between Edge Nodes and Host Applications within th
 infrastructure. Using that Topic Namespace, this section of the specification defines the actual
 payload contents of each message type in Sparkplug B v1.0.
 
-[[payloads_b_payload_component_definitions]]
+[[payloads_c_payload_component_definitions]]
 ==== Payload Component Definitions
 
 Sparkplug B consists of a series of one or more metrics with metadata surrounding those metrics. The 
 following definitions explain the components that make up a payload.
 
-[[payloads_b_payload]]
+[[payloads_c_payload]]
 ==== Payload
 
 A Sparkplug B payload is the top-level component that is encoded and used in an MQTT message. It
@@ -393,7 +393,7 @@ timestamp MUST be in UTC.*#
 *** This timestamp represents the time at which the message was published.
 ** _metrics_
 *** This is an array of metrics representing key/value/datatype values. Metrics are further defined 
-link:#payloads_b_metric[here].
+link:#payloads_c_metric[here].
 ** _seq_
 *** This is the sequence number which is an unsigned 64-bit integer.
 **** [tck-testable tck-id-payloads-sequence-num-always-included]#[yellow-background]*[tck-id-payloads-sequence-num-always-included] A
@@ -436,7 +436,7 @@ optional array of bytes associated with a payload.
 ** _body_
 *** This is an array of bytes which can be used for any custom binary encoded data.
 
-[[payloads_b_metric]]
+[[payloads_c_metric]]
 ==== Metric
 
 A Sparkplug B metric is a core component of data in the payload. It represents a key, value,
@@ -492,7 +492,7 @@ timestamp MUST be in UTC if it is included.*#
 datatype MUST be an unsigned 32-bit integer representing the datatype.*#
 ** [tck-testable tck-id-payloads-metric-datatype-value]#[yellow-background]*[tck-id-payloads-metric-datatype-value] The
 datatype MUST be one of the enumerated values as shown in the
-link:#payloads_b_datatypes[valid Sparkplug Data Types].*#
+link:#payloads_c_datatypes[valid Sparkplug Data Types].*#
 ** [tck-testable tck-id-payloads-metric-datatype-req]#[yellow-background]*[tck-id-payloads-metric-datatype-req] The
 datatype MUST be included with each metric definition in NBIRTH and DBIRTH messages.*#
 ** [tck-testable tck-id-payloads-metric-datatype-not-req]#[yellow-background]*[tck-id-payloads-metric-datatype-not-req] The
@@ -535,11 +535,11 @@ not be stored in a historian.
 mechanism of explicitly denoting a metric’s value is actually null.
 * *metadata*
 ** This is a MetaData object associated with the metric for dealing with more complex datatypes.
-This is covered in the link:#payloads_b_metadata[metadata section].
+This is covered in the link:#payloads_c_metadata[metadata section].
 * *properties*
 ** This is a PropertySet object associated with the metric for including custom key/value pairs of
 metadata associated with a metric. This is covered in the
-link:#payloads_b_propertyset[property set section].
+link:#payloads_c_propertyset[property set section].
 * *value*
 ** The value of a metric utilizes the ‘oneof’ mechanism of Google Protocol Buffers. The value
 supplied with a metric MUST be one of the following types. Note if the metrics is_null flag is set
@@ -553,11 +553,11 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 *** Google Protocol Buffer Type: _string_
 *** Google Protocol Buffer Type: _bytes_
 *** Sparkplug _DataSet_
-**** Defined link:#payloads_b_dataset[here].
+**** Defined link:#payloads_c_dataset[here].
 *** Sparkplug _Template_
-**** Defined link:#payloads_b_template[here].
+**** Defined link:#payloads_c_template[here].
 
-[[payloads_b_metadata]]
+[[payloads_c_metadata]]
 ==== MetaData
 
 A Sparkplug B MetaData object is used to describe different types of binary data. These are optional
@@ -587,7 +587,7 @@ string to represent it.
 ** This is a freeform field with a UTF-8 string to represent any other pertinent metadata for this
 metric. It can contain JSON, XML, text, or anything else that can be understood by both the
 publisher and the subscriber.
-[[payloads_b_propertyset]]
+[[payloads_c_propertyset]]
 ==== PropertySet
 
 A Sparkplug B PropertySet object is used with a metric to add custom properties to the object. The 
@@ -605,7 +605,7 @@ PropertySet.
 ** [tck-testable tck-id-payloads-propertyset-values-array-size]#[yellow-background]*[tck-id-payloads-propertyset-values-array-size] The
 array of values in a PropertySet MUST contain the same number of items that are in the keys array.*#
 
-[[payloads_b_propertyvalue]]
+[[payloads_c_propertyvalue]]
 ==== PropertyValue
 
 A Sparkplug B PropertyValue object is used to encode the value and datatype of the value of a
@@ -616,9 +616,9 @@ property in a PropertySet. It includes the following components.
 MUST be an unsigned 32-bit integer representing the datatype.*#
 ** [tck-testable tck-id-payloads-metric-propertyvalue-type-value]#[yellow-background]*[tck-id-payloads-metric-propertyvalue-type-value] This
 value MUST be one of the enumerated values as shown in the
-link:#payloads_b_datatype_basic[Sparkplug Basic Data Types]
+link:#payloads_c_datatype_basic[Sparkplug Basic Data Types]
 or the
-link:#payloads_b_datatype_propertyvalue[Sparkplug Property Value Data Types].*#
+link:#payloads_c_datatype_propertyvalue[Sparkplug Property Value Data Types].*#
 ** [tck-testable tck-id-payloads-metric-propertyvalue-type-req]#[yellow-background]*[tck-id-payloads-metric-propertyvalue-type-req] This
 MUST be included in Property Value Definitions in NBIRTH and DBIRTH messages.*#
 * *is_null*
@@ -639,13 +639,13 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 *** Google Protocol Buffer Type: _string_
 *** Google Protocol Buffer Type: _bytes_
 *** Sparkplug _DataSet_
-**** Defined link:#payloads_b_dataset[here].
+**** Defined link:#payloads_c_dataset[here].
 *** Sparkplug _PropertySet_
-**** Defined link:#payloads_b_propertyset[here].
+**** Defined link:#payloads_c_propertyset[here].
 *** Sparkplug _PropertySetList_
-**** Defined link:#payloads_b_propertysetlist[here].
+**** Defined link:#payloads_c_propertysetlist[here].
 
-[[payloads_b_well_known_properties]]
+[[payloads_c_well_known_properties]]
 ==== Well Known Properties
 
 [cols="1,1,5"]
@@ -663,16 +663,16 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 |True or False
 |===
 
-[[payloads_b_propertysetlist]]
+[[payloads_c_propertysetlist]]
 ==== PropertySetList
 
 A Sparkplug B PropertySetList object is an array of PropertySet objects. It includes the following 
 components.
 
 * *propertyset*
-** This is an array of link:#payloads_b_propertyset[PropertySet objects].
+** This is an array of link:#payloads_c_propertyset[PropertySet objects].
 
-[[payloads_b_dataset]]
+[[payloads_c_dataset]]
 ==== DataSet
 
 A Sparkplug B DataSet object is used to encode matrices of data. It includes the following
@@ -694,14 +694,14 @@ array of types MUST have the same number of elements that the columns array cont
 values in the types array MUST be a unsigned 32-bit integer representing the datatype.*#
 ** [tck-testable tck-id-payloads-dataset-types-value]#[yellow-background]*[tck-id-payloads-dataset-types-value] This
 values in the types array MUST be one of the enumerated values as shown in the
-link:#payloads_b_datatype_basic[Sparkplug Basic Data Types].*#
+link:#payloads_c_datatype_basic[Sparkplug Basic Data Types].*#
 ** [tck-testable tck-id-payloads-dataset-parameter-type-req]#[yellow-background]*[tck-id-payloads-dataset-parameter-type-req] The
 types array MUST be included in all DataSets.*#
 * *rows*
 ** This is an array of DataSet.Row objects. It contains the data that makes up the data rows of this 
 DataSet.
 
-[[payloads_b_dataset_row]]
+[[payloads_c_dataset_row]]
 ==== DataSet.Row
 
 A Sparkplug B DataSet.Row object represents a row of data in a DataSet. It includes the following 
@@ -711,7 +711,7 @@ components.
 ** This is an array of DataSet.DataSetValue objects. It represents the data contained within a row
 of a DataSet.
 
-[[payloads_b_dataset_datasetvalue]]
+[[payloads_c_dataset_datasetvalue]]
 ==== DataSet.DataSetValue
 
 * *value*
@@ -723,7 +723,7 @@ _double_, _bool_, or _string_.*#
 More information on the types above can be found here:
 https://developers.google.com/protocol-buffers/docs/proto#scalar
 
-[[payloads_b_template]]
+[[payloads_c_template]]
 ==== Template
 
 A Sparkplug B Template is used for encoding complex datatypes in a payload. It is a type of metric
@@ -805,7 +805,7 @@ MUST be set to true if this is a Template Definition.*#
 ** [tck-testable tck-id-payloads-template-is-definition-instance]#[yellow-background]*[tck-id-payloads-template-is-definition-instance] This
 MUST be set to false if this is a Template Instance.*#
 
-[[payloads_b_template_parameter]]
+[[payloads_c_template_parameter]]
 ==== Template.Parameter
 
 A Sparkplug B Template.Parameter is a metadata field for a Template. This can be used to represent 
@@ -822,7 +822,7 @@ MUST be a UTF-8 string representing the name of the Template parameter.*#
 MUST be an unsigned 32-bit integer representing the datatype.*#
 ** [tck-testable tck-id-payloads-template-parameter-type-value]#[yellow-background]*[tck-id-payloads-template-parameter-type-value] This
 value MUST be one of the enumerated values as shown in the
-link:#payloads_b_datatype_basic[Sparkplug Basic Data Types].*#
+link:#payloads_c_datatype_basic[Sparkplug Basic Data Types].*#
 ** [tck-testable tck-id-payloads-template-parameter-type-req]#[yellow-background]*[tck-id-payloads-template-parameter-type-req] This
 MUST be included in Template Parameter Definitions in NBIRTH and DBIRTH messages.*#
 * *value*
@@ -835,7 +835,7 @@ https://developers.google.com/protocol-buffers/docs/proto#scalar
 ** For a template definition, this is the default value of the parameter. For a template instance,
 this is the value unique to that instance.
 
-[[payloads_b_datatypes]]
+[[payloads_c_datatypes]]
 ==== Data Types
 
 Sparkplug defines the valid data types used for various Sparkplug constucts including Metric
@@ -893,10 +893,10 @@ enum DataType {
 }
 ----
 
-[[payloads_b_datatype_details]]
+[[payloads_c_datatype_details]]
 ==== Datatype Details
 
-[[payloads_b_datatype_basic]]
+[[payloads_c_datatype_basic]]
 * *Basic Types*
 ** _Unknown_
 *** Sparkplug enum value: 0
@@ -957,14 +957,14 @@ enum DataType {
 ** Google Protocol Buffer Type: string
 ** Sparkplug enum value: 14
 
-[[payloads_b_datatype_additional]]
+[[payloads_c_datatype_additional]]
 * *Additional Types*
 ** _UUID_
 *** UUID value as a UTF-8 string
 *** Google Protocol Buffer Type: string
 *** Sparkplug enum value: 15
 ** _DataSet_
-*** DataSet as defined link:#payloads_b_dataset[here]
+*** DataSet as defined link:#payloads_c_dataset[here]
 *** Google Protocol Buffer Type: none – defined in Sparkplug
 *** Sparkplug enum value: 16
 ** _Bytes_
@@ -976,22 +976,22 @@ enum DataType {
 *** Google Protocol Buffer Type: bytes
 *** Sparkplug enum value: 18
 ** _Template_
-*** Template as defined link:#payloads_b_template[here]
+*** Template as defined link:#payloads_c_template[here]
 *** Google Protocol Buffer Type: none – defined in Sparkplug
 *** Sparkplug enum value: 19
 
-[[payloads_b_datatype_propertyvalue]]
+[[payloads_c_datatype_propertyvalue]]
 * *Additional PropertyValue Types*
 ** _PropertySet_
-*** PropertySet as defined link:#payloads_b_propertyset[here]
+*** PropertySet as defined link:#payloads_c_propertyset[here]
 *** Google Protocol Buffer Type: none – defined in Sparkplug
 *** Sparkplug enum value: 20
 ** _PropertySetList_
-*** PropertySetList as defined link:#payloads_b_propertysetlist[here]
+*** PropertySetList as defined link:#payloads_c_propertysetlist[here]
 *** Google Protocol Buffer Type: none – defined in Sparkplug
 *** Sparkplug enum value: 21
 
-[[payloads_b_datatype_array]]
+[[payloads_c_datatype_array]]
 * *Array Types*
 
 All array types use the bytes_value field of the Metric value field. They are simply little-endian
@@ -1079,7 +1079,7 @@ value representing the number of nanoseconds since epoch in UTC
 Sparkplug B payloads in conjunction with the Sparkplug topic namespace result in hierarchical data 
 structures that can be represented in folder structures with metrics which are often called tags.
 
-[[payloads_b_nbirth]]
+[[payloads_c_nbirth]]
 ==== NBIRTH
 
 The NBIRTH is responsible for informing host applications of all of the information about the Edge
@@ -1191,7 +1191,7 @@ This would result in a structure as follows on the Host Application.
 .Figure 10 – Sparkplug B Metric Structure 1
 plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-1.puml[format=svg, alt="Sparkplug B Metric Structure 1"]
 
-[[payloads_b_nrebirth]]
+[[payloads_c_nrebirth]]
 ==== NREBIRTH
 
 The NREBIRTH is responsible for informing a specific host application of all of the information
@@ -1310,7 +1310,7 @@ This would result in a structure as follows on the Host Application.
 .Figure 10 – Sparkplug B Metric Structure 1
 plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-1.puml[format=svg, alt="Sparkplug B Metric Structure 1"]
 
-[[payloads_b_dbirth]]
+[[payloads_c_dbirth]]
 ==== DBIRTH
 
 The DBIRTH is responsible for informing the Host Application of all of the information about the
@@ -1432,7 +1432,7 @@ This would result in a structure as follows on the Host Application.
 .Figure 11 – Sparkplug B Metric Structure 2
 plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-2.puml[format=svg, alt="Sparkplug B Metric Structure 2"]
 
-[[payloads_b_drebirth]]
+[[payloads_c_drebirth]]
 ==== DREBIRTH
 
 The DREBIRTH is responsible for informing a Host Application that is requesting a rebirth of all of
@@ -1554,7 +1554,7 @@ This would result in a structure as follows on the Host Application.
 .Figure 11 – Sparkplug B Metric Structure 2
 plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-2.puml[format=svg, alt="Sparkplug B Metric Structure 2"]
 
-[[payloads_b_ndata]]
+[[payloads_c_ndata]]
 ==== NDATA
 
 NDATA messages are used to update the values of any Edge Node metrics that were originally published
@@ -1612,7 +1612,7 @@ Consider the following Sparkplug B payload in the NDATA message shown above:
 
 This would result in the host application updating the value of the 'Supply Voltage' metric.
 
-[[payloads_b_ddata]]
+[[payloads_c_ddata]]
 ==== DDATA
 
 DDATA messages are used to update the values of any device metrics that were originally published in
@@ -1673,7 +1673,7 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
 This would result in the Host Application updating the value of the ‘Inputs/A’ metric and ‘Inputs/C’ 
 metric.
 
-[[payloads_b_rebirth]]
+[[payloads_c_rebirth]]
 ==== REBIRTH
 
 REBIRTH messages are used by Host Applications to resync with an Edge Nodes existing data stream.
@@ -1714,7 +1714,7 @@ This REBIRTH payload tells the Edge Node to publish NREBIRTH and DREBIRTH(s) mes
 requested if a Host Application gets an out of order seq number or if a metric arrives in an NDATA
 or DDATA message that was not provided in the original NBIRTH or DBIRTH messages.
 
-[[payloads_b_ncmd]]
+[[payloads_c_ncmd]]
 ==== NCMD
 
 NCMD messages are used by Host Applications to write to Edge Node outputs and send Node Control
@@ -1767,7 +1767,7 @@ The NCMD payload tells the Edge Node to write true to the 'DIGITAL_OUT_1' metric
 DIGITAL_OUT_1 alue should turn true and result in a NDATA message back to the MQTT Server after the
 DIGITAL_OUT_1 is successfully set to true.
 
-[[payloads_b_dcmd]]
+[[payloads_c_dcmd]]
 ==== DCMD
 
 DCMD messages are used by Host Applications to write to device outputs and send Device Control
@@ -1826,7 +1826,7 @@ The DCMD payload tells the Edge Node to write true to the attached device’s gr
 As a result, the LEDs should turn on and result in a DDATA message back to the MQTT Server after the
 LEDs are successfully turned on.
 
-[[payloads_b_ndeath]]
+[[payloads_c_ndeath]]
 ==== NDEATH
 
 The NDEATH messages are registered with the MQTT Server in the MQTT CONNECT packet as the 'Will
@@ -1896,7 +1896,7 @@ Consider the following Sparkplug B payload in the NDEATH message shown above:
 The bdSeq number value in the payload allows a Host Application to reconcile this NDEATH with the
 NBIRTH and/or NREBIRTH that occurred previously.
 
-[[payloads_b_ddeath]]
+[[payloads_c_ddeath]]
 ==== DDEATH
 
 The DDEATH messages are published by an Edge Node on behalf of an attached device. If the Edge Node
@@ -1938,7 +1938,7 @@ Consider the following Sparkplug B payload in the DDEATH message shown above:
 sequence number MUST be included with the DDEATH messages so the Host Application can ensure order
 of messages and maintain the state of the data.*#
 
-[[payloads_b_state]]
+[[payloads_c_state]]
 ==== STATE
 
 As noted previously, the STATE messages published by Sparkplug Host Applications do not use
@@ -1977,3 +1977,24 @@ Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value
 MUST be 'online' and it's value is a boolean 'true'. The other key MUST be 'timestamp' and the value
 MUST match the timestamp value that was used in the immediately prior MQTT CONNECT packet Will
 Message payload.*#
+
+[[payloads_c_compression]]
+==== Compression
+
+Sparkplug payloads may optionally be compressed to further improve bandwidth utilization. If using
+compression, the following is required
+
+// FIXME - should we specify possible algorithms?
+* [tck-testable tck-id-payloads-compression-algorithm-metric]#[yellow-background]*[tck-id-payloads-compression-algorithm-metric] When using
+Sparkplug compression, the payload MUST include a single Metric with the name 'algorithm', the current
+timestamp, a datatype of 'String', and a String value denoting the algorithm used in compressing the
+original payload.*#
+* [tck-testable tck-id-payloads-compression-seq-num]#[yellow-background]*[tck-id-payloads-compression-seq-num] When
+using Sparkplug compression, the payload MUST include a valid seq number.*#
+// FIXME - are there other considerations around UUIDs?
+* [tck-testable tck-id-payloads-compression-uuid]#[yellow-background]*[tck-id-payloads-compression-uuid] When
+using Sparkplug compression, the payload MUST include a UUID with the String value of
+'SPCV1.0_COMPRESSED'.*#
+* [tck-testable tck-id-payloads-compression-body]#[yellow-background]*[tck-id-payloads-compression-body] When
+using Sparkplug compression, the payload MUST include a body that is the byte array representing the
+compressed bytes of the original non-compressed payload.*#
