@@ -1982,7 +1982,9 @@ Message payload.*#
 ==== Compression
 
 Sparkplug payloads may optionally be compressed to further improve bandwidth utilization. If using
-compression, the following is required
+compression, the following is required.
+
+// FIXME - what payloads can be compressed?
 
 // FIXME - should we specify possible algorithms?
 * [tck-testable tck-id-payloads-compression-algorithm-metric]#[yellow-background]*[tck-id-payloads-compression-algorithm-metric] When using
@@ -1998,3 +2000,241 @@ using Sparkplug compression, the payload MUST include a UUID with the String val
 * [tck-testable tck-id-payloads-compression-body]#[yellow-background]*[tck-id-payloads-compression-body] When
 using Sparkplug compression, the payload MUST include a body that is the byte array representing the
 compressed bytes of the original non-compressed payload.*#
+
+[[payloads_c_file_publishing]]
+==== File Publishing
+
+Sparkplug C supports publishing of files either a single published metric or in multi-part form. If
+publishing as a single metric, the following rules apply.
+
+* [tck-testable tck-id-payloads-file-single-metric-data]#[yellow-background]*[tck-id-payloads-file-single-metric-data] When
+publishing a file in a single metric, a single metric MUST be included in a NDATA or DDATA message under
+the scope of the same Sparkplug Edge Node or Device, with the following conditions being met.*#
+* [tck-testable tck-id-payloads-file-single-metric-name]#[yellow-background]*[tck-id-payloads-file-single-metric-name] The
+metric name MUST be the filename.*#
+* [tck-testable tck-id-payloads-file-single-alias]#[yellow-background]*[tck-id-payloads-file-single-alias] The
+alias MUST be null even if aliasing is being utilized for other metrics.*#
+* [tck-testable tck-id-payloads-file-single-timestamp]#[yellow-background]*[tck-id-payloads-file-single-timestamp] The
+timestamp MUST be the timestamp associated with the time the file is being published from the Edge Node
+or Device.*#
+* [tck-testable tck-id-payloads-file-single-datatype]#[yellow-background]*[tck-id-payloads-file-single-datatype] The
+DataType MUST be set to 'File'.*#
+// FIXME - what about is_historical and is_transient?
+* [tck-testable tck-id-payloads-file-single-metadata-multi-part]#[yellow-background]*[tck-id-payloads-file-single-metadata-multi-part] The
+Metric MetaData is_multi_part MUST be included and set to the Boolean value of false.*#
+* [tck-testable tck-id-payloads-file-single-metadata-content-type]#[yellow-background]*[tck-id-payloads-file-single-metadata-content-type] The
+Metric MetaData content_type MUST be included and set to the String value of 'application/octet-stream'.*#
+* [tck-testable tck-id-payloads-file-single-metadata-size]#[yellow-background]*[tck-id-payloads-file-single-metadata-size] The
+Metric MetaData size MUST be included and set to the uint64 value of the number of bytes in the file.*#
+* [tck-testable tck-id-payloads-file-single-metadata-seq-num]#[yellow-background]*[tck-id-payloads-file-single-metadata-seq-num] The
+Metric MetaData seq number MUST be included and set to the uint64 value of 1.*#
+* [tck-testable tck-id-payloads-file-single-metadata-file-name]#[yellow-background]*[tck-id-payloads-file-single-metadata-file-name] The
+Metric MetaData file_name MUST be included and set to the String value of the file name.*#
+* [tck-testable tck-id-payloads-file-single-metadata-md5]#[yellow-background]*[tck-id-payloads-file-single-metadata-md5] The
+Metric MetaData md5 MUST be included and set to the String value of the md5 sum of the file.*#
+* [tck-testable tck-id-payloads-file-single-value]#[yellow-background]*[tck-id-payloads-file-single-value] The
+Metric value MUST be included and set to an array of bytes representing the entire file.*#
+* [tck-testable tck-id-payloads-file-single-is-null]#[yellow-background]*[tck-id-payloads-file-single-is-null] The
+Metric is_null value must be either omitted or set to the boolean value of false.*#
+
+When publishing files in multi-part form, the following rules apply to all metrics that make up the
+multi-part file publish.
+
+* [tck-testable tck-id-payloads-file-multi-metric-data]#[yellow-background]*[tck-id-payloads-file-multi-metric-data] When
+publishing a file in parts via multiple metrics, all metrics regarding the file publish MUST be included
+in NDATA or DDATA messages and MUST remain under the scope of the same Sparkplug Edge Node or Device.*#
+* [tck-testable tck-id-payloads-file-multi-metric-name]#[yellow-background]*[tck-id-payloads-file-multi-metric-name] The
+metric name MUST always be the filename.*#
+* [tck-testable tck-id-payloads-file-multi-alias]#[yellow-background]*[tck-id-payloads-file-multi-alias] The
+metric alias for multi-part file publish metrics MUST always be set to null even if aliasing is being
+utilized for other metrics.*#
+* [tck-testable tck-id-payloads-file-multi-timestamp]#[yellow-background]*[tck-id-payloads-file-multi-timestamp] The
+metric timestamp MUST be the timestamp associated with the time the file is being published from the Edge
+Node or Device.*#
+* [tck-testable tck-id-payloads-file-multi-datatype]#[yellow-background]*[tck-id-payloads-file-multi-datatype] The
+metric DataType MUST be set to 'File'.*#
+// FIXME - what about is_historical and is_transient - do these even need to be addressed explicitly?
+* [tck-testable tck-id-payloads-file-multi-metadata-multi-part]#[yellow-background]*[tck-id-payloads-file-multi-metadata-multi-part] The
+metric MetaData is_multi_part MUST be included and set to the Boolean value of true.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-content-type]#[yellow-background]*[tck-id-payloads-file-multi-metadata-content-type] The
+metric MetaData content_type MUST be included and set to the String value of 'application/octet-stream'.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-file-name]#[yellow-background]*[tck-id-payloads-file-multi-metadata-file-name] The
+metric MetaData file_name MUST be included and set to the String value of the file name.*#
+
+When publishing in multi-part form, the following rules apply regarding the first metric associated with
+the file publish.
+
+* [tck-testable tck-id-payloads-file-multi-metadata-size-first]#[yellow-background]*[tck-id-payloads-file-multi-metadata-size-first] The
+first metric regarding the file publish's metric MetaData size MUST be included and set to the uint64
+value of the total number of separate metrics that make up the full multi-part file publish.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-seq-num-first]#[yellow-background]*[tck-id-payloads-file-multi-metadata-seq-num-first] The
+first metric regarding the file publish's metric MetaData seq number MUST be included and set to the
+uint64 value of zero.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-md5-first]#[yellow-background]*[tck-id-payloads-file-multi-metadata-md5-first] The
+first metric regarding the file publish's metric MetaData md5 MUST be included and set to the String value
+of the md5 sum of the entire file.*#
+* [tck-testable tck-id-payloads-file-multi-value-first]#[yellow-background]*[tck-id-payloads-file-multi-value-first] The
+first metric regarding the file publish's metric value MUST be set to null.*#
+* [tck-testable tck-id-payloads-file-multi-is-null-first]#[yellow-background]*[tck-id-payloads-file-multi-is-null-first] The
+first metric regarding the file publish's metric is_null value MUST be set to true.*#
+
+When publishing in multi-part form, the following rules apply regarding all metrics after the first metric
+that make up the full multi-part file publish.
+
+* [tck-testable tck-id-payloads-file-multi-metadata-size]#[yellow-background]*[tck-id-payloads-file-multi-metadata-size] The
+metrics that are not the first metric in the multi-part file publish MUST include a metric MetaData size
+and it MUST be set to the number of bytes of the file that were sent in this metric's value.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-seq-num]#[yellow-background]*[tck-id-payloads-file-multi-metadata-seq-num] The
+metrics that are not the first metric in the multi-part file publish MUST include a metric MetaData seq
+number and it MUST represent the index of this metric value's file part. The index of the first
+multi-part metric that does not include a NULL metric value MUST be one. Each subsequent index
+MUST increment by one denoting the portion of the file being sent. The final index MUST equal
+the total number of parts that make up the file.*#
+* [tck-testable tck-id-payloads-file-multi-metadata-md5]#[yellow-background]*[tck-id-payloads-file-multi-metadata-md5] The
+metrics that are not the first metric in the multi-part file publish MUST include a metric MetaData md5
+and it MUST be set to the String value that represents the md5 sum of this metric's file part.*#
+* [tck-testable tck-id-payloads-file-multi-value]#[yellow-background]*[tck-id-payloads-file-multi-value] The
+metrics that are not the first metric in the multi-part file publish MUST include a metric value and it
+MUST be set to an array of bytes representing this metric's portion of the file.*#
+* [tck-testable tck-id-payloads-file-multi-is-null]#[yellow-background]*[tck-id-payloads-file-multi-is-null] The
+metrics that are not the first metric in the multi-part file MUST either not include the is_null flag or
+it MUST be set to false.*#
+
+[[payloads_c_file_publish_acknowledgment]]
+==== File Publish Acknowledgment
+
+When a file is published as described above, the receiving application may acknowledge each received file
+metric so the publishing Edge Node or Device can confirm receipt, advance a multi-part transfer to the
+next part, and detect errors. The acknowledgment is itself a Sparkplug payload published back to the
+originating Edge Node or Device. If the publisher does not receive an acknowledgment within an
+implementation defined timeout, it may retry the file metric or abort the transfer. The following rules
+apply to file publish acknowledgments.
+
+* [tck-testable tck-id-payloads-file-ack-should]#[yellow-background]*[tck-id-payloads-file-ack-should] A
+receiving application SHOULD publish an acknowledgment for each received file metric so the publisher can
+confirm receipt and, for a multi-part file publish, advance the transfer to the next part.*#
+* [tck-testable tck-id-payloads-file-ack-topic]#[yellow-background]*[tck-id-payloads-file-ack-topic] When
+a receiving application acknowledges a received file metric, the acknowledgment MUST be published as an
+NCMD message on topic 'spBv1.0/group_id/NCMD/edge_node_id' if the file metric was received in an NDATA
+message, or as a DCMD message on topic 'spBv1.0/group_id/DCMD/edge_node_id/device_id' if the file metric
+was received in a DDATA message, scoped to the same Sparkplug Edge Node or Device that published the
+file.*#
+* [tck-testable tck-id-payloads-file-ack-seq-metric]#[yellow-background]*[tck-id-payloads-file-ack-seq-metric] The
+acknowledgment payload MUST include a metric named 'Last Published Sequence Number' with a DataType of
+Int64 and a value set to the MetaData seq number of the file metric being acknowledged.*#
+* [tck-testable tck-id-payloads-file-ack-status-metric]#[yellow-background]*[tck-id-payloads-file-ack-status-metric] The
+acknowledgment payload MUST include a metric named 'Publish Operation Status Code' with a DataType of
+Int32 and a value set to one of the status codes defined in the File Publish Status Codes table below.*#
+* [tck-testable tck-id-payloads-file-ack-success]#[yellow-background]*[tck-id-payloads-file-ack-success] On
+the successful receipt and validation, including md5 sum validation, of a complete single-part file or
+the final part of a multi-part file, the 'Publish Operation Status Code' metric MUST be set to the value
+200 (Success).*#
+* [tck-testable tck-id-payloads-file-ack-continue]#[yellow-background]*[tck-id-payloads-file-ack-continue] On
+the successful receipt and validation of a part of a multi-part file that is not the final part, the
+'Publish Operation Status Code' metric SHOULD be set to the value 100 (Continue) to request the next part
+of the file.*#
+* [tck-testable tck-id-payloads-file-ack-error]#[yellow-background]*[tck-id-payloads-file-ack-error] On
+a receive-side failure while processing a received file metric, the 'Publish Operation Status Code' metric
+MUST be set to the corresponding error status code from the File Publish Status Codes table below, for
+example 502 (File MD5 Sum Error) when the md5 sum of a complete file does not match, 503 (Message MD5 Sum
+Error) when the md5 sum of an individual part does not match, 500 (Sequence Number Error), 501 (Invalid
+Metrics), 504 (Error Writing File), or 505 (Error Renaming Partial File).*#
+
+The 'Publish Operation Status Code' metric value is taken from the following table of File Publish Status
+Codes. Codes are grouped by category: 1xx are informational, 2xx indicate success, 4xx indicate an error
+on the publishing (transmission) side, and 5xx indicate an error on the receiving side.
+
+[cols="1,2,4"]
+|===
+|*Code*
+|*Category*
+|*Meaning*
+
+|100
+|Informational
+|Continue File Transfer
+
+|101
+|Informational
+|File Transfer In Progress
+
+|102
+|Informational
+|File Transfer Terminated
+
+|103
+|Informational
+|File Transfer Terminated. Transmission Client Is Offline.
+
+|104
+|Informational
+|Online
+
+|105
+|Informational
+|Offline. Not Connected To Primary Host.
+
+|106
+|Informational
+|File Transfer Terminated. Not Connected To The Primary Host.
+
+|107
+|Informational
+|File Transfer Is Disabled In Configuration
+
+|200
+|Success
+|Success
+
+|400
+|Publishing Side Error
+|File Transfer Failed
+
+|401
+|Publishing Side Error
+|Sequence Number Error (Transmission)
+
+|402
+|Publishing Side Error
+|Sparkplug Parsing Error
+
+|404
+|Publishing Side Error
+|Resource Not Found
+
+|405
+|Publishing Side Error
+|Transmission Client Is Not Connected
+
+|406
+|Publishing Side Error
+|Transmission Client Failed To Publish
+
+|408
+|Publishing Side Error
+|Request Timeout
+
+|500
+|Receiving Side Error
+|Sequence Number Error (Engine)
+
+|501
+|Receiving Side Error
+|Invalid Metrics
+
+|502
+|Receiving Side Error
+|File MD5 Sum Error
+
+|503
+|Receiving Side Error
+|Message MD5 Sum Error
+
+|504
+|Receiving Side Error
+|Error Writing File
+
+|505
+|Receiving Side Error
+|Error Renaming Partial File
+|===
