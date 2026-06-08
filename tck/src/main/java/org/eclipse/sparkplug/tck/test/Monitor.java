@@ -343,13 +343,13 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_BIRTH_PAYLOAD)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
 			id = ID_TOPICS_NBIRTH_BDSEQ_INCREMENT)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_WILL_MESSAGE_PAYLOAD)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_STATE_DEATH,
@@ -494,7 +494,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PAYLOAD,
+			section = Sections.PAYLOADS_C_PAYLOAD,
 			id = ID_PAYLOADS_TIMESTAMP_IN_UTC)
 	@SpecAssertion(
 			section = Sections.TOPICS_NAMESPACE_ELEMENT,
@@ -716,10 +716,10 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			section = Sections.TOPICS_EDGE_NODE_ID_ELEMENT,
 			id = ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_EDGE_NODE_DESCRIPTOR)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_DATA_PUBLISH,
@@ -815,7 +815,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			section = Sections.TOPICS_EDGE_NODE_ID_ELEMENT,
 			id = ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_EDGE_NODE_DESCRIPTOR)
 
 	private void handleNDEATH(String group_id, String edge_node_id, String clientId) {
@@ -852,7 +852,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_SEQ_INC)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
@@ -873,7 +873,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			section = Sections.PRINCIPLES_REPORT_BY_EXCEPTION,
 			id = ID_PRINCIPLES_RBE_RECOMMENDED)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PAYLOAD,
+			section = Sections.PAYLOADS_C_PAYLOAD,
 			id = ID_PAYLOADS_SEQUENCE_NUM_INCREMENTING)
 	private void handleNDATA(String group_id, String edge_node_id, PayloadOrBuilder payload) {
 		logger.info("Monitor: *** NDATA *** {}/{}", group_id, edge_node_id);
@@ -1019,7 +1019,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
 			id = ID_TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_SEQ_INC)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_DEVICE_SESSION_ESTABLISHMENT,
@@ -1144,7 +1144,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDEATH,
+			section = Sections.PAYLOADS_C_DDEATH,
 			id = ID_PAYLOADS_DDEATH_SEQ_INC)
 	private void handleDDEATH(String group_id, String edge_node_id, String device_id, PayloadOrBuilder payload) {
 		logger.info("Monitor: *** DDEATH *** {}/{}/{}", group_id, edge_node_id, device_id);
@@ -1180,7 +1180,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_SEQ_INC)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DBIRTH,
@@ -1201,7 +1201,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			section = Sections.PRINCIPLES_REPORT_BY_EXCEPTION,
 			id = ID_PRINCIPLES_RBE_RECOMMENDED)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PAYLOAD,
+			section = Sections.PAYLOADS_C_PAYLOAD,
 			id = ID_PAYLOADS_SEQUENCE_NUM_INCREMENTING)
 	private void handleDDATA(String group_id, String edge_node_id, String device_id, PayloadOrBuilder payload) {
 		logger.info("Monitor: *** DDATA *** {}/{}/{}", group_id, edge_node_id, device_id);

@@ -21,13 +21,13 @@ import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_PATH_NCMD;
 import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_PATH_NDEATH;
 import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_ROOT_SP_BV_1_0;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_TOPIC;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_REBIRTH_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_DCMD_QOS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_DCMD_RETAIN;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_DCMD_SEQ;
@@ -46,13 +46,13 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NCMD_
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NCMD_TIMESTAMP;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NCMD_TOPIC;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_TOPIC;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_REBIRTH_VERB;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_DCMD_QOS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_DCMD_RETAIN;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_DCMD_SEQ;
@@ -138,15 +138,15 @@ public class SendCommandTest extends TCKTest {
 	private static final Logger logger = LoggerFactory.getLogger("Sparkplug");
 	private final @NotNull Map<String, String> testResults = new HashMap<>();
 	public static final @NotNull List<String> testIds =
-			List.of(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB, ID_TOPICS_NCMD_MQTT, ID_PAYLOADS_NCMD_QOS,
+			List.of(ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB, ID_TOPICS_NCMD_MQTT, ID_PAYLOADS_NCMD_QOS,
 					ID_PAYLOADS_NCMD_RETAIN, ID_TOPICS_NCMD_TIMESTAMP, ID_PAYLOADS_NCMD_SEQ, ID_PAYLOADS_NCMD_TIMESTAMP,
-					ID_TOPICS_NCMD_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB,
-					ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB, ID_TOPICS_DCMD_MQTT, ID_PAYLOADS_DCMD_QOS,
+					ID_TOPICS_NCMD_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_REBIRTH_VERB,
+					ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB, ID_TOPICS_DCMD_MQTT, ID_PAYLOADS_DCMD_QOS,
 					ID_PAYLOADS_DCMD_RETAIN, ID_TOPICS_DCMD_TIMESTAMP, ID_PAYLOADS_DCMD_TIMESTAMP, ID_PAYLOADS_DCMD_SEQ,
-					ID_TOPICS_DCMD_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME,
-					ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE,
-					ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME,
-					ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE, ID_TOPICS_NCMD_TOPIC, ID_TOPICS_DCMD_TOPIC,
+					ID_TOPICS_DCMD_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME,
+					ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE,
+					ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME,
+					ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE, ID_TOPICS_NCMD_TOPIC, ID_TOPICS_DCMD_TOPIC,
 					ID_PAYLOADS_NAME_CMD_REQUIREMENT, ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_TOPIC);
 	private @NotNull String deviceId;
 	private @NotNull String groupId;
@@ -346,16 +346,16 @@ public class SendCommandTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NCMD,
+			section = Sections.PAYLOADS_C_NCMD,
 			id = ID_PAYLOADS_NCMD_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NCMD,
+			section = Sections.PAYLOADS_C_NCMD,
 			id = ID_PAYLOADS_NCMD_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NCMD,
+			section = Sections.PAYLOADS_C_NCMD,
 			id = ID_PAYLOADS_NCMD_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NCMD,
+			section = Sections.PAYLOADS_C_NCMD,
 			id = ID_PAYLOADS_NCMD_RETAIN)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NCMD,
@@ -368,17 +368,17 @@ public class SendCommandTest extends TCKTest {
 			id = ID_TOPICS_NCMD_PAYLOAD)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB)
 	@SpecAssertion(
 			section = Sections.TOPICS_COMMAND_NCMD,
 			id = ID_TOPICS_NCMD_TOPIC)
 	private void checkNodeCommand(final String clientId, final @NotNull PublishPacket packet) {
 		logger.info("Host - {}  - PUBLISH - checkNodeCommand {}, {}", getName(), packet.getTopic(), state);
 
-		logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB,
-				OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB);
-		testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB,
-				setResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_VERB));
+		logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB,
+				OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB);
+		testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB,
+				setResult(true, OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_VERB));
 
 		// QoS and not retained - related tests
 		logger.debug("Check Req: {}:{}.", ID_TOPICS_NCMD_MQTT, TOPICS_NCMD_MQTT);
@@ -417,16 +417,16 @@ public class SendCommandTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DCMD,
+			section = Sections.PAYLOADS_C_DCMD,
 			id = ID_PAYLOADS_DCMD_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DCMD,
+			section = Sections.PAYLOADS_C_DCMD,
 			id = ID_PAYLOADS_DCMD_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DCMD,
+			section = Sections.PAYLOADS_C_DCMD,
 			id = ID_PAYLOADS_DCMD_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DCMD,
+			section = Sections.PAYLOADS_C_DCMD,
 			id = ID_PAYLOADS_DCMD_RETAIN)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DCMD,
@@ -439,17 +439,17 @@ public class SendCommandTest extends TCKTest {
 			id = ID_TOPICS_DCMD_PAYLOAD)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB)
 	@SpecAssertion(
 			section = Sections.TOPICS_COMMAND_DCMD,
 			id = ID_TOPICS_DCMD_TOPIC)
 	private void checkDeviceCommand(String clientId, PublishPacket packet) {
 		logger.info("Host - {}  - PUBLISH - checkDeviceCommand {}, {} ", getName(), packet.getTopic(), state);
 
-		logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB,
-				OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB);
-		testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB,
-				setResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_VERB));
+		logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB,
+				OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB);
+		testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB,
+				setResult(true, OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_VERB));
 
 		// QoS and not retained - related tests
 		logger.debug("Check Req: {}:{}.", ID_TOPICS_DCMD_MQTT, TOPICS_DCMD_MQTT);
@@ -489,10 +489,10 @@ public class SendCommandTest extends TCKTest {
 
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE)
 	private Boolean[] checkValidDeviceCommandPayload(PayloadOrBuilder payload) {
 		Boolean[] bValidPayload = new Boolean[] { false, false, false };
 
@@ -511,11 +511,11 @@ public class SendCommandTest extends TCKTest {
 				// look for the current metric name in the birth metrics
 				for (Metric metric : deviceBirthMetrics) {
 					if (metric.getName().equals(current.getName())) {
-						testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME,
-								setShouldResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_NAME));
+						testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME,
+								setShouldResult(true, OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_NAME));
 						if (current.getDatatype() == metric.getDatatype() && Utils.hasValue(current)) {
-							testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE,
-									setResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_DCMD_METRIC_VALUE));
+							testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE,
+									setResult(true, OPERATIONAL_BEHAVIOR_COMMANDS_DCMD_METRIC_VALUE));
 						}
 						break;
 					}
@@ -527,13 +527,13 @@ public class SendCommandTest extends TCKTest {
 
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB)
+			id = ID_OPERATIONAL_BEHAVIOR_REBIRTH_VERB)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE)
+			id = ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE)
 	private Boolean[] checkValidCommandPayload(PayloadOrBuilder payload) {
 		Boolean[] bValidPayload = new Boolean[] { false, false, false };
 
@@ -549,24 +549,24 @@ public class SendCommandTest extends TCKTest {
 					bValidPayload[2] = true;
 				}
 				if (current.getName().equals(NODE_CONTROL_REBIRTH)) {
-					logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB,
-							OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB);
-					testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB,
-							setResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_REBIRTH_VERB));
+					logger.debug("Check Req: {}:{}.", ID_OPERATIONAL_BEHAVIOR_REBIRTH_VERB,
+							OPERATIONAL_BEHAVIOR_REBIRTH_VERB);
+					testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_VERB,
+							setResult(true, OPERATIONAL_BEHAVIOR_REBIRTH_VERB));
 				}
 
 				if (edgeBirthMetrics != null) {
 					// look for the current metric name in the birth metrics
 					for (Metric birth : edgeBirthMetrics) {
 						if (birth.getName().equals(current.getName())) {
-							testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME,
-									setShouldResult(true, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_NAME));
-							testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE, setResult(
+							testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME,
+									setShouldResult(true, OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_NAME));
+							testResults.put(ID_OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE, setResult(
 									current.hasBooleanValue() || current.hasBytesValue() || current.hasDatasetValue()
 											|| current.hasDoubleValue() || current.hasFloatValue()
 											|| current.hasIntValue() || current.hasLongValue()
 											|| current.hasStringValue() || current.hasTemplateValue(),
-									OPERATIONAL_BEHAVIOR_DATA_COMMANDS_NCMD_METRIC_VALUE));
+									OPERATIONAL_BEHAVIOR_COMMANDS_NCMD_METRIC_VALUE));
 							break;
 						}
 					}
@@ -577,7 +577,7 @@ public class SendCommandTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_NAME_CMD_REQUIREMENT)
 	public void checkPayloadsTimestampCommand(final @NotNull PayloadOrBuilder sparkplugPayload, String topic) {
 		logger.debug("Check Req: The timestamp MAY be included with metrics in NCMD and DCMD messages.");

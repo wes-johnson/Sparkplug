@@ -21,13 +21,13 @@ import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_PATH_NBIRTH;
 import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_PATH_NCMD;
 import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_PATH_NDATA;
 import static org.eclipse.sparkplug.tck.test.common.Constants.TOPIC_ROOT_SP_BV_1_0;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_NDEATH_WILL_MESSAGE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_NDEATH_WILL_MESSAGE;
 import static org.eclipse.sparkplug.tck.test.common.Utils.setResult;
 
@@ -101,9 +101,9 @@ public class ReceiveCommandTest extends TCKTest {
 	private final @NotNull TCK theTCK;
 	private @NotNull Utilities utilities = null;
 
-	public static final @NotNull List<String> testIds = List.of(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1,
-			ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2,
-			ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3, ID_PAYLOADS_NDEATH_WILL_MESSAGE);
+	public static final @NotNull List<String> testIds = List.of(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1,
+			ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2,
+			ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3, ID_PAYLOADS_NDEATH_WILL_MESSAGE);
 
 	private @NotNull TestStatus state = null;
 	private @NotNull String deviceId = null;
@@ -143,11 +143,11 @@ public class ReceiveCommandTest extends TCKTest {
 		// indicate we are testing the receipt of NBIRTH and DBIRTH messages after a rebirth command
 		// set this assertion value to false by default, then track the receipt of both NBIRTH and DBIRTH messages for
 		// device attached to an edge node.
-		testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2,
-				setResult(false, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2));
+		testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2,
+				setResult(false, OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2));
 
 		// this will fail if we receive a data message at the wrong time
-		testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1, PASS);
+		testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1, PASS);
 
 		if (Utils.checkHostApplicationIsOnline(hostApplicationId).get()) {
 			log("Host Application is online, so using that");
@@ -250,7 +250,7 @@ public class ReceiveCommandTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_WILL_MESSAGE)
 	@Override
 	public void connect(final String clientId, final ConnectPacket packet) {
@@ -302,13 +302,13 @@ public class ReceiveCommandTest extends TCKTest {
 
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1)
+			id = ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2)
+			id = ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_COMMANDS,
-			id = ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3)
+			id = ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3)
 	@Override
 	public void publish(final String clientId, final PublishPacket packet) {
 		String topic = packet.getTopic();
@@ -342,9 +342,9 @@ public class ReceiveCommandTest extends TCKTest {
 						long birthSeq = getBdSeq(payload);
 						logger.debug(
 								"Check Req: {} The NBIRTH MUST include the same bdSeq metric with the same value it had included in the Will Message of the previous MQTT CONNECT packet.",
-								ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3);
-						testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3,
-								setResult(birthSeq == deathBdSeq, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_3));
+								ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3);
+						testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3,
+								setResult(birthSeq == deathBdSeq, OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_3));
 						if (birthSeq != deathBdSeq) {
 							logger.error("*** Death sequence no: {}  nBirth seq no: {}. Expected to be equal",
 									deathBdSeq, birthSeq);
@@ -358,23 +358,23 @@ public class ReceiveCommandTest extends TCKTest {
 					logger.error("Data received for edge node: {}", levels[3]);
 					logger.debug(
 							"Check Req: {} When an Edge Node receives a Rebirth Request, it MUST immediately stop sending DATA messages.",
-							ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1);
-					testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1,
-							setResult(false, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1));
+							ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1);
+					testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1,
+							setResult(false, OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1));
 				} else if (levels[2].equals(TOPIC_PATH_DDATA)) {
 					logger.error("Data received for edge node: {} and device id: {} ", levels[3], levels[4]);
 					logger.debug(
 							"Check Req: {}When an Edge Node receives a Rebirth Request, it MUST immediately stop sending DATA messages.",
-							ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1);
-					testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1,
-							setResult(false, OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_1));
+							ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1);
+					testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1,
+							setResult(false, OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_1));
 				}
 
 				if (bNBirth && (deviceId == null || bDBirth) && state == TestStatus.SENDING_NODE_REBIRTH) {
 					logger.debug(
 							"Check Req: {} After an Edge Node stops sending DATA messages, it MUST send a complete BIRTH sequence including the NBIRTH and DBIRTH(s) if applicable.",
-							ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2);
-					testResults.put(ID_OPERATIONAL_BEHAVIOR_DATA_COMMANDS_REBIRTH_ACTION_2, PASS);
+							ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2);
+					testResults.put(ID_OPERATIONAL_BEHAVIOR_REBIRTH_ACTION_2, PASS);
 					state = TestStatus.DISCONNECTING_CLIENT;
 					bNBirth = false;
 					bDBirth = false;

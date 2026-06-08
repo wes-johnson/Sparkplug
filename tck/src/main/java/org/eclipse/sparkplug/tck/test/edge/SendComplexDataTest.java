@@ -38,8 +38,8 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_MET
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_NAME_BIRTH_DATA_REQUIREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_NAME_REQUIREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_PROPERTYSET_KEYS_ARRAY_SIZE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_QUALITY_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_QUALITY_VALUE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_PROPERTYSET_VALUES_ARRAY_SIZE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_SEQUENCE_NUM_ALWAYS_INCLUDED;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_TEMPLATE_DATASET_VALUE;
@@ -76,8 +76,8 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_METRIC
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_NAME_BIRTH_DATA_REQUIREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_NAME_REQUIREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_PROPERTYSET_KEYS_ARRAY_SIZE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_QUALITY_VALUE;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_QUALITY_VALUE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_PROPERTYSET_VALUES_ARRAY_SIZE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_SEQUENCE_NUM_ALWAYS_INCLUDED;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_TEMPLATE_DATASET_VALUE;
@@ -146,8 +146,8 @@ public class SendComplexDataTest extends TCKTest {
 			ID_PAYLOADS_METRIC_DATATYPE_VALUE_TYPE, ID_PAYLOADS_METRIC_DATATYPE_VALUE,
 			ID_PAYLOADS_PROPERTYSET_KEYS_ARRAY_SIZE, ID_PAYLOADS_PROPERTYSET_VALUES_ARRAY_SIZE,
 			ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_TYPE, ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_VALUE,
-			ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_REQ, ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE,
-			ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE, ID_PAYLOADS_ALIAS_DATA_CMD_REQUIREMENT,
+			ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_REQ, ID_PAYLOADS_QUALITY_VALUE,
+			ID_PAYLOADS_QUALITY_VALUE, ID_PAYLOADS_ALIAS_DATA_CMD_REQUIREMENT,
 			ID_PAYLOADS_METRIC_DATATYPE_NOT_REQ, ID_PAYLOADS_NAME_BIRTH_DATA_REQUIREMENT, ID_PAYLOADS_NAME_REQUIREMENT,
 			ID_PAYLOADS_DATASET_COLUMN_SIZE, ID_PAYLOADS_DATASET_COLUMN_NUM_HEADERS, ID_PAYLOADS_DATASET_TYPES_DEF,
 			ID_PAYLOADS_DATASET_TYPES_TYPE, ID_PAYLOADS_DATASET_TYPES_VALUE, ID_PAYLOADS_DATASET_TYPES_NUM,
@@ -343,7 +343,7 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PAYLOAD,
+			section = Sections.PAYLOADS_C_PAYLOAD,
 			id = ID_PAYLOADS_SEQUENCE_NUM_ALWAYS_INCLUDED)
 	public void checkSequenceNumberIncluded(final @NotNull PublishPacket packet, String topic) {
 		logger.debug(
@@ -368,10 +368,10 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_DATATYPE_VALUE_TYPE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_DATATYPE_VALUE)
 	public void checkDatatypeValidType(final @NotNull PublishPacket packet) {
 		boolean isValid_DataType = true;
@@ -407,26 +407,26 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PROPERTYSET,
+			section = Sections.PAYLOADS_C_PROPERTYSET,
 			id = ID_PAYLOADS_PROPERTYSET_KEYS_ARRAY_SIZE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PROPERTYSET,
+			section = Sections.PAYLOADS_C_PROPERTYSET,
 			id = ID_PAYLOADS_PROPERTYSET_VALUES_ARRAY_SIZE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PROPERTYVALUE,
+			section = Sections.PAYLOADS_C_PROPERTYVALUE,
 			id = ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_TYPE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PROPERTYVALUE,
+			section = Sections.PAYLOADS_C_PROPERTYVALUE,
 			id = ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_VALUE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PROPERTYVALUE,
+			section = Sections.PAYLOADS_C_PROPERTYVALUE,
 			id = ID_PAYLOADS_METRIC_PROPERTYVALUE_TYPE_REQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_QUALITY_CODES,
-			id = ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE)
+			section = Sections.PAYLOADS_C_METRIC,
+			id = ID_PAYLOADS_QUALITY_VALUE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_QUALITY_CODES,
-			id = ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE)
+			section = Sections.PAYLOADS_C_METRIC,
+			id = ID_PAYLOADS_QUALITY_VALUE)
 	public void checkPropertiesValidType(final @NotNull PublishPacket packet, String topic) {
 		boolean isValid_KeyArraySize = true;
 		boolean isValid_PropertyValueType = true;
@@ -443,7 +443,7 @@ public class SendComplexDataTest extends TCKTest {
 			isValid_KeyArraySize = false;
 			isValid_PropertyValueType = false;
 			isValid_PropertyValueTypeReq = false;
-			logger.error("Check req set for : {}", Sections.PAYLOADS_B_PROPERTYVALUE);
+			logger.error("Check req set for : {}", Sections.PAYLOADS_C_PROPERTYVALUE);
 		} else {
 			logger.debug(
 					"Check Req: {} The array of keys in a PropertySet MUST contain the same number of values included in the array of PropertyValue objects.",
@@ -484,10 +484,10 @@ public class SendComplexDataTest extends TCKTest {
 		}
 		if (!qualityCodeSettingIsUsed) {
 			// option was not used -so test is than passed by default - otherwise the result is set in the subroutine
-			testResults.put(ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE,
-					setResult(true, PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE));
-			testResults.put(ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE,
-					setResult(true, PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE));
+			testResults.put(ID_PAYLOADS_QUALITY_VALUE,
+					setResult(true, PAYLOADS_QUALITY_VALUE));
+			testResults.put(ID_PAYLOADS_QUALITY_VALUE,
+					setResult(true, PAYLOADS_QUALITY_VALUE));
 
 		}
 		testResults.put(ID_PAYLOADS_PROPERTYSET_KEYS_ARRAY_SIZE,
@@ -511,15 +511,15 @@ public class SendComplexDataTest extends TCKTest {
 				logger.debug(
 						"Check: Req: Property Value MUST be a value of 3 which represents a Signed 32-bit Integer.");
 				if (!(propertyValue.getType() == Payload.PropertyValue.ValueCase.LONG_VALUE.getNumber())) {
-					testResults.put(ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE,
-							setResult(false, PAYLOADS_PROPERTYSET_QUALITY_VALUE_TYPE));
+					testResults.put(ID_PAYLOADS_QUALITY_VALUE,
+							setResult(false, PAYLOADS_QUALITY_VALUE));
 				}
 				logger.debug(
 						"Check: Req: 'value' of the Property Value MUST be an int_value and be one of the valid quality codes of 0, 192, or 500.");
 				if (!(propertyValue.getLongValue() == 0 || propertyValue.getLongValue() == 192
 						|| propertyValue.getLongValue() == 500)) {
-					testResults.put(ID_PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE,
-							setResult(false, PAYLOADS_PROPERTYSET_QUALITY_VALUE_VALUE));
+					testResults.put(ID_PAYLOADS_QUALITY_VALUE,
+							setResult(false, PAYLOADS_QUALITY_VALUE));
 				}
 				qualityCodeSettingIsUsed = true;
 			}
@@ -528,7 +528,7 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_ALIAS_DATA_CMD_REQUIREMENT)
 	public void checkAliasInData(final @NotNull PayloadOrBuilder sparkplugPayload, String topic) {
 		logger.debug(
@@ -549,7 +549,7 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_DATATYPE_NOT_REQ)
 	public void checkMetricsDataTypeNotRec(final @NotNull PayloadOrBuilder sparkplugPayload, String topic) {
 		logger.debug(
@@ -570,7 +570,7 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_NAME_REQUIREMENT)
 	public void checkPayloadsNameRequirement(final @NotNull PayloadOrBuilder sparkplugPayload) {
 		logger.debug("Check Req: The name MUST be included with every metric unless aliases are being used.");
@@ -585,7 +585,7 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_NAME_BIRTH_DATA_REQUIREMENT)
 	public void checkPayloadsNameInDataRequirement(final @NotNull PayloadOrBuilder sparkplugPayload) {
 		logger.debug(
@@ -602,28 +602,28 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_COLUMN_SIZE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_COLUMN_NUM_HEADERS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_TYPES_DEF)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_TYPES_TYPE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_TYPES_VALUE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_TYPES_NUM)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET,
+			section = Sections.PAYLOADS_C_DATASET,
 			id = ID_PAYLOADS_DATASET_PARAMETER_TYPE_REQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DATASET_DATASETVALUE,
+			section = Sections.PAYLOADS_C_DATASET_DATASETVALUE,
 			id = ID_PAYLOADS_TEMPLATE_DATASET_VALUE)
 	public boolean checkDataSet(final @NotNull PublishPacket packet) {
 		final PayloadOrBuilder sparkplugPayload = Utils.getSparkplugPayload(packet);
@@ -701,53 +701,53 @@ public class SendComplexDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_IS_DEFINITION)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_IS_DEFINITION)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_IS_DEFINITION)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_REF)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_REF_DEFINITION)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_REF)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_IS_DEFINITION_DEFINITION)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_IS_DEFINITION_INSTANCE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_REF_INSTANCE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_VERSION)
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_NAME_REQUIRED)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_NAME_TYPE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_VALUE_TYPE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_TYPE_VALUE)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_TYPE_REQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE_PARAMETER,
+			section = Sections.PAYLOADS_C_TEMPLATE_PARAMETER,
 			id = ID_PAYLOADS_TEMPLATE_PARAMETER_VALUE)
 	public boolean checkTemplate(final @NotNull PublishPacket packet) {
 		final PayloadOrBuilder sparkplugPayload = Utils.getSparkplugPayload(packet);

@@ -147,7 +147,7 @@ publishing its own Host Application online STATE message, if at any point the Ho
 a STATE message on its own Host Application ID with a timestamp that is newer than the timestamp
 that was used in its own immediately prior MQTT CONNECT packet Will Message, it MUST immediately
 disconnect from the MQTT Server and reconnect. It MUST follow the standard rules for Host
-Applications when establishing the connection to the MQTT Server.
+Applications when establishing the connection to the MQTT Server.*#
 
 [[operational_behavior_edge_node_session_establishment]]
 === Edge Node Session Establishment
