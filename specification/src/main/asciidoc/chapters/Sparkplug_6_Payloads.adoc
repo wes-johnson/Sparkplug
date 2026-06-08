@@ -399,7 +399,7 @@ link:#payloads_c_metric[here].
 **** [tck-testable tck-id-payloads-sequence-num-always-included]#[yellow-background]*[tck-id-payloads-sequence-num-always-included] A
 sequence number MUST be included in the payload of every Sparkplug MQTT message from an Edge Node
 except NDEATH messages.*#
-**** [tck-testable tck-id-payloads-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-sequence-num-zero-nbirth] A
+**** [tck-testable tck-id-payloads-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-sequence-num-req-nbirth] A
 NBIRTH message from an Edge Node MUST always contain a sequence number between 0 and
 18446744073709551615 (inclusive).*#
 **** [tck-testable tck-id-payloads-sequence-num-incrementing]#[yellow-background]*[tck-id-payloads-sequence-num-incrementing] All
@@ -412,10 +412,10 @@ following message MUST be zero.*#
 **** [tck-testable tck-id-payloads-bd-sequence-num-included]#[yellow-background]*[tck-id-payloads-bd-sequence-num-included] A
 birth/death sequence number MUST be included in the payload of every NBIRTH, NREBIRTH, and NDEATH
 Sparkplug MQTT message from an Edge Node.*#
-**** [tck-testable tck-id-payloads-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-sequence-num-zero-nbirth] Every
+**** [tck-testable tck-id-payloads-bd-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-bd-sequence-num-req-nbirth] Every
 birth/death sequence number included in the payload from an Edge Node MUST always be between 0 and
 18446744073709551615 (inclusive).*#
-**** [tck-testable tck-id-payloads-sequence-num-incrementing]#[yellow-background]*[tck-id-payloads-sequence-num-incrementing] All
+**** [tck-testable tck-id-payloads-bd-sequence-num-incrementing]#[yellow-background]*[tck-id-payloads-bd-sequence-num-incrementing] All
 subsequent messages after an NBIRTH from an Edge Node MUST contain a birth/death sequence number
 that is continually increasing by one in each message from that Edge Node until a value of
 18446744073709551615 (max value of a UINT64) is reached. At that point, the sequence number of the
@@ -587,6 +587,7 @@ string to represent it.
 ** This is a freeform field with a UTF-8 string to represent any other pertinent metadata for this
 metric. It can contain JSON, XML, text, or anything else that can be understood by both the
 publisher and the subscriber.
+
 [[payloads_c_propertyset]]
 ==== PropertySet
 

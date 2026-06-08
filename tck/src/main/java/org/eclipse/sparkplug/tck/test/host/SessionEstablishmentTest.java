@@ -387,7 +387,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.OPERATIONAL_BEHAVIOR_PRIMARY_HOST_APPLICATION_SESSION_ESTABLISHMENT,
 			id = ID_MESSAGE_FLOW_PHID_SPARKPLUG_CLEAN_SESSION_50)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_WILL_MESSAGE)
 	@SpecAssertion(
 			section = Sections.TOPICS_DEATH_MESSAGE_STATE,
@@ -454,13 +454,13 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.DEATH_MESSAGE_STATE,
 			id = ID_HOST_TOPIC_PHID_DEATH_RETAIN)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_WILL_MESSAGE_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_WILL_MESSAGE_RETAIN)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_WILL_MESSAGE_PAYLOAD)
 
 	private boolean checkDeathMessage(final @NotNull ConnectPacket packet) {
@@ -552,7 +552,7 @@ public class SessionEstablishmentTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_SUBSCRIBE)
 	@SpecAssertion(
 			section = Sections.TOPICS_BIRTH_MESSAGE_STATE,
@@ -636,10 +636,10 @@ public class SessionEstablishmentTest extends TCKTest {
 			id = ID_MESSAGE_FLOW_PHID_SPARKPLUG_STATE_PUBLISH_PAYLOAD)
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_BIRTH)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_STATE,
+			section = Sections.PAYLOADS_C_STATE,
 			id = ID_PAYLOADS_STATE_BIRTH_PAYLOAD)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_STATE_BIRTH,

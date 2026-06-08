@@ -42,12 +42,12 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PAYLOADS_TEM
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_MQTT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_PAYLOAD;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_SEQ_NUM;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_TIMESTAMP;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_TIMESTAMP_1;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DDATA_TOPIC;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_MQTT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_PAYLOAD;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_SEQ_NUM;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_TIMESTAMP;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_TIMESTAMP_1;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NDATA_TOPIC;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_DDATA_QOS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_DDATA_RETAIN;
@@ -72,12 +72,12 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.PAYLOADS_TEMPLA
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_MQTT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_PAYLOAD;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_SEQ_NUM;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_TIMESTAMP;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_TIMESTAMP_1;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DDATA_TOPIC;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_MQTT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_PAYLOAD;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_SEQ_NUM;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_TIMESTAMP;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_TIMESTAMP_1;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NDATA_TOPIC;
 import static org.eclipse.sparkplug.tck.test.common.Utils.checkUTC;
 import static org.eclipse.sparkplug.tck.test.common.Utils.hasValue;
@@ -135,8 +135,8 @@ public class SendDataTest extends TCKTest {
 
 	private static Logger logger = LoggerFactory.getLogger("Sparkplug");
 	public static final @NotNull List<String> testIds =
-			List.of(ID_TOPICS_NDATA_MQTT, ID_TOPICS_NDATA_SEQ_NUM, ID_TOPICS_NDATA_TIMESTAMP, ID_TOPICS_NDATA_PAYLOAD,
-					ID_TOPICS_DDATA_MQTT, ID_TOPICS_DDATA_SEQ_NUM, ID_TOPICS_DDATA_TIMESTAMP, ID_TOPICS_DDATA_PAYLOAD,
+			List.of(ID_TOPICS_NDATA_MQTT, ID_TOPICS_NDATA_SEQ_NUM, ID_TOPICS_NDATA_TIMESTAMP_1, ID_TOPICS_NDATA_PAYLOAD,
+					ID_TOPICS_DDATA_MQTT, ID_TOPICS_DDATA_SEQ_NUM, ID_TOPICS_DDATA_TIMESTAMP_1, ID_TOPICS_DDATA_PAYLOAD,
 					ID_PAYLOADS_NDATA_TIMESTAMP, ID_PAYLOADS_NDATA_SEQ, ID_PAYLOADS_NDATA_QOS, ID_PAYLOADS_NDATA_RETAIN,
 					ID_PAYLOADS_DDATA_TIMESTAMP, ID_PAYLOADS_DDATA_SEQ, ID_PAYLOADS_DDATA_QOS, ID_PAYLOADS_DDATA_RETAIN,
 					ID_PAYLOADS_TEMPLATE_DEFINITION_NBIRTH_ONLY, ID_PAYLOADS_TEMPLATE_DEFINITION_REF,
@@ -293,16 +293,16 @@ public class SendDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_RETAIN)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NDATA,
@@ -312,7 +312,7 @@ public class SendDataTest extends TCKTest {
 			id = ID_TOPICS_NDATA_SEQ_NUM)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NDATA,
-			id = ID_TOPICS_NDATA_TIMESTAMP)
+			id = ID_TOPICS_NDATA_TIMESTAMP_1)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NDATA,
 			id = ID_TOPICS_NDATA_PAYLOAD)
@@ -320,7 +320,7 @@ public class SendDataTest extends TCKTest {
 			section = Sections.TOPICS_DATA_MESSAGE_NDATA,
 			id = ID_TOPICS_NDATA_TOPIC)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_TIMESTAMP_IN_UTC)
 	public void checkNDATA(String clientId, PublishPacket packet) {
 		logger.info("Send data test payload::check Edge Node data - Start");
@@ -355,8 +355,8 @@ public class SendDataTest extends TCKTest {
 
 		logger.debug(
 				"Check Req: {} The NDATA MUST include a timestamp denoting the date and time the message was sent from the Edge Node.",
-				ID_TOPICS_NDATA_TIMESTAMP);
-		testResults.put(ID_TOPICS_NDATA_TIMESTAMP, setResult(bValid[2], TOPICS_NDATA_TIMESTAMP));
+				ID_TOPICS_NDATA_TIMESTAMP_1);
+		testResults.put(ID_TOPICS_NDATA_TIMESTAMP_1, setResult(bValid[2], TOPICS_NDATA_TIMESTAMP_1));
 
 		logger.debug(
 				"Check Req: {} NDATA messages MUST include a payload timestamp that denotes the time at which the message was published.",
@@ -400,16 +400,16 @@ public class SendDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_RETAIN)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DDATA,
@@ -419,7 +419,7 @@ public class SendDataTest extends TCKTest {
 			id = ID_TOPICS_DDATA_SEQ_NUM)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DDATA,
-			id = ID_TOPICS_DDATA_TIMESTAMP)
+			id = ID_TOPICS_DDATA_TIMESTAMP_1)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DDATA,
 			id = ID_TOPICS_DDATA_PAYLOAD)
@@ -427,7 +427,7 @@ public class SendDataTest extends TCKTest {
 			section = Sections.TOPICS_DATA_MESSAGE_DDATA,
 			id = ID_TOPICS_DDATA_TOPIC)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_TIMESTAMP_IN_UTC)
 	public void checkDDATA(String clientId, PublishPacket packet) {
 		logger.info("Send data test payload::check Device data - Start");
@@ -463,8 +463,8 @@ public class SendDataTest extends TCKTest {
 
 		logger.debug(
 				"Check Req: {} The DDATA MUST include a timestamp denoting the date and time the message was sent from the Edge Node.",
-				ID_TOPICS_DDATA_TIMESTAMP);
-		testResults.put(ID_TOPICS_DDATA_TIMESTAMP, setResult(bValid[2], TOPICS_DDATA_TIMESTAMP));
+				ID_TOPICS_DDATA_TIMESTAMP_1);
+		testResults.put(ID_TOPICS_DDATA_TIMESTAMP_1, setResult(bValid[2], TOPICS_DDATA_TIMESTAMP_1));
 
 		logger.debug(
 				"Check Req: {} DDATA messages MUST include a payload timestamp that denotes the time at which the message was published.",
@@ -530,34 +530,34 @@ public class SendDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_NBIRTH_ONLY)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_REF)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_MEMBERS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_MEMBERS_BIRTH)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_MEMBERS_DATA)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_NBIRTH)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_MEMBERS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_MEMBERS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_PARAMETERS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_INSTANCE_PARAMETERS)
 	private void checkInstance(String sparkplugDescriptor, String instanceName, Payload.Template instance,
 			String msgtype) {
@@ -668,13 +668,13 @@ public class SendDataTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_NBIRTH_ONLY)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_REF)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_TEMPLATE,
+			section = Sections.PAYLOADS_C_TEMPLATE,
 			id = ID_PAYLOADS_TEMPLATE_DEFINITION_PARAMETERS_DEFAULT)
 	public void checkNBIRTH(String clientId, PublishPacket packet) {
 

@@ -193,7 +193,11 @@ abstract class XslTransform : DefaultTask() {
     protected fun run() {
         val inputFileStream = Files.newInputStream(inputFile.get().asFile.toPath(), StandardOpenOption.READ)
         val xslFileStream = Files.newInputStream(xslFile.get().asFile.toPath(), StandardOpenOption.READ)
-        val outputFileStream = Files.newOutputStream(outputFile.get().asFile.toPath(), StandardOpenOption.CREATE)
+        val outputFileStream = Files.newOutputStream(
+            outputFile.get().asFile.toPath(),
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+        )
 
         val transformerFactory = TransformerFactory.newInstance()
         val template = transformerFactory.newTemplates(SAXSource(InputSource(xslFileStream)))

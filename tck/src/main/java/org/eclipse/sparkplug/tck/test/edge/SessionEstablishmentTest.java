@@ -86,9 +86,9 @@ public class SessionEstablishmentTest extends TCKTest {
 			ID_PAYLOADS_NBIRTH_RETAIN, ID_PAYLOADS_NBIRTH_SEQ, ID_PAYLOADS_SEQUENCE_NUM_REQ_NBIRTH,
 			ID_PAYLOADS_NBIRTH_BDSEQ, ID_PAYLOADS_NBIRTH_TIMESTAMP, ID_PAYLOADS_NBIRTH_REBIRTH_REQ,
 			ID_PAYLOADS_NDEATH_BDSEQ, ID_MESSAGE_FLOW_EDGE_NODE_NCMD_SUBSCRIBE, ID_TOPICS_NBIRTH_MQTT,
-			ID_TOPICS_NBIRTH_SEQ_NUM, ID_TOPICS_NBIRTH_TIMESTAMP, ID_TOPICS_NBIRTH_BDSEQ_INCLUDED,
+			ID_TOPICS_NBIRTH_SEQ_NUM, ID_TOPICS_NBIRTH_TIMESTAMP_1, ID_TOPICS_NBIRTH_BDSEQ_INCLUDED,
 			ID_TOPICS_NBIRTH_BDSEQ_MATCHING, ID_PAYLOADS_DBIRTH_QOS, ID_PAYLOADS_DBIRTH_RETAIN, ID_TOPICS_DBIRTH_MQTT,
-			ID_TOPICS_DBIRTH_TIMESTAMP, ID_PAYLOADS_DBIRTH_TIMESTAMP, ID_PAYLOADS_DBIRTH_SEQ, ID_TOPICS_DBIRTH_SEQ,
+			ID_TOPICS_DBIRTH_TIMESTAMP_1, ID_PAYLOADS_DBIRTH_TIMESTAMP, ID_PAYLOADS_DBIRTH_SEQ, ID_TOPICS_DBIRTH_SEQ,
 			ID_PAYLOADS_DBIRTH_SEQ_INC, ID_PAYLOADS_DBIRTH_ORDER, ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_NBIRTH_VALUES,
 			ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH_VALUES, ID_TOPICS_NBIRTH_METRICS, ID_TOPICS_DBIRTH_METRICS,
 			ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_NBIRTH_QOS, ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_NBIRTH_RETAINED,
@@ -163,7 +163,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			testResults.put(ID_PAYLOADS_DBIRTH_TIMESTAMP, NOT_EXECUTED);
 			testResults.put(ID_PAYLOADS_DBIRTH_SEQ, NOT_EXECUTED);
 			testResults.put(ID_TOPICS_DBIRTH_MQTT, NOT_EXECUTED);
-			testResults.put(ID_TOPICS_DBIRTH_TIMESTAMP, NOT_EXECUTED);
+			testResults.put(ID_TOPICS_DBIRTH_TIMESTAMP_1, NOT_EXECUTED);
 		}
 		logger.info("Host application id: {}, Group id: {}, Edge node id: {}, Device ids: {}", hostApplicationId,
 				groupId, edgeNodeId, deviceIds.keySet());
@@ -218,7 +218,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.PRINCIPLES_PERSISTENT_VS_NON_PERSISTENT_CONNECTIONS,
 			id = ID_PRINCIPLES_PERSISTENCE_CLEAN_SESSION_50)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_WILL_MESSAGE)
 
 	@SpecAssertion(
@@ -320,10 +320,10 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.PRINCIPLES_BIRTH_AND_DEATH_CERTIFICATES,
 			id = ID_PRINCIPLES_BIRTH_CERTIFICATES_ORDER)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_ORDER)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_ORDER)
 
 	public void publish(final @NotNull String clientId, final @NotNull PublishPacket packet) {
@@ -372,7 +372,7 @@ public class SessionEstablishmentTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_NAME_BIRTH_DATA_REQUIREMENT)
 	public void checkPayloadsNameInDataRequirement(final @NotNull PayloadOrBuilder sparkplugPayload) {
 		logger.debug(
@@ -393,10 +393,10 @@ public class SessionEstablishmentTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_ALIAS_BIRTH_REQUIREMENT)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_ALIAS_UNIQUENESS)
 	public void checkPayloadsAliasAndNameRequirement(final @NotNull PayloadOrBuilder sparkplugPayload) {
 		logger.debug("Check Req: "
@@ -422,16 +422,16 @@ public class SessionEstablishmentTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_WILL_MESSAGE_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_SEQ)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NDEATH,
 			id = ID_TOPICS_NDEATH_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_WILL_MESSAGE_RETAIN)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NDEATH,
@@ -501,7 +501,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			id = ID_TOPICS_NBIRTH_SEQ_NUM)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
-			id = ID_TOPICS_NBIRTH_TIMESTAMP)
+			id = ID_TOPICS_NBIRTH_TIMESTAMP_1)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
 			id = ID_TOPICS_NBIRTH_BDSEQ_INCLUDED)
@@ -513,31 +513,31 @@ public class SessionEstablishmentTest extends TCKTest {
 			id = ID_TOPICS_NBIRTH_METRICS)
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_BDSEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_RETAIN)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_PAYLOAD,
+			section = Sections.PAYLOADS_C_PAYLOAD,
 			id = ID_PAYLOADS_SEQUENCE_NUM_REQ_NBIRTH)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_REBIRTH_REQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDEATH,
+			section = Sections.PAYLOADS_C_NDEATH,
 			id = ID_PAYLOADS_NDEATH_BDSEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_METRIC,
+			section = Sections.PAYLOADS_C_METRIC,
 			id = ID_PAYLOADS_METRIC_DATATYPE_REQ)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_DATA_PUBLISH,
@@ -565,7 +565,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.OPERATIONAL_BEHAVIOR_EDGE_NODE_SESSION_ESTABLISHMENT,
 			id = ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_NBIRTH_PAYLOAD_BDSEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NBIRTH,
+			section = Sections.PAYLOADS_C_NBIRTH,
 			id = ID_PAYLOADS_NBIRTH_BDSEQ_REPEAT)
 	@SpecAssertion(
 			section = Sections.TOPICS_BIRTH_MESSAGE_NBIRTH,
@@ -631,7 +631,7 @@ public class SessionEstablishmentTest extends TCKTest {
 				bHasTimeStamp = (ts > millisPastFiveMin && ts < (millisReceivedBirth));
 			}
 			testResults.put(ID_PAYLOADS_NBIRTH_TIMESTAMP, setResult(bHasTimeStamp, PAYLOADS_NBIRTH_TIMESTAMP));
-			testResults.put(ID_TOPICS_NBIRTH_TIMESTAMP, setResult(bHasTimeStamp, TOPICS_NBIRTH_TIMESTAMP));
+			testResults.put(ID_TOPICS_NBIRTH_TIMESTAMP_1, setResult(bHasTimeStamp, TOPICS_NBIRTH_TIMESTAMP_1));
 
 			logger.debug("Check Req: NBIRTH must include a bdSeq");
 			List<Metric> metrics = sparkplugPayload.getMetricsList();
@@ -696,29 +696,29 @@ public class SessionEstablishmentTest extends TCKTest {
 	}
 
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_QOS)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_RETAIN)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_TIMESTAMP)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_SEQ)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_SEQ_INC)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DBIRTH,
+			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_ORDER)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DBIRTH,
 			id = ID_TOPICS_DBIRTH_MQTT)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DBIRTH,
-			id = ID_TOPICS_DBIRTH_TIMESTAMP)
+			id = ID_TOPICS_DBIRTH_TIMESTAMP_1)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_DBIRTH,
 			id = ID_TOPICS_DBIRTH_SEQ)
@@ -750,10 +750,10 @@ public class SessionEstablishmentTest extends TCKTest {
 			section = Sections.OPERATIONAL_BEHAVIOR_DEVICE_SESSION_ESTABLISHMENT,
 			id = ID_MESSAGE_FLOW_DEVICE_BIRTH_PUBLISH_DBIRTH_PAYLOAD)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_NDATA,
+			section = Sections.PAYLOADS_C_NDATA,
 			id = ID_PAYLOADS_NDATA_ORDER)
 	@SpecAssertion(
-			section = Sections.PAYLOADS_B_DDATA,
+			section = Sections.PAYLOADS_C_DDATA,
 			id = ID_PAYLOADS_DDATA_ORDER)
 	@SpecAssertion(
 			section = Sections.TOPICS_BIRTH_MESSAGE_DBIRTH,
@@ -828,7 +828,7 @@ public class SessionEstablishmentTest extends TCKTest {
 			// receivedBirthTime
 			logger.debug(
 					"Check Req: NBIRTH must include payload timestamp that denotes the time at which the message was published");
-			prevResult = testResults.getOrDefault(ID_TOPICS_DBIRTH_TIMESTAMP, NOT_EXECUTED);
+			prevResult = testResults.getOrDefault(ID_TOPICS_DBIRTH_TIMESTAMP_1, NOT_EXECUTED);
 			boolean bValid = false;
 			if (!prevResult.contains(FAIL)) {
 				if (sparkplugPayload.hasTimestamp()) {
@@ -836,7 +836,7 @@ public class SessionEstablishmentTest extends TCKTest {
 					bValid = (millisPayload > millisPastFiveMin && millisPayload < (millisReceivedBirth));
 				}
 				if (prevResult.equals(NOT_EXECUTED)) {
-					testResults.put(ID_TOPICS_DBIRTH_TIMESTAMP, setResult(bValid, TOPICS_DBIRTH_TIMESTAMP));
+					testResults.put(ID_TOPICS_DBIRTH_TIMESTAMP_1, setResult(bValid, TOPICS_DBIRTH_TIMESTAMP_1));
 					testResults.put(ID_PAYLOADS_DBIRTH_TIMESTAMP, setResult(bValid, PAYLOADS_DBIRTH_TIMESTAMP));
 				}
 			}
