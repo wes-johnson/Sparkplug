@@ -1,3 +1,5 @@
+version = "4.0.0-SNAPSHOT"
+
 tasks.create("build") {
     group = "build"
     dependsOn(gradle.includedBuild("specification").task(":build"),
