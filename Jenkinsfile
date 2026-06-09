@@ -99,7 +99,7 @@ spec:
           def projectVersion = env.PROJECT_VERSION
           if (projectVersion.contains("SNAPSHOT")) {
             echo "This is a snapshot build: ${env.PROJECT_VERSION}"
-            sshagent(credentials: ['projects-storage.eclipse.org-bot=-ssh']) {
+            sshagent(credentials: ['projects-storage.eclipse.org-bot-ssh']) {
               sh '''
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org rm -rf /home/data/httpd/download.eclipse.org/sparkplug/snapshot/*${PROJECT_VERSION}*
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org mkdir -p /home/data/httpd/download.eclipse.org/sparkplug/snapshot
@@ -109,7 +109,7 @@ spec:
             }
           } else if (projectVersion.contains("M")) {
             echo "This is a milestone build: ${env.PROJECT_VERSION}"
-            sshagent(credentials: ['projects-storage.eclipse.org-bot=-ssh']) {
+            sshagent(credentials: ['projects-storage.eclipse.org-bot-ssh']) {
               sh '''
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org rm -rf /home/data/httpd/download.eclipse.org/sparkplug/milestone/*${PROJECT_VERSION}*
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org mkdir -p /home/data/httpd/download.eclipse.org/sparkplug/milestone
@@ -119,7 +119,7 @@ spec:
             }
          }  else {
             echo "This is a release build: ${env.PROJECT_VERSION}"
-            sshagent(credentials: ['projects-storage.eclipse.org-bot=-ssh']) {
+            sshagent(credentials: ['projects-storage.eclipse.org-bot-ssh']) {
               sh '''
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org rm -rf /home/data/httpd/download.eclipse.org/sparkplug/release/*${PROJECT_VERSION}*
                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes genie.sparkplug@projects-storage.eclipse.org mkdir -p /home/data/httpd/download.eclipse.org/sparkplug/release
