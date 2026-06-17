@@ -35,8 +35,16 @@ typically be both an Edge Node and a Host Application.
 ==== Sparkplug Edge Node
 
 A Sparkplug Edge Node is typically an 'Edge Gateway'. It sends and receives data to an MQTT Server
-using the spBv1.0/# namespace. Edge Nodes typically interact with physical devices to gather data
+using the spCv1.0/# namespace. Edge Nodes typically interact with physical devices to gather data
 and also write to device outputs.
+
+Support for strongly typed commands is optional. An Edge Node that exposes commands must do so in a
+conformant manner.
+
+* [tck-testable tck-id-conformance-edge-node-command-response]#[yellow-background]*[tck-id-conformance-edge-node-command-response] A
+Sparkplug Edge Node that includes Command metrics in its NBIRTH or DBIRTH MUST respond to command
+requests with NRESP or DRESP command responses as defined in the
+link:#operational_behavior_commands_typed[Typed Commands and Command Responses Section].*#
 
 [[conformance_sparkplug_host_application]]
 ==== Sparkplug Host Application
@@ -48,6 +56,14 @@ requests to Edge Nodes when required.
 
 [tck-testable tck-id-conformance-primary-host]#[yellow-background]*[tck-id-conformance-primary-host] Sparkplug
 Host Applications MUST publish 'STATE' messages that represent its Birth and Death Certificates.*#
+
+Support for invoking strongly typed commands is optional. A Host Application that invokes commands
+must do so in a conformant manner.
+
+* [tck-testable tck-id-conformance-host-command-request]#[yellow-background]*[tck-id-conformance-host-command-request] A
+Sparkplug Host Application that invokes a Command MUST send the command request and process the
+NRESP or DRESP command response as defined in the
+link:#operational_behavior_commands_typed[Typed Commands and Command Responses Section].*#
 
 [[conformance_mqtt_server]]
 ==== Sparkplug Compliant MQTT Server
@@ -97,7 +113,7 @@ Server*#
 Sparkplug Aware MQTT Server MUST make NBIRTH messages available on a topic of the form:
 $sparkplug/certificates/namespace/group_id/NBIRTH/edge_node_id*#
 ** Example: Given a group_id=G1 and edge_node_id=E1, the topic the Sparkplug Aware MQTT Server must
-make the NBIRTH message available on is: $sparkplug/certificates/spBv1.0/G1/NBIRTH/E1
+make the NBIRTH message available on is: $sparkplug/certificates/spCv1.0/G1/NBIRTH/E1
 * [tck-testable tck-id-conformance-mqtt-aware-nbirth-mqtt-retain]#[yellow-background]*[tck-id-conformance-mqtt-aware-nbirth-mqtt-retain] A
 Sparkplug Aware MQTT Server MUST make NBIRTH messages available on the topic:
 $sparkplug/certificates/namespace/group_id/NBIRTH/edge_node_id with the MQTT retain flag set to
@@ -107,7 +123,7 @@ Sparkplug Aware MQTT Server MUST make DBIRTH messages available on a topic of th
 $sparkplug/certificates/namespace/group_id/DBIRTH/edge_node_id/device_id*#
 ** Example: Given a group_id=G1, edge_node_id=E1 and device_id=D1, the topic the Sparkplug Aware
 MQTT Server must make the DBIRTH message available on is:
-$sparkplug/certificates/spBv1.0/G1/DBIRTH/E1/D1
+$sparkplug/certificates/spCv1.0/G1/DBIRTH/E1/D1
 * [tck-testable tck-id-conformance-mqtt-aware-dbirth-mqtt-retain]#[yellow-background]*[tck-id-conformance-mqtt-aware-dbirth-mqtt-retain] A
 Sparkplug Aware MQTT Server MUST make DBIRTH messages available on the topic:
 $sparkplug/certificates/namespace/group_id/DBIRTH/edge_node_id/device_id with the MQTT retain flag

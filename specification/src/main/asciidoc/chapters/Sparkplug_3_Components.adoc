@@ -54,6 +54,18 @@ data across multiple physical or logical hardware or software components. Sparkp
 under the scope of a Sparkplug Edge Node and have their own lifecycle within the context of the
 Sparkplug Edge Node.
 
+[[components_sparkplug_command]]
+=== Sparkplug Command
+
+A Sparkplug Command is a strongly typed, callable function exposed by a Sparkplug Edge Node or
+Device. A command declares a typed signature consisting of the input arguments it accepts and the
+output results it returns, and it is included in the BIRTH certificate alongside the Edge Node's
+or Device's other metrics. A Host Application invokes a command using a correlated request/response
+exchange so that returned data and error codes can be reliably matched back to the request. Commands
+are optional. An Edge Node or Device may expose no commands at all. The structure and behavior of
+commands are defined in the link:#payloads_c_command[Command Section] and the
+link:#operational_behavior_commands_typed[Typed Commands and Command Responses Section].
+
 [[components_mqtt_sparkplug_enabled_component]]
 === MQTT/Sparkplug Enabled Component
 
@@ -74,8 +86,8 @@ specific Host Application is referred to as the Edge Node's 'Primary Host Applic
 
 The Primary Host Application is often also referred to as the SCADA Host or IIoT Host. In typical
 SCADA/IIoT infrastructure implementations, there will be only one Primary Host Application
-responsible for the monitoring and control of a given MQTT Edge Node. Sparkplug does support the
-notion of multiple Primary Host Applications for any one Edge Node. This does not preclude any
+responsible for the monitoring and control of a given MQTT Edge Node. Sparkplug does not support
+the notion of multiple Primary Host Applications for any one Edge Node. This does not preclude any
 number of additional Sparkplug Host Applications from participating in the infrastructure that are
 in either a pure monitoring mode, or in the role of a hot standby should the Primary Host
 Application go offline. In addition, there could be multiple Host Applications which are each the

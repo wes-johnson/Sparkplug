@@ -65,14 +65,15 @@ latency features of MQTT while adding modern encoding schemes targeting the SCAD
 space.
 
 Sparkplug has defined an approach where the Topic Namespace can aid in the determination of the
-encoding scheme of any particular payload. Historically there have been two Sparkplug defined
-encoding schemes. The first one was the 'Sparkplug A' and the second is 'Sparkplug B'. Each of
-these uses a 'first topic token identifier' so Sparkplug Edge Nodes can declare the payload encoding
-scheme they are using. These first topic tokens are:
+encoding scheme of any particular payload. Historically there have been three Sparkplug defined
+encoding schemes. The first one was 'Sparkplug A', the second was 'Sparkplug B', and the most recent
+is 'Sparkplug C'. Each of these uses a 'first topic token identifier' so Sparkplug Edge Nodes can
+declare the payload encoding scheme they are using. These first topic tokens are:
 
 ----
 spAv1.0
 spBv1.0
+spCv1.0
 ----
 
 Each token is divided up into three distinct components. These are:
@@ -80,7 +81,7 @@ Each token is divided up into three distinct components. These are:
 * Sparkplug Identifier
 ** Always 'sp'
 * Payload Encoding Scheme
-** Currently 'A' or 'B' but there could be future versions
+** Currently 'A', 'B', or 'C' but there could be future versions
 * Payload Encoding Scheme Version
 ** Currently v1.0 but denoted in the event that future versions are released
 
@@ -93,6 +94,13 @@ to lack of adoption and the fact that 'Sparkplug B' was made available shortly a
 The 'Sparkplug B' encoding scheme was created with a richer data model developed with the feedback
 of many system integrators and end user customers using MQTT. These additions included metric
 timestamp support, complex datatype support, metadata, and other improvements.
+
+The 'Sparkplug C' encoding scheme builds on Sparkplug B, retaining the concepts of the topic namespace
+and data model while adding a number of new features. Some of these include better command/response
+capabilities, better support for multiple host applications (note this does not include multiple
+Primary Host Applications for the same Edge Node), file publishing support, compression, and many
+others. It is the encoding scheme defined by this version of the specification and uses the 'spCv1.0'
+namespace.
 
 [[introduction_background]]
 ==== Background
