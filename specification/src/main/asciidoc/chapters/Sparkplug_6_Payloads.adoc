@@ -178,6 +178,9 @@ enum DataType {
     BooleanArray = 32;
     StringArray = 33;
     DateTimeArray = 34;
+
+    // Command Type
+    Command         = 35;        // A callable command/function metric - the value is carried in the Metric 'command' field
 }
 
 message Payload {
@@ -224,6 +227,20 @@ message Payload {
         optional string template_ref    = 4;          // MUST be a reference to a template definition if this is an instance (i.e. the name of the template definition) - MUST be omitted for template definitions
         optional bool is_definition     = 5;
         extensions                      6 to max;
+    }
+
+    message Status {
+        optional uint64 code            = 1;          // Result code of a command invocation - 0 indicates success, any non-zero value indicates an error
+        optional string message         = 2;          // Optional human readable status/error description
+        extensions                      3 to max;
+    }
+
+    message Command {
+        repeated Metric arguments       = 1;          // Input argument definitions (NBIRTH/DBIRTH) or supplied argument values (NCMD/DCMD) - omitted for commands that accept no inputs
+        repeated Metric results         = 2;          // Result/output argument definitions (NBIRTH/DBIRTH) or returned result values (NRESP/DRESP) - omitted for commands that return no outputs
+        optional string correlation_id  = 3;          // Set on an NCMD/DCMD request and echoed unchanged in the corresponding NRESP/DRESP response
+        optional Status status          = 4;          // Execution status - present in NRESP/DRESP responses, omitted in BIRTH definitions and CMD requests
+        extensions                      5 to max;
     }
 
     message DataSet {
@@ -295,7 +312,8 @@ message Payload {
         optional MetaData metadata        = 11;       // Metadata for the Metric
         optional PropertySet properties   = 12;       // Properties of the Metric
         optional TypedValue value         = 13;
-        extensions 14 to max;
+        optional Command  command         = 14;       // Command definition (BIRTH), invocation (CMD), or response (RESP) - present when datatype == Command instead of 'value'
+        extensions 15 to max;
     }
 
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
@@ -836,6 +854,90 @@ https://developers.google.com/protocol-buffers/docs/proto#scalar
 ** For a template definition, this is the default value of the parameter. For a template instance,
 this is the value unique to that instance.
 
+[[payloads_c_command]]
+==== Command
+
+A Sparkplug C Command object is used to define and invoke a strongly typed, callable command (also
+referred to as a function or method) on an Edge Node or Device. It is carried by a Metric whose
+datatype is _Command_. The same Command object is used in three roles which are distinguished by
+which fields are populated:
+
+* *Command Definition*
+** This is the declaration of a command's typed signature and is included in a BIRTH message,
+analogous to how a Template Definition supplies the structure of a complex datatype.
+*** [tck-testable tck-id-payloads-command-definition-birth]#[yellow-background]*[tck-id-payloads-command-definition-birth] A
+Command Definition MUST only be included in NBIRTH or DBIRTH messages.*#
+*** [tck-testable tck-id-payloads-command-definition-datatype]#[yellow-background]*[tck-id-payloads-command-definition-datatype] A
+Metric representing a Command MUST have its datatype set to Command.*#
+*** [tck-testable tck-id-payloads-command-definition-arguments]#[yellow-background]*[tck-id-payloads-command-definition-arguments] If
+a command accepts inputs, the Command Definition MUST include an argument definition for every
+argument that can be supplied when the command is invoked.*#
+**** A command that accepts no inputs MAY omit the arguments field.
+*** [tck-testable tck-id-payloads-command-definition-results]#[yellow-background]*[tck-id-payloads-command-definition-results] If
+a command returns outputs, the Command Definition MUST include a result definition for every result
+that will be returned in the command response.*#
+**** A command that returns no outputs MAY omit the results field.
+*** [tck-testable tck-id-payloads-command-definition-no-correlation]#[yellow-background]*[tck-id-payloads-command-definition-no-correlation] A
+Command Definition MUST omit the correlation_id and status fields.*#
+
+* *Command Request*
+** This is an invocation of a previously defined command and is carried in an NCMD or DCMD message.
+*** [tck-testable tck-id-payloads-command-request-arguments]#[yellow-background]*[tck-id-payloads-command-request-arguments] A
+Command Request MUST supply argument values that are datatype compatible with the corresponding
+Command Definition included in the immediately previous BIRTH for the Edge Node or Device.*#
+*** [tck-testable tck-id-payloads-command-request-correlation]#[yellow-background]*[tck-id-payloads-command-request-correlation] A
+Command Request MUST include a correlation_id.*#
+*** [tck-testable tck-id-payloads-command-request-no-status]#[yellow-background]*[tck-id-payloads-command-request-no-status] A
+Command Request MUST omit the status field.*#
+
+* *Command Response*
+** This is the result of executing a command and is carried in an NRESP or DRESP message.
+*** [tck-testable tck-id-payloads-command-response-correlation]#[yellow-background]*[tck-id-payloads-command-response-correlation] A
+Command Response MUST include the same correlation_id that was included in the Command Request that
+produced it.*#
+*** [tck-testable tck-id-payloads-command-response-status]#[yellow-background]*[tck-id-payloads-command-response-status] A
+Command Response MUST include a status.*#
+*** [tck-testable tck-id-payloads-command-response-results]#[yellow-background]*[tck-id-payloads-command-response-results] On
+successful execution of a command that defines results, a Command Response MUST include a result
+value for every result included in the corresponding Command Definition.*#
+
+A Sparkplug Command includes the following components.
+
+* *arguments*
+** This is an array of Metric objects representing the inputs to the command. In a Command
+Definition each argument is a definition (a name and datatype with no value); in a Command Request
+each argument carries the value supplied for that invocation. Arguments MAY be Template instances to
+represent structured or complex inputs.
+* *results*
+** This is an array of Metric objects representing the outputs of the command. In a Command
+Definition each result is a definition (a name and datatype with no value); in a Command Response
+each result carries the returned value. Results MAY be Template instances to represent structured or
+complex outputs.
+* *correlation_id*
+** [tck-testable tck-id-payloads-command-correlation-type]#[yellow-background]*[tck-id-payloads-command-correlation-type] If
+included, the correlation_id MUST be a UTF-8 string.*#
+** This is set by the Host Application on a Command Request and is echoed unchanged by the Edge Node
+in the corresponding Command Response so that the response can be matched to the request that
+produced it.
+* *status*
+** This is a Status object representing the outcome of executing the command. It is defined
+link:#payloads_c_status[here].
+
+[[payloads_c_status]]
+==== Status
+
+A Sparkplug B Status object represents the outcome of a command invocation and is included in a
+Command Response. It includes the following components.
+
+* *code*
+** [tck-testable tck-id-payloads-status-code-type]#[yellow-background]*[tck-id-payloads-status-code-type] The
+status code MUST be an unsigned 64-bit integer.*#
+** [tck-testable tck-id-payloads-status-code-success]#[yellow-background]*[tck-id-payloads-status-code-success] A
+status code of 0 MUST represent successful execution of the command and any non-zero value MUST
+represent an error.*#
+* *message*
+** This is an optional UTF-8 string providing a human readable description of the status or error.
+
 [[payloads_c_datatypes]]
 ==== Data Types
 
@@ -891,6 +993,9 @@ enum DataType {
     BooleanArray = 32;
     StringArray = 33;
     DateTimeArray = 34;
+
+    // Command Type
+    Command         = 35;        // A callable command/function metric - the value is carried in the Metric 'command' field
 }
 ----
 
@@ -1074,6 +1179,15 @@ value representing the number of nanoseconds since epoch in UTC
 *** Sparkplug enum value: 34
 *** Example (DateTime array -> nanoseconds since epoch -> Metric bytes_value): ['Wednesday, October 21, 2009 5:27:55.335 AM', 'Friday, June 24, 2022 9:57:55 PM'] -> [1256102875335000000, 1656107875000000000] -> [0xC0, 0x7F, 0xB0, 0xF5, 0xE8, 0x92, 0x6E, 0x11, 0x00, 0x1E, 0x1A, 0x7F, 0x56, 0xAD, 0xFB, 0x16]
 
+[[payloads_c_datatype_command]]
+* *Command Type*
+** _Command_
+*** A callable command/function metric whose typed inputs and outputs are described by a Command
+object as defined link:#payloads_c_command[here]. A Command metric carries its content in the
+Metric _command_ field rather than the _value_ field.
+*** Google Protocol Buffer Type: none – defined in Sparkplug
+*** Sparkplug enum value: 35
+
 [[payloads_payload_representation_on_host_applications]]
 ==== Payload Representation on Host Applications
 
@@ -1121,7 +1235,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NBIRTH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/NBIRTH/Raspberry Pi
+spCv1.0/Sparkplug B Devices/NBIRTH/Raspberry Pi
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1240,7 +1354,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NREBIRTH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/NREBIRTH/Raspberry Pi
+spCv1.0/Sparkplug B Devices/NREBIRTH/Raspberry Pi
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1338,7 +1452,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DBIRTH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/DBIRTH/Raspberry Pi/Pibrella
+spCv1.0/Sparkplug B Devices/DBIRTH/Raspberry Pi/Pibrella
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1460,7 +1574,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DREBIRTH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/DREBIRTH/Raspberry Pi/Pibrella
+spCv1.0/Sparkplug B Devices/DREBIRTH/Raspberry Pi/Pibrella
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1587,7 +1701,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NDATA message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/NDATA/Raspberry Pi
+spCv1.0/Sparkplug B Devices/NDATA/Raspberry Pi
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1644,7 +1758,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 
 The following is a representation of a simple DDATA message on the topic:
 
-spBv1.0/Sparkplug B Devices/DDATA/Raspberry Pi/Pibrella
+spCv1.0/Sparkplug B Devices/DDATA/Raspberry Pi/Pibrella
 
 * The ‘Group ID’ is: Sparkplug B Devices
 * The ‘Edge Node ID’ is: Raspberry Pi
@@ -1695,7 +1809,7 @@ value representing the Host ID of the Sparkplug Host Application that sent the R
 The following is a representation of a REBIRTH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/REBIRTH/Raspberry Pi
+spCv1.0/Sparkplug B Devices/REBIRTH/Raspberry Pi
 ----
 
 * The ‘Group ID’ is: Sparkplug B Devices
@@ -1742,7 +1856,7 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple NCMD message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/NCMD/Raspberry Pi
+spCv1.0/Sparkplug B Devices/NCMD/Raspberry Pi
 ----
 
 * The ‘Group ID’ is: Sparkplug B Devices
@@ -1767,6 +1881,39 @@ Consider the following Sparkplug B payload in the NCMD message shown above:
 The NCMD payload tells the Edge Node to write true to the 'DIGITAL_OUT_1' metric. As a result, the
 DIGITAL_OUT_1 alue should turn true and result in a NDATA message back to the MQTT Server after the
 DIGITAL_OUT_1 is successfully set to true.
+
+An NCMD message MAY also invoke a strongly typed Command that was included in the NBIRTH. In this
+case the metric datatype is Command and the metric carries a Command object with the supplied
+argument values and a correlation_id. See the link:#payloads_c_command[Command Section] for the
+full Command Request rules.
+
+* [tck-testable tck-id-payloads-ncmd-command-correlation]#[yellow-background]*[tck-id-payloads-ncmd-command-correlation] An
+NCMD message that invokes a Command MUST include a correlation_id in the Command object.*#
+
+The following is a representation of an NCMD payload that invokes the 'Calibrate' command:
+
+----
+{
+        "timestamp": 1486144502122,
+        "metrics": [{
+                "name": "Calibrate",
+                "timestamp": 1486144502122,
+                "dataType": "Command",
+                "command": {
+                        "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
+                        "arguments": [{
+                                "name": "channel",
+                                "dataType": "Int32",
+                                "value": 1
+                        }]
+                }
+        }],
+        "source": "IamHost"
+}
+----
+
+The Edge Node executes the command and publishes the result in an NRESP message that echoes the
+correlation_id.
 
 [[payloads_c_dcmd]]
 ==== DCMD
@@ -1795,7 +1942,7 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple DCMD message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/DCMD/Raspberry Pi/Pibrella
+spCv1.0/Sparkplug B Devices/DCMD/Raspberry Pi/Pibrella
 ----
 
 * The ‘Group ID’ is: Sparkplug B Devices
@@ -1826,6 +1973,120 @@ Consider the following Sparkplug B payload in the DCMD message shown above:
 The DCMD payload tells the Edge Node to write true to the attached device’s green and yellow LEDs.
 As a result, the LEDs should turn on and result in a DDATA message back to the MQTT Server after the
 LEDs are successfully turned on.
+
+A DCMD message MAY also invoke a strongly typed Command that was supplied in the DBIRTH, following
+the same Command Request rules as NCMD. See the link:#payloads_c_command[Command Section].
+
+* [tck-testable tck-id-payloads-dcmd-command-correlation]#[yellow-background]*[tck-id-payloads-dcmd-command-correlation] A
+DCMD message that invokes a Command MUST include a correlation_id in the Command object.*#
+
+[[payloads_c_nresp]]
+==== NRESP
+
+NRESP messages are published by an Edge Node to return the result of an Edge Node level Command
+Request that was received in an NCMD message. See the
+link:#payloads_c_command[Command Section] for the structure of a Command Response.
+
+* [tck-testable tck-id-payloads-nresp-timestamp]#[yellow-background]*[tck-id-payloads-nresp-timestamp] NRESP
+messages MUST include an overall payload timestamp that denotes the time at which the message was
+published.*#
+* [tck-testable tck-id-payloads-nresp-seq]#[yellow-background]*[tck-id-payloads-nresp-seq] Every NRESP
+message MUST NOT include a sequence number.*#
+* [tck-testable tck-id-payloads-nresp-correlation]#[yellow-background]*[tck-id-payloads-nresp-correlation] An
+NRESP message MUST include the same correlation_id that was included in the NCMD Command Request that
+produced it.*#
+* [tck-testable tck-id-payloads-nresp-status]#[yellow-background]*[tck-id-payloads-nresp-status] An
+NRESP message MUST include a status for the command being responded to.*#
+
+The following is a representation of a simple NRESP message on the topic:
+
+----
+spCv1.0/Sparkplug B Devices/NRESP/Raspberry Pi
+----
+
+* The ‘Group ID’ is: Sparkplug B Devices
+* The ‘Edge Node ID’ is: Raspberry Pi
+* This is an NRESP message based on the 'NRESP' Sparkplug Verb
+
+Consider the following Sparkplug B payload in the NRESP message shown above:
+
+----
+{
+        "timestamp": 1486144502122,
+        "metrics": [{
+                "name": "Calibrate",
+                "timestamp": 1486144502122,
+                "dataType": "Command",
+                "command": {
+                        "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
+                        "status": {
+                                "code": 0,
+                                "message": "OK"
+                        },
+                        "results": [{
+                                "name": "offset",
+                                "dataType": "Double",
+                                "value": 0.125
+                        }]
+                }
+        }]
+}
+----
+
+The NRESP payload returns the result of the 'Calibrate' command that was invoked in a prior NCMD,
+correlated by the matching correlation_id.
+
+[[payloads_c_dresp]]
+==== DRESP
+
+DRESP messages are published by an Edge Node to return the result of a Device level Command Request
+that was received in a DCMD message. See the
+link:#payloads_c_command[Command Section] for the structure of a Command Response.
+
+* [tck-testable tck-id-payloads-dresp-timestamp]#[yellow-background]*[tck-id-payloads-dresp-timestamp] DRESP
+messages MUST include an overall payload timestamp that denotes the time at which the message was
+published.*#
+* [tck-testable tck-id-payloads-dresp-seq]#[yellow-background]*[tck-id-payloads-dresp-seq] Every DRESP
+message MUST NOT include a sequence number.*#
+* [tck-testable tck-id-payloads-dresp-correlation]#[yellow-background]*[tck-id-payloads-dresp-correlation] A
+DRESP message MUST include the same correlation_id that was included in the DCMD Command Request that
+produced it.*#
+* [tck-testable tck-id-payloads-dresp-status]#[yellow-background]*[tck-id-payloads-dresp-status] A
+DRESP message MUST include a status for the command being responded to.*#
+
+The following is a representation of a simple DRESP message on the topic:
+
+----
+spCv1.0/Sparkplug B Devices/DRESP/Raspberry Pi/Pibrella
+----
+
+* The ‘Group ID’ is: Sparkplug B Devices
+* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Device ID’ is: Pibrella
+* This is a DRESP message based on the 'DRESP' Sparkplug Verb
+
+Consider the following Sparkplug B payload in the DRESP message shown above:
+
+----
+{
+        "timestamp": 1486144502122,
+        "metrics": [{
+                "name": "Outputs/Blink",
+                "timestamp": 1486144502122,
+                "dataType": "Command",
+                "command": {
+                        "correlation_id": "a1b2c3d4-0001",
+                        "status": {
+                                "code": 1,
+                                "message": "Device busy"
+                        }
+                }
+        }]
+}
+----
+
+The DRESP payload returns an error status for the 'Outputs/Blink' command that was invoked in a prior
+DCMD, correlated by the matching correlation_id.
 
 [[payloads_c_ndeath]]
 ==== NDEATH
@@ -1878,7 +2139,7 @@ NBIRTH.
 The following is a representation of a NDEATH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/NDEATH/Raspberry Pi
+spCv1.0/Sparkplug B Devices/NDEATH/Raspberry Pi
 ----
 
 * The ‘Group ID’ is: Sparkplug B Devices
@@ -1918,7 +2179,7 @@ sequence number sent MUST have a value of 0.*#
 The following is a representation of a simple DDEATH message on the topic:
 
 ----
-spBv1.0/Sparkplug B Devices/DDEATH/Raspberry Pi/Pibrella
+spCv1.0/Sparkplug B Devices/DDEATH/Raspberry Pi/Pibrella
 ----
 
 * The ‘Group ID’ is: Sparkplug B Devices
@@ -1948,7 +2209,7 @@ whether or not the Sparkplug Host Application is online and operational or not.
 
 * [tck-testable tck-id-payloads-state-will-message]#[yellow-background]*[tck-id-payloads-state-will-message] Sparkplug
 Host Applications MUST register a Will Message in the MQTT CONNECT packet on the topic
-'spBv1.0/STATE/[sparkplug_host_id]'.*#
+'spCv1.0/STATE/[sparkplug_host_id]'.*#
 ** The [sparkplug_host_id] must be replaced with the Sparkplug Host Application's ID. This can be any
 UTF-8 string.
 * [tck-testable tck-id-payloads-state-will-message-qos]#[yellow-background]*[tck-id-payloads-state-will-message-qos] The
@@ -1961,15 +2222,15 @@ MUST be 'online' and it's value is a boolean 'false'. The other key MUST be 'tim
 value MUST be a numeric value representing the current UTC time in nanoseconds since Epoch.*#
 * [tck-testable tck-id-payloads-state-subscribe]#[yellow-background]*[tck-id-payloads-state-subscribe] After
 establishing an MQTT connection, the Sparkplug Host Application MUST subscribe on it's own
-'spBv1.0/STATE/[sparkplug_host_id]' topic.*#
+'spCv1.0/STATE/[sparkplug_host_id]' topic.*#
 ** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be
 any UTF-8 string.
 ** Non-normative comment: This allows the Sparkplug Host Application handle timing issues around
 STATE 'offline' messages being published on it's behalf by the MQTT Server when it is in fact
 online.
 * [tck-testable tck-id-payloads-state-birth]#[yellow-background]*[tck-id-payloads-state-birth] After
-subscribing on it's own spBv1.0/STATE/[sparkplug_host_id] topic, the Sparkplug Host Application MUST
-publish an MQTT message on the topic 'spBv1.0/STATE/[sparkplug_host_id]' with a QoS of 1, and the
+subscribing on it's own spCv1.0/STATE/[sparkplug_host_id] topic, the Sparkplug Host Application MUST
+publish an MQTT message on the topic 'spCv1.0/STATE/[sparkplug_host_id]' with a QoS of 1, and the
 retain flag set to true.*#
 ** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be
 any UTF-8 string.
@@ -2116,8 +2377,8 @@ receiving application SHOULD publish an acknowledgment for each received file me
 confirm receipt and, for a multi-part file publish, advance the transfer to the next part.*#
 * [tck-testable tck-id-payloads-file-ack-topic]#[yellow-background]*[tck-id-payloads-file-ack-topic] When
 a receiving application acknowledges a received file metric, the acknowledgment MUST be published as an
-NCMD message on topic 'spBv1.0/group_id/NCMD/edge_node_id' if the file metric was received in an NDATA
-message, or as a DCMD message on topic 'spBv1.0/group_id/DCMD/edge_node_id/device_id' if the file metric
+NCMD message on topic 'spCv1.0/group_id/NCMD/edge_node_id' if the file metric was received in an NDATA
+message, or as a DCMD message on topic 'spCv1.0/group_id/DCMD/edge_node_id/device_id' if the file metric
 was received in a DDATA message, scoped to the same Sparkplug Edge Node or Device that published the
 file.*#
 * [tck-testable tck-id-payloads-file-ack-seq-metric]#[yellow-background]*[tck-id-payloads-file-ack-seq-metric] The

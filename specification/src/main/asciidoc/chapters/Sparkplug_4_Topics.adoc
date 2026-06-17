@@ -41,19 +41,19 @@ using the Sparkplug specification MUST use the following topic namespace structu
 
 The namespace element of the topic namespace is the root element that will define both the
 structure of the remaining namespace elements as well as the encoding used for the associated
-payload data. The Sparkplug specification defines two (2) namespaces. One is for Sparkplug payload
-definition A (now deprecated), and the second is for the Sparkplug payload definition B.
+payload data. The Sparkplug specification defines the namespace for the current Sparkplug payload
+definition C. Earlier payload definitions A (now deprecated) and B used the 'spAv1.0' and 'spBv1.0'
+namespaces respectively.
 
 [tck-testable tck-id-topic-structure-namespace-a]#[yellow-background]*[tck-id-topic-structure-namespace-a] For
-the Sparkplug B version of the payload definition, the UTF-8 string constant for the namespace
+the Sparkplug C version of the payload definition, the UTF-8 string constant for the namespace
 element MUST be:*#
 
-  spBv1.0
+  spCv1.0
 
-Note that for the remainder of this document, the version of the Sparkplug Payload definition does
-not affect the topic namespace or session state management as they will remain the same. There are
-separate definitions in this document for the encoding used for both the A and B versions of
-Sparkplug MQTT message payloads.
+Note that for the remainder of this document, only Sparkplug C topic namespace definitions and concepts
+will be covered. For earlier 'Sparkplug A' and 'Sparkplug B' topic namespace definitions and concepts,
+see the earlier versions of the Sparkplug Specification.
 
 [[topics_group_id_element]]
 ==== group_id Element
@@ -94,6 +94,8 @@ The following message_type elements are defined for the Sparkplug topic namespac
 
 * *NCMD* – Edge Node command message
 * *DCMD* – Device command message
+* *NRESP* - Edge Node command response sent from Sparkplug Edge Nodes
+* *DRESP* - Device command response sent from Sparkplug Edge Nodes
 * *STATE* – Sparkplug Host Application state message
 * *REBIRTH* - Rebirth request for Sparkplug Edge Nodes sent by Host Applications
 
@@ -136,10 +138,10 @@ device_id MAY be duplicated from Edge Node to other Edge Nodes.*#
 The device_id element travels with every message published and should be as short as possible.
 
 [tck-testable tck-id-topic-structure-namespace-device-id-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-associated-message-types] The
-device_id MUST be included with message_type elements DBIRTH, DDEATH, DDATA, and DCMD based topics.*#
+device_id MUST be included with message_type elements DBIRTH, DDEATH, DDATA, DCMD, and DRESP based topics.*#
 
 [tck-testable tck-id-topic-structure-namespace-device-id-non-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-non-associated-message-types] The
-device_id MUST NOT be included with message_type elements NBIRTH, NDEATH, NDATA, NCMD, and STATE
+device_id MUST NOT be included with message_type elements NBIRTH, NDEATH, NDATA, NCMD, NRESP, and STATE
 based topics*#
 
 [[topics_message_type_overview]]
@@ -164,6 +166,8 @@ are:
 
 * *NCMD* – Edge Node command message
 * *DCMD* – Device command message
+* *NRESP* - Edge Node command response sent from Sparkplug Edge Nodes
+* *DRESP* - Device command response sent from Sparkplug Edge Nodes
 * *STATE* – Sparkplug Host Application state message
 * *REBIRTH* - Rebirth request for Sparkplug Edge Nodes sent by Host Applications
 
@@ -450,6 +454,36 @@ NCMD MUST include the metrics that need to be written to on the Edge Node.*#
 NCMD MUST have the 'source' field set in the payload and it MUST have a string value representing
 the Host ID of the Sparkplug Host Application that sent the NCMD message.*#
 
+[[command_nresp]]
+===== Command Response (NRESP)
+
+[[topics_command_nresp]]
+====== Topic (NRESP)
+
+The NRESP command response topic provides the topic namespace used by an Edge Node to return the
+result of an Edge Node level Command that was invoked with an NCMD message.
+
+* [tck-testable tck-id-topics-nresp-topic]#[yellow-background]*[tck-id-topics-nresp-topic] The
+Edge Node command response topic for a Sparkplug Edge Node MUST be of the form
+'namespace/group_id/NRESP/edge_node_id' where the namespace is replaced with the specific namespace
+for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
+Node ID for this specific Edge Node.*#
+
+[[payloads_desc_nresp]]
+====== Payload (NRESP)
+
+The NRESP message requires the following payload components.
+
+* [tck-testable tck-id-topics-nresp-mqtt]#[yellow-background]*[tck-id-topics-nresp-mqtt] NRESP messages
+MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
+* [tck-testable tck-id-topics-nresp-timestamp]#[yellow-background]*[tck-id-topics-nresp-timestamp] The
+NRESP MUST include a timestamp denoting the date and time the message was sent from the Edge Node's
+MQTT client.*#
+* [tck-testable tck-id-topics-nresp-payload-correlation]#[yellow-background]*[tck-id-topics-nresp-payload-correlation] The
+NRESP MUST include the correlation_id from the NCMD Command Request that it is responding to.*#
+* [tck-testable tck-id-topics-nresp-payload-status]#[yellow-background]*[tck-id-topics-nresp-payload-status] The
+NRESP MUST include a status for the command that it is responding to.*#
+
 [[topics_device]]
 ==== Device
 [upperalpha, start=1]
@@ -690,6 +724,36 @@ DCMD MUST include the metrics that need to be written to on the Device.*#
 DCMD MUST have the 'source' field set in the payload and it MUST have a string value representing
 the Host ID of the Sparkplug Host Application that sent the DCMD message.*#
 
+[[command_dresp]]
+===== Command Response (DRESP)
+
+The DRESP command response topic provides the topic namespace used by an Edge Node to return the
+result of a Device level Command that was invoked with a DCMD message.
+
+[[topics_command_dresp]]
+====== Topic (DRESP)
+
+* [tck-testable tck-id-topics-dresp-topic]#[yellow-background]*[tck-id-topics-dresp-topic] The
+Device command response topic for a Sparkplug Device MUST be of the form
+'namespace/group_id/DRESP/edge_node_id/device_id' where the namespace is replaced with the specific
+namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
+with the Group, Edge Node, and Device ID for this specific Device.*#
+
+[[payloads_desc_dresp]]
+====== Payload (DRESP)
+
+The DRESP message requires the following payload components.
+
+* [tck-testable tck-id-topics-dresp-mqtt]#[yellow-background]*[tck-id-topics-dresp-mqtt] DRESP messages
+MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
+* [tck-testable tck-id-topics-dresp-timestamp]#[yellow-background]*[tck-id-topics-dresp-timestamp] The
+DRESP MUST include a timestamp denoting the date and time the message was sent from the Edge Node's
+MQTT client.*#
+* [tck-testable tck-id-topics-dresp-payload-correlation]#[yellow-background]*[tck-id-topics-dresp-payload-correlation] The
+DRESP MUST include the correlation_id from the DCMD Command Request that it is responding to.*#
+* [tck-testable tck-id-topics-dresp-payload-status]#[yellow-background]*[tck-id-topics-dresp-payload-status] The
+DRESP MUST include a status for the command that it is responding to.*#
+
 [[topics_sparkplug_host_application]]
 [upperalpha, start=1]
 ==== Sparkplug Host Application
@@ -717,21 +781,21 @@ MQTT retain flag for the Birth Certificate MUST be set to TRUE*#
 The topic used for the Host Birth Certificate is identical to the topic used for the Death
 Certificate.
 [tck-testable tck-id-host-topic-phid-birth-topic]#[yellow-background]*[tck-id-host-topic-phid-birth-topic] The
-Sparkplug Host Application Birth topic MUST be of the form spBv1.0/STATE/sparkplug_host_id where the
+Sparkplug Host Application Birth topic MUST be of the form spCv1.0/STATE/sparkplug_host_id where the
 sparkplug_host_id must be replaced with the specific Spakrplug Host ID of this Sparkplug Host
 Application.*#
 
 * [tck-testable tck-id-host-topic-phid-birth-sub-required]#[yellow-background]*[tck-id-host-topic-phid-birth-sub-required] The
-Sparkplug Host Application MUST subscribe to its own spBv1.0/STATE/sparkplug_host_id and the
-appropriate spBv1.0 topic(s) immediately after successfully connecting to the MQTT Server.*#
-** An 'appropriate' spBv1.0 topic could simply be 'spBv1.0/#'. However, it may also make sense for
+Sparkplug Host Application MUST subscribe to its own spCv1.0/STATE/sparkplug_host_id and the
+appropriate spCv1.0 topic(s) immediately after successfully connecting to the MQTT Server.*#
+** An 'appropriate' spCv1.0 topic could simply be 'spCv1.0/#'. However, it may also make sense for
 a Host Application to subscribe only to a specific Sparkplug Group. For example subscribing to
-spBv1.0/Group1/# is also valid. A Host Application could even issue a subscription to subscribe to
-only a single Sparkplug Edge Node using this: spBv1.0/Group1/+/EdgeNode1/#. A Sparkplug Host
+spCv1.0/Group1/# is also valid. A Host Application could even issue a subscription to subscribe to
+only a single Sparkplug Edge Node using this: spCv1.0/Group1/+/EdgeNode1/#. A Sparkplug Host
 Application could subscribe to a combination of specific Sparkplug Groups and/or Edge Nodes as well.
 * [tck-testable tck-id-host-topic-phid-birth-required]#[yellow-background]*[tck-id-host-topic-phid-birth-required] The
 Sparkplug Host Application MUST publish a Sparkplug Host Application BIRTH message to the MQTT
-Server immediately after successfully subscribing its own spBv1.0/STATE/sparkplug_host_id topic.*#
+Server immediately after successfully subscribing its own spCv1.0/STATE/sparkplug_host_id topic.*#
 
 [[payloads_desc_state_birth]]
 ====== Birth Certificate Payload (STATE)
@@ -763,7 +827,7 @@ MQTT retain flag for the Birth Certificate MUST be set to TRUE*#
 ====== Death Certificate Topic (STATE)
 
 * [tck-testable tck-id-host-topic-phid-death-topic]#[yellow-background]*[tck-id-host-topic-phid-death-topic] The
-Sparkplug Host Application Death topic MUST be of the form spBv1.0/STATE/sparkplug_host_id where the
+Sparkplug Host Application Death topic MUST be of the form spCv1.0/STATE/sparkplug_host_id where the
 sparkplug_host_id must be replaced with the specific Sparkplug Host ID of this Sparkplug Host
 Application.*#
 * [tck-testable tck-id-host-topic-phid-death-required]#[yellow-background]*[tck-id-host-topic-phid-death-required] The

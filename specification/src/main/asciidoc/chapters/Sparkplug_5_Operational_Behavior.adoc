@@ -64,7 +64,7 @@ this situation well.
 Nodes in a Sparkplug environment SHOULD NOT have Sparkplug IDs (Group, Edge Node, or Device IDs)
 that when converted to lower case match*#
 ** For example there should not be two different Edge Nodes publishing NBIRTH messages on these two
-topics spBv1.0/Group1/NBIRTH/EdgeNode1 and spBv1.0/group1/NBIRTH/edgenode1
+topics spCv1.0/Group1/NBIRTH/EdgeNode1 and spCv1.0/group1/NBIRTH/edgenode1
 * [tck-testable tck-id-case-sensitivity-metric-names]#[yellow-background]*[tck-id-case-sensitivity-metric-names] An
 Edge Node SHOULD NOT publish metric names that when converted to all lower case match.*#
 ** For example a DBIRTH should not contain a metric 'a' and another metric 'A'.
@@ -157,13 +157,13 @@ receive NCMD messages with the following rules.
 
 * [tck-testable tck-id-message-flow-edge-node-rebirth-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-rebirth-subscribe] The
 MQTT client associated with the Edge Node MUST subscribe to a topic of the form
-'spBv1.0/group_id/REBIRTH/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
+'spCv1.0/group_id/REBIRTH/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
 is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on this topic with a QoS of
 0.*#
 ** This subscription is mandatory as Edge Nodes MUST be able to respond to 'rebirth requests'.
 * [tck-testable tck-id-message-flow-edge-node-ncmd-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-ncmd-subscribe] The
 MQTT client associated with the Edge Node SHOULD subscribe to a topic of the form
-'spBv1.0/group_id/NCMD/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
+'spCv1.0/group_id/NCMD/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
 is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on this topic with a QoS of
 0.*#
 
@@ -175,7 +175,7 @@ DBIRTH messages.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message] When
 a Sparkplug Edge Node sends its MQTT CONNECT packet, it MUST include a Will Message.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-topic] The
-Edge Node's MQTT Will Message's topic MUST be of the form 'spBv1.0/group_id/NDEATH/edge_node_id'
+Edge Node's MQTT Will Message's topic MUST be of the form 'spCv1.0/group_id/NDEATH/edge_node_id'
 where group_id is the Sparkplug Group ID and the edge_node_id is the Sparkplug Edge Node ID for this
 Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload] The
@@ -222,7 +222,7 @@ payload before considering the Primary Host Application to be online and active.
 STATE message timestamp value has been received by this Edge Node it MUST consider the incoming
 STATE message to be the latest/valid.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-topic] The
-Edge Node's NBIRTH MQTT topic MUST be of the form 'spBv1.0/group_id/NBIRTH/edge_node_id' where
+Edge Node's NBIRTH MQTT topic MUST be of the form 'spCv1.0/group_id/NBIRTH/edge_node_id' where
 group_id is the Sparkplug Group ID and the edge_node_id is the Sparkplug Edge Node ID for this Edge
 Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload] The
@@ -410,7 +410,7 @@ rules.
 
 * [tck-testable tck-id-message-flow-device-dcmd-subscribe]#[yellow-background]*[tck-id-message-flow-device-dcmd-subscribe] If
 the Device supports writing to outputs, the MQTT client associated with the Device MUST subscribe to
-a topic of the form 'spBv1.0/group_id/DCMD/edge_node_id/device_id' where group_id is the Sparkplug
+a topic of the form 'spCv1.0/group_id/DCMD/edge_node_id/device_id' where group_id is the Sparkplug
 Group ID the edge_node_id is the Sparkplug Edge Node ID and the device_id is the Sparkplug Device ID
 for this Device. It MUST subscribe on this topic with a QoS of 1.*#
 
@@ -421,7 +421,7 @@ active. The DBIRTH message must follow the following rules.
 NBIRTH message MUST have been sent within the current MQTT session prior to a DBIRTH being
 published.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-topic] The
-Device's DBIRTH MQTT topic MUST be of the form 'spBv1.0/group_id/DBIRTH/edge_node_id/device_id'
+Device's DBIRTH MQTT topic MUST be of the form 'spCv1.0/group_id/DBIRTH/edge_node_id/device_id'
 where group_id is the Sparkplug Group ID the edge_node_id is the Sparkplug Edge Node ID and the
 device_id is the Sparkplug Device ID for this Device.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic] The
@@ -766,7 +766,7 @@ sparkplug_host_id MUST be unique to all other Sparkplug Host IDs in the infrastr
 * [tck-testable tck-id-operational-behavior-host-application-connect-will]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will] When
 a Sparkplug Host Application sends its MQTT CONNECT packet, it MUST include a Will Message.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-topic] The
-MQTT Will Message's topic MUST be of the form 'spBv1.0/STATE/sparkplug_host_id' where host_id is the
+MQTT Will Message's topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where host_id is the
 unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-payload] The
 Death Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
@@ -785,7 +785,7 @@ birth with the following rules.
 MQTT Client associated with the Sparkplug Host Application MUST send a birth message immediately
 after successfully connecting to the MQTT Server.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-topic] The
-Host Application's Birth topic MUST be of the form 'spBv1.0/STATE/sparkplug_host_id' where host_id
+Host Application's Birth topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where host_id
 is the unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-payload] The
 Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
@@ -814,7 +814,7 @@ the Sparkplug Host Application ever disconnects intentionally, it MUST publish a
 the following characteristics.*#
 
 * [tck-testable tck-id-operational-behavior-host-application-death-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-death-topic] The
-Sparkplug Host Application's Death topic MUST be of the form 'spBv1.0/STATE/sparkplug_host_id' where
+Sparkplug Host Application's Death topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where
 host_id is the unique identifier of the Sparkplug Host Application.*#
 * [tck-testable tck-id-operational-behavior-host-application-death-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-death-payload] The
 Death Certificate Payload registered as the MQTT Will Message in the MQTT CONNECT packet MUST be
@@ -1047,3 +1047,51 @@ included in the DBIRTH message.
 * [tck-testable tck-id-operational-behavior-commands-dcmd-metric-value]#[yellow-background]*[tck-id-operational-behavior-commands-dcmd-metric-value] A
 DCMD message MUST include a compatible metric value for the metric name that it is writing to.*#
 ** In other words, if the metric has a datatype of a boolean the value must be true or false.
+
+[[operational_behavior_commands_typed]]
+==== Typed Commands and Command Responses
+
+In addition to writing to output metrics, a Host Application can invoke strongly typed commands that
+an Edge Node or Device includes as Command metrics in its BIRTH. A command is a callable function
+with a typed signature: it declares the inputs it accepts and the outputs it returns. Invoking a
+command follows a correlated request/response pattern so that the result, including any returned
+data or error code, can be reliably matched back to the request that produced it. The structure of a
+Command metric is defined in the link:#payloads_c_command[Command Section].
+
+The general flow is: a Host Application publishes an NCMD or DCMD that targets a Command metric and
+includes the argument values and a correlation_id; the Edge Node executes the command; and the Edge
+Node publishes an NRESP or DRESP that echoes the correlation_id and carries the execution status and
+any results.
+
+* [tck-testable tck-id-operational-behavior-command-definition-birth]#[yellow-background]*[tck-id-operational-behavior-command-definition-birth] An
+Edge Node MUST include every command it supports as a Command metric in the NBIRTH (for Edge Node
+level commands) or DBIRTH (for Device level commands).*#
+* [tck-testable tck-id-operational-behavior-command-request-correlation]#[yellow-background]*[tck-id-operational-behavior-command-request-correlation] A
+Host Application that invokes a command MUST include a correlation_id in the Command object of the
+NCMD or DCMD message.*#
+** The correlation_id SHOULD be unique among the Host Application's outstanding command requests so
+that each response can be unambiguously matched to its request.
+* [tck-testable tck-id-operational-behavior-command-request-arg-datatype]#[yellow-background]*[tck-id-operational-behavior-command-request-arg-datatype] A
+Host Application that invokes a command MUST supply argument values whose datatypes are compatible
+with the argument definitions supplied in the corresponding BIRTH Command Definition.*#
+* [tck-testable tck-id-operational-behavior-command-response-verb]#[yellow-background]*[tck-id-operational-behavior-command-response-verb] On
+receiving a command, an Edge Node MUST publish a command response using the NRESP Sparkplug verb for
+Edge Node level commands and the DRESP Sparkplug verb for Device level commands.*#
+* [tck-testable tck-id-operational-behavior-command-response-correlation]#[yellow-background]*[tck-id-operational-behavior-command-response-correlation] The
+command response MUST include the same correlation_id that was included in the command request that
+produced it.*#
+* [tck-testable tck-id-operational-behavior-command-response-results]#[yellow-background]*[tck-id-operational-behavior-command-response-results] On
+successful execution of a command that defines results, the command response MUST include a result
+value for every result that was included in the corresponding BIRTH Command Definition.*#
+* [tck-testable tck-id-operational-behavior-command-error-status]#[yellow-background]*[tck-id-operational-behavior-command-error-status] If
+a command cannot be executed because it is unknown, its arguments are incompatible, or its execution
+fails, the Edge Node MUST publish a command response with a non-zero status code rather than silently
+ignoring the request.*#
+
+Because command request and response messages are correlated by correlation_id, a Host Application
+can reliably detect the completion or failure of a command.
+
+* [tck-testable tck-id-operational-behavior-command-response-reliability]#[yellow-background]*[tck-id-operational-behavior-command-response-reliability] NRESP
+and DRESP messages MUST be published with MQTT QoS equal to 0.*#
+** A Host Application MAY apply a timeout to an outstanding command request, keyed on its
+correlation_id, and re-issue the request with a new correlation_id if no response is received.
