@@ -137,7 +137,7 @@ plantuml::{assetsdir}assets/plantuml/primary-application-state-flow.puml[format=
 should issue a subscription to the Primary Host Application STATE message. The Edge Nodes are free
 to establish an MQTT Session to any of the available servers over any available network at any time
 and examine the current STATE online value. If the STATE message payload contains ‘online=false’ and
-the bdSeq number value in the paylaod matches the bdSeq number in the prior Host Application BIRTH
+the bd_seq number value in the paylaod matches the bd_seq number in the prior Host Application BIRTH
 message then the Edge Node should disconnect and walk to the next available server.
 . Upon startup, the configured Primary Application, the MQTT Session will be configured to register
 the Primary Host Application DEATH Certificate that indicates STATE is ‘online=false’ with the

@@ -81,12 +81,14 @@ version of the Sparkplug implementation as indicated by the namespace element.
 The following message_type elements are defined for the Sparkplug topic namespace:
 
 * *NMETA* - Metadata definition for Sparkplug Edge Nodes
+* *NMMETA* - Modified metadata (metric definition changes) for Sparkplug Edge Nodes
 * *NBIRTH* – Birth certificate for Sparkplug Edge Nodes
 * *NREBIRTH* - Edge Node Rebirth response sent from Sparkplug Edge Nodes
 * *NDATA* – Edge Node data message
 * *NDEATH* – Death certificate for Sparkplug Edge Nodes
 
 * *DMETA* - Metadata definition for Sparkplug Devices
+* *DMMETA* - Modified metadata (metric definition changes) for Sparkplug Devices
 * *DBIRTH* – Birth certificate for Devices
 * *DREBIRTH* - Device Rebirth response sent from Sparkplug Edge Nodes
 * *DDATA* – Device data message
@@ -138,10 +140,10 @@ device_id MAY be duplicated from Edge Node to other Edge Nodes.*#
 The device_id element travels with every message published and should be as short as possible.
 
 [tck-testable tck-id-topic-structure-namespace-device-id-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-associated-message-types] The
-device_id MUST be included with message_type elements DBIRTH, DDEATH, DDATA, DCMD, and DRESP based topics.*#
+device_id MUST be included with message_type elements DMETA, DMMETA, DBIRTH, DDEATH, DDATA, DCMD, and DRESP based topics.*#
 
 [tck-testable tck-id-topic-structure-namespace-device-id-non-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-non-associated-message-types] The
-device_id MUST NOT be included with message_type elements NBIRTH, NDEATH, NDATA, NCMD, NRESP, and STATE
+device_id MUST NOT be included with message_type elements NMETA, NMMETA, NBIRTH, NDEATH, NDATA, NCMD, NRESP, and STATE
 based topics*#
 
 [[topics_message_type_overview]]
@@ -153,12 +155,14 @@ real-time SCADA/IIoT, monitoring, and data collection system use cases. The defi
 are:
 
 * *NMETA* - Metadata definition for Sparkplug Edge Nodes
+* *NMMETA* - Modified metadata (metric definition changes) for Sparkplug Edge Nodes
 * *NBIRTH* – Birth certificate for Sparkplug Edge Nodes
 * *NDATA* – Edge Node data message
 * *NDEATH* – Death certificate for Sparkplug Edge Nodes
 * *NREBIRTH* - Edge Node Rebirth response sent from Sparkplug Edge Nodes
 
 * *DMETA* - Metadata definition for Sparkplug Devices
+* *DMMETA* - Modified metadata (metric definition changes) for Sparkplug Devices
 * *DBIRTH* – Birth certificate for Devices
 * *DDATA* – Device data message
 * *DDEATH* – Death certificate for Devices
@@ -185,6 +189,107 @@ This section defines the payload contents and how each of the associated message
 ==== Edge Node
 [upperalpha, start=1]
 
+[[metadata_message_nmeta]]
+===== Metadata Message (NMETA)
+
+The NMETA message describes the metric structure (metadata) of a Sparkplug Edge Node - metric name,
+datatype, alias, properties, metadata, Command-datatype metric definitions, and all Template
+definitions - but not the current metric values. It is identified by a _definition identifier_ that
+is a recalculatable content hash of the metric definitions it contains, and the value-carrying
+NBIRTH, NDATA, DBIRTH and DDATA messages reference that identifier.
+
+An Edge Node makes its complete metric structure available as a full NMETA published with the MQTT
+retain flag set to true, so the MQTT Server retains it and delivers it to any subscriber, including
+while the Edge Node is offline. The Edge Node only needs to publish the full NMETA when the MQTT
+Server does not already have one retained with the current definition identifier (see
+link:#operational_behavior_reconnect_optimization[Reconnect Optimization]). When a full NMETA is
+published as part of a BIRTH sequence, it precedes the NBIRTH that references it. When the metric
+structure changes while the Edge Node is online, the change is published as an NMMETA (see below).
+
+[[topics_metadata_message_nmeta]]
+====== Topic (NMETA)
+
+* [tck-testable tck-id-topics-nmeta-topic]#[yellow-background]*[tck-id-topics-nmeta-topic] The
+Metadata topic for a Sparkplug Edge Node MUST be of the form 'namespace/group_id/NMETA/edge_node_id'
+where the namespace is replaced with the specific namespace for this version of Sparkplug and the
+group_id and edge_node_id are replaced with the Group and Edge Node ID for this specific Edge Node.*#
+
+[[payloads_desc_nmeta]]
+====== Payload (NMETA)
+
+* [tck-testable tck-id-topics-nmeta-mqtt]#[yellow-background]*[tck-id-topics-nmeta-mqtt] A full NMETA
+message MUST be published with MQTT QoS equal to 0 and retain equal to true.*#
+* [tck-testable tck-id-topics-nmeta-timestamp]#[yellow-background]*[tck-id-topics-nmeta-timestamp] The
+NMETA MUST include a timestamp denoting the date and time the metadata was published from the Edge
+Node.*#
+* [tck-testable tck-id-topics-nmeta-defid]#[yellow-background]*[tck-id-topics-nmeta-defid] The NMETA
+MUST include a definition identifier that is the content hash of the Edge Node metric definitions it
+contains.*#
+* [tck-testable tck-id-topics-nmeta-metric-reqs]#[yellow-background]*[tck-id-topics-nmeta-metric-reqs] A
+full NMETA MUST include every metric the Edge Node will report on.*#
+* [tck-testable tck-id-topics-nmeta-cmd-metrics]#[yellow-background]*[tck-id-topics-nmeta-cmd-metrics] A
+full NMETA MUST include the definition of every Command-datatype metric the Edge Node exposes,
+including its command argument and result definitions.*#
+* [tck-testable tck-id-topics-nmeta-metrics]#[yellow-background]*[tck-id-topics-nmeta-metrics] For each
+metric a full NMETA MUST include the metric name and datatype. The metric alias, properties, and
+metadata MAY also be included; aliases are optional.*#
+* [tck-testable tck-id-topics-nmeta-no-value]#[yellow-background]*[tck-id-topics-nmeta-no-value] The
+NMETA MUST NOT be used to convey current metric values.*#
+* [tck-testable tck-id-topics-nmeta-templates]#[yellow-background]*[tck-id-topics-nmeta-templates] If
+Template instances will be published by this Edge Node or any of its Sparkplug Devices, all Template
+definitions MUST be published in the NMETA.*#
+* [tck-testable tck-id-topics-nmeta-seq]#[yellow-background]*[tck-id-topics-nmeta-seq] The NMETA MUST
+include a sequence number. When the NMETA is published at the start of a BIRTH sequence it is the
+first message and its sequence number MUST be 0. When the NMETA is published as an update
+(accompanying an NMMETA), its sequence number MUST be one greater than the sequence number of the
+previous message from this Edge Node, unless that message contained a value of 18446744073709551615 (max value of a UINT64), in which case the
+sequence number MUST be 0.*#
+* [tck-testable tck-id-topics-nmeta-bdseq]#[yellow-background]*[tck-id-topics-nmeta-bdseq] The NMETA
+MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
+
+[[metadata_message_nmmeta]]
+===== Modified Metadata Message (NMMETA)
+
+When the metric structure of an Edge Node changes while it is online - a metric is added, removed, or
+modified - the change is conveyed with an NMMETA message. The NMMETA carries only the affected
+metrics, each tagged with an ADD, UPDATE, or DELETE operation, rather than requiring a full Rebirth.
+The NMMETA is published with the MQTT retain flag set to false; to keep the retained metadata
+complete for late or reconnecting consumers, every NMMETA MUST be accompanied by an updated full
+NMETA published with the retain flag set to true. Publishing the small NMMETA lets already-connected
+consumers apply just the delta, while the retained full NMETA keeps the current structure available
+for discovery.
+
+[[topics_metadata_message_nmmeta]]
+====== Topic (NMMETA)
+
+* [tck-testable tck-id-topics-nmmeta-topic]#[yellow-background]*[tck-id-topics-nmmeta-topic] The
+Modified Metadata topic for a Sparkplug Edge Node MUST be of the form
+'namespace/group_id/NMMETA/edge_node_id' where the namespace, group_id, and edge_node_id are replaced
+as for the other Edge Node topics.*#
+
+[[payloads_desc_nmmeta]]
+====== Payload (NMMETA)
+
+* [tck-testable tck-id-topics-nmmeta-mqtt]#[yellow-background]*[tck-id-topics-nmmeta-mqtt] NMMETA
+messages MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
+* [tck-testable tck-id-topics-nmmeta-full-nmeta]#[yellow-background]*[tck-id-topics-nmmeta-full-nmeta] Every
+NMMETA MUST be accompanied by an updated full NMETA, published with retain equal to true, that
+reflects the complete metric structure after the change.*#
+* [tck-testable tck-id-topics-nmmeta-timestamp]#[yellow-background]*[tck-id-topics-nmmeta-timestamp] The
+NMMETA MUST include a timestamp denoting the date and time the message was sent from the Edge Node.*#
+* [tck-testable tck-id-topics-nmmeta-defid]#[yellow-background]*[tck-id-topics-nmmeta-defid] The NMMETA
+MUST include the definition identifier in effect immediately before the change (previous_definition_id)
+and the definition identifier in effect after applying the operations (definition_id).*#
+* [tck-testable tck-id-topics-nmmeta-operations]#[yellow-background]*[tck-id-topics-nmmeta-operations] The
+NMMETA MUST include only the metrics affected by the change, and each metric MUST carry an operation
+of ADD, UPDATE, or DELETE.*#
+* [tck-testable tck-id-topics-nmmeta-seq]#[yellow-background]*[tck-id-topics-nmmeta-seq] The NMMETA MUST
+include a sequence number that is one greater than the sequence number of the previous message
+published by this Edge Node, unless that message contained a value of 18446744073709551615 (max value of a UINT64), in which case the sequence
+number MUST be 0.*#
+* [tck-testable tck-id-topics-nmmeta-bdseq]#[yellow-background]*[tck-id-topics-nmmeta-bdseq] The NMMETA
+MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
+
 [[birth_message_nbirth]]
 ===== Birth Message (NBIRTH)
 
@@ -200,44 +305,53 @@ Node ID for this specific Edge Node.*#
 [[payloads_desc_nbirth]]
 ====== Payload (NBIRTH)
 
-The Sparkplug Edge Node Birth Certificate payload contains everything required to build out a data
-structure for all metrics for this Edge Node. At the time any Host Application receives an NBIRTH,
-the 'online' state of this Edge Node should be set to 'true' along with the associated 'online' date
-and time parameter. Note that the Edge Node Birth Certificate ONLY indicates the Edge Node itself
-is online and in an MQTT Session, but any devices that have previously published a DBIRTH will still
-have STALE metric quality until the Host Application receives the new DBIRTH messages associated
-with the new Sparkplug session..
+The Sparkplug Edge Node Birth Certificate payload reports the current _values_ of the Edge Node's
+metrics. The metric structure itself (metadata) is described in the Edge Node's NMETA message; the
+NBIRTH references that structure by its definition identifier and identifies each metric by its alias
+or name. At the time any Host Application receives an NBIRTH, the 'online' state of this Edge Node
+should be set to 'true' along with the associated 'online' date and time parameter. Note that the
+Edge Node Birth Certificate ONLY indicates the Edge Node itself is online and in an MQTT Session, but
+any devices that have previously published a DBIRTH will still have STALE metric quality until the
+Host Application receives the new DBIRTH messages associated with the new Sparkplug session.
 
 The NBIRTH message requires the following payload components.
 
 * [tck-testable tck-id-topics-nbirth-mqtt]#[yellow-background]*[tck-id-topics-nbirth-mqtt] NBIRTH
 messages MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
 * [tck-testable tck-id-topics-nbirth-seq-num]#[yellow-background]*[tck-id-topics-nbirth-seq-num] The
-NBIRTH MUST include a sequence number in the payload and it MUST have a value of 0.*#
+NBIRTH MUST include a sequence number in the payload. If no NMETA is published in the BIRTH sequence,
+the NBIRTH is the first message and its sequence number MUST be 0; if an NMETA is published (sequence
+number 0), the NBIRTH's sequence number MUST be 1.*#
 * [tck-testable tck-id-topics-nbirth-timestamp-1]#[yellow-background]*[tck-id-topics-nbirth-timestamp-1] The
 NBIRTH MUST include the overall payload timestamp denoting the date and time the message was sent
 from the Edge Node.*#
 * [tck-testable tck-id-topics-nbirth-timestamp-2]#[yellow-background]*[tck-id-topics-nbirth-timestamp-2] Each
 individual Metric in the payload MAY include its own timestamp. If it does not, it is assumed the
-'metric value change time' is that over the overall payload timestamp included in the NBIRTH
-paylaod.*#
+'metric value change time' is that of the overall payload timestamp included in the NBIRTH payload.*#
+* [tck-testable tck-id-topics-nbirth-defid]#[yellow-background]*[tck-id-topics-nbirth-defid] The NBIRTH
+MUST include a definition identifier equal to the content hash of the NMETA that describes this Edge
+Node.*#
 * [tck-testable tck-id-topics-nbirth-metric-reqs]#[yellow-background]*[tck-id-topics-nbirth-metric-reqs] The
-NBIRTH MUST include every metric the Edge Node will ever report on.*#
-* [tck-testable tck-id-topics-nbirth-metrics]#[yellow-background]*[tck-id-topics-nbirth-metrics] At
-a minimum each metric MUST include the metric name, datatype, and current value.*#
-* [tck-testable tck-id-topics-nbirth-templates]#[yellow-background]*[tck-id-topics-nbirth-templates] If
-Template instances will be published by this Edge Node or any devices, all Template definitions MUST
-be published in the NBIRTH.*#
+NBIRTH MUST report a value for every metric described in the referenced NMETA, with the exception of
+metrics flagged as transient.*#
+* [tck-testable tck-id-topics-nbirth-metrics]#[yellow-background]*[tck-id-topics-nbirth-metrics] Each
+metric in the NBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced NMETA, or otherwise by its metric name.*#
+* [tck-testable tck-id-topics-nbirth-metrics-defined]#[yellow-background]*[tck-id-topics-nbirth-metrics-defined] Every
+metric reported in an NBIRTH MUST be described by the NMETA referenced by the shared definition
+identifier.*#
+* [tck-testable tck-id-topics-nbirth-no-metadata]#[yellow-background]*[tck-id-topics-nbirth-no-metadata] The
+NBIRTH MUST NOT be used to convey metric datatype, properties, or metadata; these are conveyed only
+in the NMETA and NMMETA.*#
 * [tck-testable tck-id-topics-nbirth-bdseq-included]#[yellow-background]*[tck-id-topics-nbirth-bdseq-included] A
-bdSeq number MUST be included in the payload.*#
+bd_seq number MUST be included in the payload, and it MUST match the bd_seq number included in the
+immediately prior MQTT CONNECT packet's Will Message.*#
 * [tck-testable tck-id-topics-nbirth-bdseq-matching]#[yellow-background]*[tck-id-topics-nbirth-bdseq-matching] This
-MUST match the bdSeq number provided in the immediately prior MQTT CONNECT packet’s Will Message
-payload.*#
-** This allows Host Applications to correlate NBIRTHs to NDEATHs.
+matching bd_seq number allows Host Applications to correlate NBIRTHs to NDEATHs.*#
 * [tck-testable tck-id-topics-nbirth-bdseq-increment]#[yellow-background]*[tck-id-topics-nbirth-bdseq-increment] The
-bdSeq number MUST start at zero and increment by one on every new MQTT CONNECT packet until it
+bd_seq number MUST start at zero and increment by one on every new MQTT CONNECT packet until it
 reaches a maximum of 18446744073709551615 (max value of a UINT64). At this point, the following
-bdSeq number MUST be zero.*#
+bd_seq number MUST be zero.*#
 
 The NBIRTH message can also include additional Node Control payload components. These are used by a
 Sparkplug Host Application to control aspects of the Edge Node. The following are examples of Node
@@ -306,15 +420,15 @@ a minimum each metric MUST include the metric name, datatype, and current value.
 Template instances will be published by this Edge Node or any devices, all Template definitions MUST
 be published in the NREBIRTH.*#
 * [tck-testable tck-id-topics-nrebirth-bdseq-included]#[yellow-background]*[tck-id-topics-nrebirth-bdseq-included] A
-bdSeq number MUST be included in the payload.*#
+bd_seq number MUST be included in the payload.*#
 * [tck-testable tck-id-topics-nrebirth-bdseq-matching]#[yellow-background]*[tck-id-topics-nrebirth-bdseq-matching] This
-MUST match the bdSeq number provided in the immediately prior MQTT CONNECT packet’s Will Message
+MUST match the bd_seq number provided in the immediately prior MQTT CONNECT packet’s Will Message
 payload.*#
 ** This allows Host Applications to correlate NREBIRTHs to NDEATHs.
 * [tck-testable tck-id-topics-nrebirth-bdseq-increment]#[yellow-background]*[tck-id-topics-nrebirth-bdseq-increment] The
-bdSeq number MUST start at zero and increment by one on every new MQTT CONNECT packet until it
+bd_seq number MUST start at zero and increment by one on every new MQTT CONNECT packet until it
 reaches a maximum of 18446744073709551615 (max value of a UINT64). At this point, the following
-bdSeq number MUST be zero.*#
+bd_seq number MUST be zero.*#
 
 The NREBIRTH message can also include additional Node Control payload components. These are used by
 a Sparkplug Host Application to control aspects of the Edge Node. The following are examples of Node
@@ -392,8 +506,8 @@ The Death Certificate topic and payload described here are not “published” a
 client, but provided as parameters within the MQTT CONNECT control packet when this Sparkplug Edge
 Node first establishes the MQTT Client session.
 
-Immediately upon reception of an Edge Node Death Certificate (NDEATH message) with a bdSeq number in
-this payload that matches the preceding bdSeq number in the NBIRTH, any Host Application subscribed
+Immediately upon reception of an Edge Node Death Certificate (NDEATH message) with a bd_seq number in
+this payload that matches the preceding bd_seq number in the NBIRTH, any Host Application subscribed
 to this Edge Node should set the data quality of all metrics to STALE and should note the timestamp
 when the NDEATH message was received.
 
@@ -410,7 +524,7 @@ Node ID for this specific Edge Node.*#
 ====== Payload (NDEATH)
 
 * [tck-testable tck-id-topics-ndeath-payload]#[yellow-background]*[tck-id-topics-ndeath-payload] The
-NDEATH message contains a very simple payload that MUST only include a bdSeq number, so that the
+NDEATH message contains a very simple payload that MUST only include a bd_seq number, so that the
 NDEATH event can be associated with the NBIRTH.*#
 Since this is typically published by the MQTT Server on behalf of the Edge Node, information about
 the current state of the Edge Node and its devices is not and cannot be known. As a result,
@@ -488,6 +602,89 @@ NRESP MUST include a status for the command that it is responding to.*#
 ==== Device
 [upperalpha, start=1]
 
+[[metadata_message_dmeta]]
+===== Metadata Message (DMETA)
+
+The DMETA message describes the metric structure (metadata) of a Sparkplug Device. It is the Device
+equivalent of the NMETA message: it contains the definition of every metric the Device will report
+on, including every Command-datatype metric it exposes, but not the current metric values, and it is
+identified by a definition identifier that is a content hash of those definitions. Like the NMETA, a
+full DMETA is published with the MQTT retain flag set to true.
+
+[[topics_metadata_message_dmeta]]
+====== Topic (DMETA)
+
+* [tck-testable tck-id-topics-dmeta-topic]#[yellow-background]*[tck-id-topics-dmeta-topic] The Metadata
+topic for a Sparkplug Device MUST be of the form 'namespace/group_id/DMETA/edge_node_id/device_id'
+where the namespace, group_id, edge_node_id, and device_id are replaced as for the other Device
+topics.*#
+
+[[payloads_desc_dmeta]]
+====== Payload (DMETA)
+
+* [tck-testable tck-id-topics-dmeta-mqtt]#[yellow-background]*[tck-id-topics-dmeta-mqtt] A full DMETA
+message MUST be published with MQTT QoS equal to 0 and retain equal to true.*#
+* [tck-testable tck-id-topics-dmeta-timestamp]#[yellow-background]*[tck-id-topics-dmeta-timestamp] The
+DMETA MUST include a timestamp denoting the date and time the metadata was published from the Edge
+Node.*#
+* [tck-testable tck-id-topics-dmeta-defid]#[yellow-background]*[tck-id-topics-dmeta-defid] The DMETA
+MUST include a definition identifier that is the content hash of the Device metric definitions it
+contains.*#
+* [tck-testable tck-id-topics-dmeta-cmd-metrics]#[yellow-background]*[tck-id-topics-dmeta-cmd-metrics] A
+full DMETA MUST include the definition of every Command-datatype metric the Device exposes, including
+its command argument and result definitions.*#
+* [tck-testable tck-id-topics-dmeta-metrics]#[yellow-background]*[tck-id-topics-dmeta-metrics] For each
+metric a full DMETA MUST include the metric name and datatype. The metric alias, properties, and
+metadata MAY also be included; aliases are optional.*#
+* [tck-testable tck-id-topics-dmeta-no-value]#[yellow-background]*[tck-id-topics-dmeta-no-value] The
+DMETA MUST NOT be used to convey current metric values.*#
+* [tck-testable tck-id-topics-dmeta-seq]#[yellow-background]*[tck-id-topics-dmeta-seq] The DMETA MUST
+include a sequence number that is one greater than the sequence number of the previous message from
+this Edge Node, unless that message contained a value of 18446744073709551615 (max value of a UINT64), in which case the sequence number MUST
+be 0. A DMETA is never the first message of a BIRTH sequence, as it follows the NMETA and NBIRTH.*#
+* [tck-testable tck-id-topics-dmeta-bdseq]#[yellow-background]*[tck-id-topics-dmeta-bdseq] The DMETA
+MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
+
+[[metadata_message_dmmeta]]
+===== Modified Metadata Message (DMMETA)
+
+The DMMETA is the Device equivalent of the NMMETA message. When a Device's metric structure changes
+while it is online, the DMMETA conveys that change as the added, modified, and removed metrics only -
+each tagged with an ADD, UPDATE, or DELETE operation. The DMMETA is published with the MQTT retain
+flag set to false, and is accompanied by an updated full DMETA published with the retain flag set to
+true.
+
+[[topics_metadata_message_dmmeta]]
+====== Topic (DMMETA)
+
+* [tck-testable tck-id-topics-dmmeta-topic]#[yellow-background]*[tck-id-topics-dmmeta-topic] The
+Modified Metadata topic for a Sparkplug Device MUST be of the form
+'namespace/group_id/DMMETA/edge_node_id/device_id' where the namespace, group_id, edge_node_id, and
+device_id are replaced as for the other Device topics.*#
+
+[[payloads_desc_dmmeta]]
+====== Payload (DMMETA)
+
+* [tck-testable tck-id-topics-dmmeta-mqtt]#[yellow-background]*[tck-id-topics-dmmeta-mqtt] DMMETA
+messages MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
+* [tck-testable tck-id-topics-dmmeta-full-dmeta]#[yellow-background]*[tck-id-topics-dmmeta-full-dmeta] Every
+DMMETA MUST be accompanied by an updated full DMETA, published with retain equal to true, that
+reflects the complete metric structure after the change.*#
+* [tck-testable tck-id-topics-dmmeta-timestamp]#[yellow-background]*[tck-id-topics-dmmeta-timestamp] The
+DMMETA MUST include a timestamp denoting the date and time the message was sent from the Edge Node.*#
+* [tck-testable tck-id-topics-dmmeta-defid]#[yellow-background]*[tck-id-topics-dmmeta-defid] The DMMETA
+MUST include the definition identifier in effect immediately before the change (previous_definition_id)
+and the definition identifier in effect after applying the operations (definition_id).*#
+* [tck-testable tck-id-topics-dmmeta-operations]#[yellow-background]*[tck-id-topics-dmmeta-operations] The
+DMMETA MUST include only the metrics affected by the change, and each metric MUST carry an operation
+of ADD, UPDATE, or DELETE.*#
+* [tck-testable tck-id-topics-dmmeta-seq]#[yellow-background]*[tck-id-topics-dmmeta-seq] The DMMETA MUST
+include a sequence number that is one greater than the sequence number of the previous message
+published by this Edge Node, unless that message contained a value of 18446744073709551615 (max value of a UINT64), in which case the sequence
+number MUST be 0.*#
+* [tck-testable tck-id-topics-dmmeta-bdseq]#[yellow-background]*[tck-id-topics-dmmeta-bdseq] The DMMETA
+MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
+
 [[birth_message_dbirth]]
 ===== Birth Message (DBIRTH)
 
@@ -498,9 +695,11 @@ connected to this node will still need to provide this DBIRTH before Host Applic
 create/update the metric structure (if this is the first time this device has been seen) and set any
 associated metrics in the application to a “*GOOD*” state.
 
-The DBIRTH payload contains everything required to build out a data structure for all metrics for
-this device. The 'online' state of this device should be set to TRUE along with the associated
-'online' date and time this message was received.
+The DBIRTH payload reports the current _values_ of the Device's metrics. The metric structure itself
+(metadata) is described in the Device's DMETA message; the DBIRTH references that structure by its
+definition identifier and identifies each metric by its alias or name. The 'online' state of this
+device should be set to TRUE along with the associated 'online' date and time this message was
+received.
 
 [[topics_birth_message_dbirth]]
 ====== Topic (DBIRTH)
@@ -529,10 +728,21 @@ from the Edge Node.*#
 individual Metric in the payload MAY include its own timestamp. If it does not, it is assumed the
 'metric value change time' is that over the overall payload timestamp included in the DBIRTH
 payload.*#
+* [tck-testable tck-id-topics-dbirth-defid]#[yellow-background]*[tck-id-topics-dbirth-defid] The DBIRTH
+MUST include a definition identifier equal to the content hash of the DMETA that describes this
+Device.*#
 * [tck-testable tck-id-topics-dbirth-metric-reqs]#[yellow-background]*[tck-id-topics-dbirth-metric-reqs] The
-DBIRTH MUST include every metric the Edge Node will ever report on.*#
-* [tck-testable tck-id-topics-dbirth-metrics]#[yellow-background]*[tck-id-topics-dbirth-metrics] At
-a minimum each metric MUST include the metric name, metric datatype, and current value.*#
+DBIRTH MUST report a value for every metric described in the referenced DMETA, with the exception of
+metrics flagged as transient.*#
+* [tck-testable tck-id-topics-dbirth-metrics]#[yellow-background]*[tck-id-topics-dbirth-metrics] Each
+metric in the DBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced DMETA, or otherwise by its metric name.*#
+* [tck-testable tck-id-topics-dbirth-metrics-defined]#[yellow-background]*[tck-id-topics-dbirth-metrics-defined] Every
+metric reported in a DBIRTH MUST be described by the DMETA referenced by the shared definition
+identifier.*#
+* [tck-testable tck-id-topics-dbirth-no-metadata]#[yellow-background]*[tck-id-topics-dbirth-no-metadata] The
+DBIRTH MUST NOT be used to convey metric datatype, properties, or metadata; these are conveyed only
+in the DMETA and DMMETA.*#
 
 The DBIRTH message can also include optional ‘Device Control’ payload components. These are used by
 a Host Application to control aspects of a device. The following are examples of Device Control
