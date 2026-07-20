@@ -181,10 +181,10 @@ Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload] The
 Edge Node's MQTT Will Message's payload MUST be a Sparkplug Google Protobuf encoded payload.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload-bdSeq]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload-bdSeq] The
-Edge Node's MQTT Will Message's payload MUST include a bdSeq number in the payload and the value
+Edge Node's MQTT Will Message's payload MUST include a bd_seq number in the payload and the value
 MUST be incremented by one from the value in the previous MQTT CONNECT packet unless the value would
 be greater than 18446744073709551615 (max value of a UINT64). If in the previous NBIRTH a value of
-18446744073709551615 was sent, the next MQTT Connect packet Will Message payload bdSeq number value
+18446744073709551615 was sent, the next MQTT Connect packet Will Message payload bd_seq number value
 MUST have a value of 0.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-qos]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-qos] The
 Edge Node's MQTT Will Message's MQTT QoS MUST be 1.*#
@@ -228,8 +228,8 @@ Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload] The
 Edge Node's NBIRTH payload MUST be a Sparkplug Google Protobuf encoded payload.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload-bdSeq]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload-bdSeq] The
-Edge Node's NBIRTH payload MUST include a bdSeq number in the payload and the value MUST be the same
-as the bdSeq number value specified in the immediately previous MQTT CONNECT packet.*#
+Edge Node's NBIRTH payload MUST include a bd_seq number in the payload and the value MUST be the same
+as the bd_seq number value specified in the immediately previous MQTT CONNECT packet.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-qos]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-qos] The
 Edge Node's NBIRTH MQTT QoS MUST be 0.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-retained]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-retained] The
@@ -287,19 +287,100 @@ show the Edge Node in an 'online' state once it publishes its NBIRTH and DBIRTH 
 
 . If at any point in time the Edge Node MQTT Client loses connectivity to the defined MQTT
 Server(s), a Death Certificate (NDEATH) is issued by the MQTT Server on behalf of the Edge Node.
-Upon receipt of the Death Certificate with a bdSeq number that matches the preceding bdSeq number in
+Upon receipt of the Death Certificate with a bd_seq number that matches the preceding bd_seq number in
 the NBIRTH messages, the Primary Host Application should set the state of the Edge Node to
 ‘online=false’ and update all metric timestamps related to this Edge Node to 'now' using its own
 system clock. Any defined metrics will be set to a STALE data quality.
 
-.. The bdSeq number is used to correlate an NBIRTH with a NDEATH. Because the NDEATH is included in
+.. The bd_seq number is used to correlate an NBIRTH with a NDEATH. Because the NDEATH is included in
 the MQTT CONNECT packet, its timestamp (if included) is not useful to Sparkplug Host Applications.
-Instead, a bdSeq number must be included in the payload of the NDEATH. The same bdSeq number value
+Instead, a bd_seq number must be included in the payload of the NDEATH. The same bd_seq number value
 must also be included in the NBIRTH message payload published immediately after the MQTT CONNECT.
 This allows Host Applications to know that a NDEATH matches a specific NBIRTH message. This is
 required because timing with Will Messages may result in NDEATH messages arriving after a new/next
-NBIRTH message. The bdSeq number allows Host Applications to know when it must consider the Edge
+NBIRTH message. The bd_seq number allows Host Applications to know when it must consider the Edge
 Node offline.
+
+[[operational_behavior_metadata]]
+=== Metadata Publishing and Updates
+
+An Edge Node's and each Device's metric structure (metadata) is carried in NMETA and DMETA messages,
+separately from the value-carrying NBIRTH, DBIRTH, NDATA, and DDATA messages. This lets the structure
+be established once and reused across reconnects, and lets it be changed after BIRTH without a full
+Rebirth.
+
+[[operational_behavior_metadata_availability]]
+==== Metadata Availability and Ordering
+
+Before publishing its NBIRTH, the Edge Node must ensure that the NMETA the NBIRTH will reference is
+available to consumers. The metadata is considered _available_ if it is published in the current MQTT
+session, or was published (with the MQTT retain flag set to true) in a prior session and therefore
+remains retained by the MQTT Server on the NMETA topic. Because NMETA/DMETA and the BIRTH messages
+are published on different MQTT topics, MQTT does not guarantee their relative arrival order;
+correlation of values to definitions relies on the definition identifier, not on arrival order.
+
+* [tck-testable tck-id-message-flow-birth-metadata-available]#[yellow-background]*[tck-id-message-flow-birth-metadata-available] An
+Edge Node MUST NOT publish an NBIRTH or DBIRTH that references a definition identifier unless the
+corresponding NMETA or DMETA has been made available - either published in the current MQTT session,
+or previously published with retain true and therefore still retained by the MQTT Server on the
+NMETA/DMETA topic.*#
+* [tck-testable tck-id-message-flow-birth-metadata-publish-order]#[yellow-background]*[tck-id-message-flow-birth-metadata-publish-order] When
+an Edge Node publishes an NMETA or DMETA in the same MQTT session as the immediately following NBIRTH
+or DBIRTH that will reference it, it MUST publish the NMETA or DMETA before that BIRTH.*#
+* [tck-testable tck-id-message-flow-host-birth-metadata-resolve]#[yellow-background]*[tck-id-message-flow-host-birth-metadata-resolve] A
+Sparkplug Host Application MUST NOT rely on receiving an NMETA or DMETA before the NBIRTH or DBIRTH
+that references it. If a Host Application receives a BIRTH whose definition identifier does not match
+metadata it already holds, it MUST obtain the referenced metadata - for example by subscribing to the
+retained NMETA/DMETA topic - before interpreting the BIRTH's metric values.*#
+
+[[operational_behavior_reconnect_optimization]]
+==== Reconnect Optimization
+
+Because a full NMETA and DMETA are published with the MQTT retain flag set to true, the MQTT Server
+retains the current metadata on the NMETA/DMETA topic and delivers it to any client that subscribes,
+including while the Edge Node is offline. As a result, an Edge Node whose metric structure is
+unchanged does not need to re-transmit its full metadata on reconnect.
+
+* [tck-testable tck-id-operational-behavior-meta-subscribe]#[yellow-background]*[tck-id-operational-behavior-meta-subscribe] As
+part of its BIRTH sequence, an Edge Node MUST subscribe to its own NMETA topic, and to the DMETA
+topic of each of its Devices, to determine whether the MQTT Server already has a retained NMETA or
+DMETA carrying the current definition identifier.*#
+* [tck-testable tck-id-operational-behavior-meta-conditional-publish]#[yellow-background]*[tck-id-operational-behavior-meta-conditional-publish] An
+Edge Node MUST publish a full NMETA (respectively, a full DMETA) as part of its BIRTH sequence if and
+only if the MQTT Server does not already have a retained NMETA (respectively, DMETA) carrying the
+current definition identifier. In all cases the NBIRTH/DBIRTH MUST reference the current definition
+identifier.*#
+
+[[operational_behavior_modified_metadata_updates]]
+==== Modified Metadata Updates (CRUD)
+
+When the metric structure of an Edge Node or Device changes while it is online - a metric is added,
+removed, or modified - the change is conveyed with an NMMETA or DMMETA message that carries only the
+affected metrics, each tagged with an operation (ADD, UPDATE, or DELETE), rather than requiring a full
+Rebirth.
+
+* [tck-testable tck-id-operational-behavior-mmeta-prev]#[yellow-background]*[tck-id-operational-behavior-mmeta-prev] An
+NMMETA/DMMETA MUST include the definition identifier in effect immediately before the change and the
+definition identifier in effect after applying the operations.*#
+* [tck-testable tck-id-operational-behavior-mmeta-retain-refresh]#[yellow-background]*[tck-id-operational-behavior-mmeta-retain-refresh] An
+NMMETA/DMMETA MUST be published with retain false, and MUST be accompanied by a full NMETA/DMETA
+published with retain true so that the retained metadata on the MQTT Server always reflects the
+complete current metric structure.*#
+* [tck-testable tck-id-operational-behavior-mmeta-value]#[yellow-background]*[tck-id-operational-behavior-mmeta-value] When
+a metric is added by an NMMETA/DMMETA, the Edge Node MUST publish the new metric's initial value in a
+subsequent NDATA/DDATA that references the new definition identifier.*#
+* [tck-testable tck-id-operational-behavior-mmeta-alias-reuse]#[yellow-background]*[tck-id-operational-behavior-mmeta-alias-reuse] An
+alias belonging to a metric removed by a DELETE operation MUST NOT be reused for a different metric
+within the same Edge Node or Device.*#
+* [tck-testable tck-id-operational-behavior-host-mmeta-apply]#[yellow-background]*[tck-id-operational-behavior-host-mmeta-apply] If
+the previous definition identifier of an NMMETA/DMMETA matches the definition identifier the Host
+Application currently holds for that Edge Node/Device, the Host Application MUST apply the operations,
+recompute the definition identifier, and on mismatch with the message's new definition identifier
+issue a REBIRTH request.*#
+* [tck-testable tck-id-operational-behavior-host-mmeta-gap]#[yellow-background]*[tck-id-operational-behavior-host-mmeta-gap] If
+the previous definition identifier of an NMMETA/DMMETA does not match the definition identifier the
+Host Application currently holds, the Host Application MUST NOT apply the operations and MUST obtain
+the current full metadata (from the retained NMETA/DMETA topic) or issue a REBIRTH request.*#
 
 [[operational_behavior_edge_node_session_termination]]
 === Edge Node Session Termination
@@ -321,9 +402,9 @@ some time to occur based on when the MQTT Server detects that the Edge Node is n
 By sending the Death Certificate before disconnecting without sending an MQTT DISCONNECT packet, we
 are ensuring that a Death message will be delivered to subscribing clients promptly. The fact that a
 second Death message will arrive when the Will Message is delivered is not significant. This is
-because the Will Message Death message will contain a bdSeq number that matches the bdSeq number
+because the Will Message Death message will contain a bd_seq number that matches the bd_seq number
 that is published by the Edge Node immediately before the disconnect. Because it has a duplicate
-bdSeq, the Will Message Death message MUST be ignored by the subscribing Sparkplug Host Application
+bd_seq, the Will Message Death message MUST be ignored by the subscribing Sparkplug Host Application
 clients.
 
 This allows the MQTT Server to be notified that the Edge Node is offline and as a result the MQTT
@@ -991,9 +1072,9 @@ an Edge Node receives a Rebirth Request, it MUST immediately pause sending of DA
 an Edge Node stops sending DATA messages, it MUST send a complete REBIRTH sequence including the
 NREBIRTH and DREBIRTH(s) if applicable.*#
 * [tck-testable tck-id-operational-behavior-rebirth-action-3]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-3] The
-NREBIRTH MUST include the same bdSeq number in the payload with the same value it had included in
+NREBIRTH MUST include the same bd_seq number in the payload with the same value it had included in
 the Will Message of the immediately previous MQTT CONNECT packet.*#
-** Because a new MQTT Session is not being established, there is no reason to update the bdSeq number
+** Because a new MQTT Session is not being established, there is no reason to update the bd_seq number
 * [tck-testable tck-id-operational-behavior-rebirth-action-4]#[yellow-background]*[tck-id-operational-behavior-rebirth-action-4] The
 NREBIRTH payload MUST use a seq number that specified to integrate into the existing DATA stream
 from the Edge Node.*#
