@@ -23,8 +23,8 @@ approaches to achieving high availability.
 [[high_availability_for_mqtt_servers]]
 === High Availability for MQTT Servers
 
-A core component of MQTT based infrastructures is the MQTT Server. It is the central data broker and
-together with the Primary Host Application a potential single point of failure. All components are
+A core component of MQTT based infrastructures is the MQTT Server. It is the central point through
+which all data flows and, together with the Primary Host Application, a potential single point of failure. All components are
 connected to the MQTT Server all the time and a failure of the MQTT Server will cause unavailability
 of the whole infrastructure.
 
@@ -71,7 +71,7 @@ the cluster (which will distribute the message to all subscribing Sparkplug comp
 .Figure 12 – High Availability MQTT Server Cluster
 plantuml::{assetsdir}assets/plantuml/HA-mqtt-server-cluster.puml[format=svg, alt="High Availability MQTT Server Cluster"]
 
-If any MQTT Server would fail, the MQTT connection for components connected to the broker will break
+If any MQTT Server would fail, the MQTT connection for components connected to the MQTT Server will break
 and the component can connect to any other MQTT Server to resume operations.
 
 
@@ -100,8 +100,8 @@ work with most Sparkplug compatible MQTT Servers on the market.
 
 A second approach to high availability is the use of several isolated MQTT Servers. This approach
 works with all Sparkplug certified MQTT Servers and does not need cluster technology but requires
-Primary Host Applications that support multiple isolated MQTT brokers. The Primary Host Application
-is responsible for managing state across the several MQTT brokers.
+Primary Host Applications that support multiple isolated MQTT Servers. The Primary Host Application
+is responsible for managing state across the several MQTT Servers.
 
 When multiple MQTT Servers are available there is the possibility of “stranding” and Edge Node if
 the Primary command/control of the Primary Host Application loses network connectivity to one of the

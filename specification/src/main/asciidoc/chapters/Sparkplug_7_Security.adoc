@@ -63,54 +63,55 @@ ACLs can be defined for Sparkplug clients to restrict each Edge Node to a specif
 can publish and subscribe on. Many MQTT Servers offer the ability to configure ACLs based on client
 connection credentials. When supported by the MQTT Server, ACLs offer some security in preventing
 compromised credentials from being able to be used to spoof Edge Nodes, write to other Edge Node
-outputs, or see all messages flowing through the MQTT Server. Consider the Edge Node with a single
-attached Device with the following Sparkplug IDs.
+outputs, or see all messages flowing through the MQTT Server. Because the Topic Prefix precedes the
+namespace element, it is especially well suited to scoping ACLs to an entire Sparkplug namespace.
+Consider the Edge Node with a single attached Device with the following Sparkplug IDs.
 ```
-Group ID = G1
+Topic Prefix = plantA
 Edge Node ID = E1
-Device ID = D1
+device_tokens (Sparkplug Device) = D1
 ```
 
 Based on this, the following could be reasonable MQTT ACLs to be provisioned in the MQTT Server for
 the MQTT client associated with this Edge Node:
 ```
-Publish: spCv1.0/G1/NBIRTH/E1
-Publish: spCv1.0/G1/NDATA/E1
-Publish: spCv1.0/G1/NDEATH/E1
-Publish: spCv1.0/G1/DBIRTH/E1/D1
-Publish: spCv1.0/G1/DDATA/E1/D1
-Publish: spCv1.0/G1/DDEATH/E1/D1
+Publish: plantA/spCv1.0/NBIRTH/E1
+Publish: plantA/spCv1.0/NDATA/E1
+Publish: plantA/spCv1.0/NDEATH/E1
+Publish: plantA/spCv1.0/DBIRTH/E1/D1
+Publish: plantA/spCv1.0/DDATA/E1/D1
+Publish: plantA/spCv1.0/DDEATH/E1/D1
 Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: spCv1.0/G1/NCMD/E1
-Subscribe: spCv1.0/G1/DCMD/E1/D1
+Subscribe: plantA/spCv1.0/NCMD/E1
+Subscribe: plantA/spCv1.0/DCMD/E1/D1
 ```
 
 However, there may be other considerations when creating ACLs for clients. It may be the case that
 an Edge Node has many dynamic associated devices. In this case, it may make sense to wildcard the
 device level topic token. For example, it could look like this:
 ```
-Publish: spCv1.0/G1/NBIRTH/E1
-Publish: spCv1.0/G1/NDATA/E1
-Publish: spCv1.0/G1/NDEATH/E1
-Publish: spCv1.0/G1/DBIRTH/E1/+
-Publish: spCv1.0/G1/DDATA/E1/+
-Publish: spCv1.0/G1/DDEATH/E1/+
+Publish: plantA/spCv1.0/NBIRTH/E1
+Publish: plantA/spCv1.0/NDATA/E1
+Publish: plantA/spCv1.0/NDEATH/E1
+Publish: plantA/spCv1.0/DBIRTH/E1/+
+Publish: plantA/spCv1.0/DDATA/E1/+
+Publish: plantA/spCv1.0/DDEATH/E1/+
 Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: spCv1.0/G1/NCMD/E1
-Subscribe: spCv1.0/G1/DCMD/E1/+
+Subscribe: plantA/spCv1.0/NCMD/E1
+Subscribe: plantA/spCv1.0/DCMD/E1/+
 ```
 
 Also, it may be the case that DCMD messages should not be 'writable'. In this case, maybe DCMD
 subscriptions should not be allowed at all. In this case, the ACLs could look like this:
 ```
-Publish: spCv1.0/G1/NBIRTH/E1
-Publish: spCv1.0/G1/NDATA/E1
-Publish: spCv1.0/G1/NDEATH/E1
-Publish: spCv1.0/G1/DBIRTH/E1/+
-Publish: spCv1.0/G1/DDATA/E1/+
-Publish: spCv1.0/G1/DDEATH/E1/+
+Publish: plantA/spCv1.0/NBIRTH/E1
+Publish: plantA/spCv1.0/NDATA/E1
+Publish: plantA/spCv1.0/NDEATH/E1
+Publish: plantA/spCv1.0/DBIRTH/E1/+
+Publish: plantA/spCv1.0/DDATA/E1/+
+Publish: plantA/spCv1.0/DDEATH/E1/+
 Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: spCv1.0/G1/NCMD/E1
+Subscribe: plantA/spCv1.0/NCMD/E1
 ```
 
 By using ACLs in this way, the access each Edge Node has is restricted to only topics that it should

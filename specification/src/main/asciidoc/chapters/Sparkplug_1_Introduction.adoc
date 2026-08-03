@@ -223,16 +223,20 @@ to properly manage all MQTT message traffic.
 One can implement the use (if required) of multiple MQTT servers for redundancy, high availability,
 and scalability within any given infrastructure.
 
-[[introduction_sparkplug_group]]
-===== Sparkplug Group
+[[introduction_sparkplug_topic_prefix]]
+===== Sparkplug Topic Prefix
 
-Logical or physical group of Edge Nodes that makes sense in the context of
-a distributed Sparkplug application. Groups can represent physical groups of Edge Nodes. For
-example, a Sparkplug Group could represent a set of Edge Nodes at a particular location, facility,
-or along a specific oil pipeline. Alternatively, a Sparkplug Group could represent group of similar
-types of Edge Nodes. For example, it could represent a particular set of like make and models of
-embedded gateways. The groups are meant to be defined by the system architects as appropriate for
-their particular application.
+Optional element of zero or more MQTT topic levels that precedes the Sparkplug namespace element in
+the topic. The Topic Prefix locates a Sparkplug namespace beneath an arbitrary root on the MQTT
+Server, allowing Sparkplug traffic to coexist with, and be access-controlled alongside, other
+traffic on an MQTT Server. It also provides a logical or physical grouping of Edge Nodes that
+makes sense in the context of a distributed Sparkplug application. For example, the Topic Prefix
+could locate all Edge Nodes at a particular facility or along a specific oil pipeline beneath a
+common root, or group a particular set of like make and models of embedded gateways. The Topic
+Prefix is meant to be defined by the system architects as appropriate for their particular
+application. In earlier versions of Sparkplug this grouping was expressed by a required Group ID
+element that immediately followed the namespace. The Group ID has been removed and its role is
+subsumed by the optional Topic Prefix.
 
 [[introduction_sparkplug_edge_node]]
 ===== Sparkplug Edge Node
@@ -250,8 +254,13 @@ Physical or logical device that makes sense in the context of a distributed Spar
 Often times a Sparkplug Device will be a physical PLC, RTU, Flow Computer, Sensor, etc. However, a 
 Sparkplug Device could also represent a logical grouping of data  points as makes sense for the 
 specific Sparkplug Application being developed. For example, it could represent a set of data points 
-across multiple PLCs that make up a logical device that makes sense within the context of that 
+across multiple PLCs that make up a logical device that makes sense within the context of that
 application.
+
+A Sparkplug Device is identified within its Edge Node by the device_tokens carried on its
+Device-scoped ('D') messages. Earlier versions of Sparkplug used a dedicated device_id topic element
+for this purpose. That element has been replaced by the device_tokens (see the
+link:#topics_device_tokens_element[device_tokens Element]).
 
 [[introduction_mqtt_sparkplug_enabled_component]]
 ===== MQTT/Sparkplug Enabled Component
@@ -304,19 +313,21 @@ result.
 [[introduction_sparkplug_ids]]
 ===== Sparkplug Identifiers
 
-Sparkplug defines identifiers or IDs for different physical or logical components within the
-infrastructure. There are three primary IDs and one that is a composite ID. These are defined as
-the following.
+Sparkplug defines identifiers and topic elements for different physical or logical components within
+the infrastructure. These are the optional Topic Prefix, the Edge Node ID, the Device Tokens (which
+identify a Sparkplug Device on Device-scoped messages), and two composite Sparkplug Descriptors: the
+Edge Node Descriptor and the Device Descriptor. These are defined as the following.
 
-* Group ID
-** [tck-testable tck-id-intro-group-id-string]#[yellow-background]*[tck-id-intro-group-id-string]
-The Group ID MUST be a UTF-8 string and used as part of the Sparkplug topics as defined in the
-link:#topics[Topics Section].*#
-** [tck-testable tck-id-intro-group-id-chars]#[yellow-background]*[tck-id-intro-group-id-chars]
-Because the Group ID is used in MQTT topic strings the Group ID MUST only contain characters allowed
-for MQTT topics per the MQTT Specification.*#
-*** Non-normative comment: The Group ID represents a general grouping of Edge Nodes that makes sense
-within the context of the Sparkplug application and use-case.
+* Topic Prefix
+** [tck-testable tck-id-intro-topic-prefix-string]#[yellow-background]*[tck-id-intro-topic-prefix-string]
+The Topic Prefix is optional and, when present, MUST be a UTF-8 string of one or more MQTT topic
+levels used as part of the Sparkplug topics as defined in the link:#topics[Topics Section].*#
+** [tck-testable tck-id-intro-topic-prefix-chars]#[yellow-background]*[tck-id-intro-topic-prefix-chars]
+Because the Topic Prefix is used in MQTT topic strings each level of the Topic Prefix MUST only
+contain characters allowed for MQTT topics per the MQTT Specification.*#
+*** Non-normative comment: The Topic Prefix represents a general grouping of Edge Nodes and a
+Sparkplug namespace root that makes sense within the context of the Sparkplug application and
+use-case.
 * Edge Node ID
 ** [tck-testable tck-id-intro-edge-node-id-string]#[yellow-background]*[tck-id-intro-edge-node-id-string]
 The Edge Node ID MUST be a  UTF-8 string and used as part of the Sparkplug topics as defined in the
@@ -325,25 +336,55 @@ link:#topics[Topics Section].*#
 Because the Edge Node ID is used in MQTT topic strings the Edge Node ID MUST only contain characters
 allowed for MQTT topics per the MQTT Specification.*#
 *** Non-normative comment: The Edge Node ID represents a unique identifier for an Edge Node within
-the context of the Group ID under which it exists.
-* Device ID
-** [tck-testable tck-id-intro-device-id-string]#[yellow-background]*[tck-id-intro-device-id-string]
-The Device ID MUST be a UTF-8 string and used as part of the Sparkplug topics as defined in the
-link:#topics[Topics Section].*#
-** [tck-testable tck-id-intro-device-id-chars]#[yellow-background]*[tck-id-intro-device-id-chars]
-Because the Device ID is used in MQTT topic strings the Device ID MUST only contain characters
-allowed for MQTT topics per the MQTT Specification.*#
-*** Non-normative comment: The Device ID represents a unique identifier for a Device within the
-context of the Edge Node ID under which it exists.
+the context of the Topic Prefix under which it exists.
+* Device Tokens (Sparkplug Device)
+** [tck-testable tck-id-intro-device-tokens-string]#[yellow-background]*[tck-id-intro-device-tokens-string]
+The device_tokens MUST be present on Device ('D') message types and MUST NOT be present on Edge Node
+('N') message types. When present they MUST be one or more MQTT topic levels, each a UTF-8 string,
+used as part of the Sparkplug topics as defined in the link:#topics[Topics Section].*#
+** [tck-testable tck-id-intro-device-tokens-chars]#[yellow-background]*[tck-id-intro-device-tokens-chars]
+Because the device_tokens are used in MQTT topic strings each level of the device_tokens MUST only
+contain characters allowed for MQTT topics per the MQTT Specification.*#
+*** Non-normative comment: In earlier versions of Sparkplug a Sparkplug Device was identified by a
+dedicated single-level Device ID element in the topic. That Device ID has been replaced by the
+device_tokens: a Sparkplug Device is identified by the device_tokens on its Device-scoped ('D')
+messages, and the former single-level Device ID is simply device_tokens of one level.
 * Edge Node Descriptor (composite ID)
-** The Edge Node Descriptor is the combination of the Group ID and Edge Node ID.
+** [tck-testable tck-id-intro-edge-node-descriptor]#[yellow-background]*[tck-id-intro-edge-node-descriptor]
+The Edge Node Descriptor MUST be the combination of the Topic Prefix and the Edge Node ID.*#
+*** Non-normative comment: The Edge Node Descriptor is not necessarily used directly in Sparkplug
+implementations. It is used within this specification to describe the combination of the Topic
+Prefix and the Edge Node ID.
 ** [tck-testable tck-id-intro-edge-node-id-uniqueness]#[yellow-background]*[tck-id-intro-edge-node-id-uniqueness]
 The Edge Node Descriptor MUST be unique within the context of all of other Edge Nodes within the
 Sparkplug infrastructure.*#
-*** In other words, no two Edge Nodes within a Sparkplug environment can have the same Group ID and
-same Edge Node ID.
-*** Non-normative comment: The Device ID represents a unique identifier for a Device within the
-context of the Edge Node ID under which it exists.
+*** In other words, no two Edge Nodes within a Sparkplug environment can have the same Topic Prefix
+and same Edge Node ID.
+*** Non-normative comment: When no Topic Prefix is used, the Edge Node Descriptor is the Edge Node ID
+alone, and the Edge Node ID must therefore be unique across the Sparkplug infrastructure.
+*** Non-normative comment: This uniqueness is required because of MQTT Will Message handling. Each
+Edge Node Descriptor represents a single MQTT client that registers exactly one Will Message, whose
+NDEATH topic is bound to that same Topic Prefix and Edge Node ID. Two Edge Nodes sharing an Edge Node
+Descriptor would register conflicting Will Topics and the MQTT Server could not distinguish their
+births and deaths.
+* Device Descriptor (composite ID)
+** [tck-testable tck-id-intro-device-descriptor]#[yellow-background]*[tck-id-intro-device-descriptor]
+The Device Descriptor MUST be the combination of the Topic Prefix, the Edge Node ID, and the
+device_tokens.*#
+*** Non-normative comment: Like the Edge Node Descriptor, the Device Descriptor is not necessarily
+used directly in Sparkplug implementations. It is used within this specification to describe the
+combination of the Topic Prefix, the Edge Node ID, and the device_tokens that identify a Sparkplug
+Device.
+** [tck-testable tck-id-intro-device-descriptor-uniqueness]#[yellow-background]*[tck-id-intro-device-descriptor-uniqueness]
+The Device Descriptor MUST be unique within the context of all other Sparkplug Devices within the
+Sparkplug infrastructure.*#
+*** In other words, no two Sparkplug Devices within a Sparkplug environment can have the same Topic
+Prefix, Edge Node ID, and device_tokens.
+*** Non-normative comment: Two Sparkplug Devices MAY have identical device_tokens as long as they
+exist under different Edge Node Descriptors. Because their Edge Node Descriptors differ, their Device
+Descriptors remain unique.
+*** Non-normative comment: The Edge Node Descriptor and the Device Descriptor are collectively
+referred to as Sparkplug Descriptors.
 
 [[introduction_sparkplug_metrics]]
 ===== Sparkplug Metric
@@ -429,9 +470,9 @@ Although access control is not mandated in the MQTT Specification for use in MQT
 implementations, Access Control List (ACL) functionality is available in many MQTT Server
 implementations. The ACL of an MQTT Server implementation is used to specify which Topic Namespace
 any MQTT Client can subscribe to and publish on. For example, it may make sense to have an Edge
-Node's MQTT client only able to publish on topics associated with it's Group and Edge Node ID. This
-would make it difficult for an MQTT client to spoof another Edge Node whether it be malicious or a
-configuration setup error.
+Node's MQTT client only able to publish on topics associated with it's Topic Prefix and Edge Node
+ID. This would make it difficult for an MQTT client to spoof another Edge Node whether it be
+malicious or a configuration setup error.
 
 [[introduction_encryption]]
 ==== Encryption

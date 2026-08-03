@@ -3,22 +3,20 @@ scale 2
 {
 {T!
 +**__Metric__**                 | ""           "" | **__Value__**                      | **__Data Type__**
-+**Sparkplug B Devices**        | /group_id       | ""                              "" | ""               "" 
-++ Raspberry Pi                 | /edge_node_id   | ""                              "" | ""               ""
++**Acme/Dublin/Packaging**      | /topic_prefix   | ""                              "" | ""               ""
+++ EdgeNode1                    | /edge_node_id   | ""                              "" | ""               ""
 +++ Node Control                | Node Control    | ""                              "" | ""               ""
 ++++ Reboot                     | ""           "" | ""                        FALSE "" | ""       Boolean ""
 ++++ Rebirth                    | ""           "" | ""                        FALSE "" | ""       Boolean ""
 ++++ Next Server                | ""           "" | ""                        FALSE "" | ""       Boolean ""
 ++++ Scan Rate                  | ""           "" | ""                         3000 "" | ""         Int64 ""
 +++ Properties                  | Node Properties | ""                              "" | ""               ""
-++++ Hardware Make              | ""          ""  | ""                 Raspberry Pi "" | ""        String ""
-++++ Mardware Model             | ""          ""  | ""                 Pi 3 Model B "" | ""        String ""
-++++ OS Name                    | ""          ""  | ""                     Raspbian "" | ""        String ""
-++++ OS Version                 | ""          ""  | "" Jessie with PIXEL/11.01.2017 "" | ""        String ""
+++++ Hardware Make              | ""          ""  | ""                         Acme "" | ""        String ""
+++++ Hardware Model             | ""          ""  | ""                EdgeGate 2000 "" | ""        String ""
+++++ OS Name                    | ""          ""  | ""                        Linux "" | ""        String ""
+++++ OS Version                 | ""          ""  | ""                          6.1 "" | ""        String ""
 ++++ Supply Voltage             | ""          ""  | ""                         12.1 "" | ""         Float ""
 
 }
 }
 @endsalt
-
-

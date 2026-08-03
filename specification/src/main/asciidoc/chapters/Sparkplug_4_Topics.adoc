@@ -34,42 +34,65 @@ not to get so verbose as to negatively impact bandwidth/time sensitive data exch
 [tck-testable tck-id-topic-structure]#[yellow-background]*[tck-id-topic-structure] All MQTT clients
 using the Sparkplug specification MUST use the following topic namespace structure:*#
 
-  namespace/group_id/message_type/edge_node_id/[device_id]
+  [topic_prefix/]namespace/message_type/edge_node_id/[device_tokens]
+
+The topic_prefix is an optional element of zero or more MQTT topic levels that precede the
+namespace element (see the link:#topics_topic_prefix_element[topic_prefix Element]). The
+device_tokens are trailing topic levels present only on Device-scoped ('D') messages, where they
+identify the Sparkplug Device (see the link:#topics_device_tokens_element[device_tokens Element]).
+Note that earlier versions of
+Sparkplug placed a required group_id element immediately after the namespace token. The group_id has been
+removed and its role is subsumed by the optional topic_prefix.
 
 [[topics_namespace_element]]
 ==== namespace Element
 
-The namespace element of the topic namespace is the root element that will define both the
-structure of the remaining namespace elements as well as the encoding used for the associated
-payload data. The Sparkplug specification defines the namespace for the current Sparkplug payload
-definition C. Earlier payload definitions A (now deprecated) and B used the 'spAv1.0' and 'spBv1.0'
-namespaces respectively.
+The namespace element of the topic namespace is the first Sparkplug-defined element and defines both
+the structure of the remaining namespace elements as well as the encoding used for the associated
+payload data. The namespace element MAY be preceded by an optional topic_prefix of any number of
+levels (see the link:#topics_topic_prefix_element[topic_prefix Element]). When no topic_prefix is
+used the namespace element is at the root of the topic. Sparkplug defines two payload encodings,
+each with its own namespace constant: spCv1.0 for the Google Protocol Buffers encoding, and spJv1.0
+for a JSON encoding. Earlier payload definitions A (now deprecated) and B used the 'spAv1.0' and
+'spBv1.0' namespaces respectively.
 
-[tck-testable tck-id-topic-structure-namespace-a]#[yellow-background]*[tck-id-topic-structure-namespace-a] For
-the Sparkplug C version of the payload definition, the UTF-8 string constant for the namespace
-element MUST be:*#
+[tck-testable tck-id-topic-structure-namespace-element]#[yellow-background]*[tck-id-topic-structure-namespace-element] The
+namespace element MUST be the first Sparkplug-defined element of the topic, immediately following
+the optional topic_prefix, and it identifies both the structure of the remaining topic elements and
+the encoding of the associated payload.*#
+
+[tck-testable tck-id-topic-structure-namespace-a]#[yellow-background]*[tck-id-topic-structure-namespace-a] The
+UTF-8 string constant for the namespace element MUST be one of the two valid Sparkplug namespaces:*#
 
   spCv1.0
+  spJv1.0
 
-Note that for the remainder of this document, only Sparkplug C topic namespace definitions and concepts
-will be covered. For earlier 'Sparkplug A' and 'Sparkplug B' topic namespace definitions and concepts,
-see the earlier versions of the Sparkplug Specification.
+Note that the topic namespace defined in the remainder of this document applies to both the spCv1.0
+and spJv1.0 namespaces, which differ only in payload encoding. For earlier 'Sparkplug A' and
+'Sparkplug B' topic namespace definitions and concepts, see the earlier versions of the Sparkplug
+Specification.
 
-[[topics_group_id_element]]
-==== group_id Element
+[[topics_topic_prefix_element]]
+==== topic_prefix Element
 
-The Group ID element of the topic namespace provides for a logical grouping of Sparkplug Edge
-Nodes into the MQTT Server and back out to the consuming Sparkplug Host Applications.
+The topic_prefix is an optional element of the topic namespace consisting of zero or more MQTT topic
+levels that precede the namespace element. The topic_prefix allows a Sparkplug namespace to be
+located beneath an arbitrary root on the MQTT Server so that Sparkplug traffic can coexist with, and
+be access-controlled alongside, other traffic on an MQTT Server. When the topic_prefix has
+zero levels the namespace element is at the root of the topic.
 
-[tck-testable tck-id-topic-structure-namespace-valid-group-id]#[yellow-background]*[tck-id-topic-structure-namespace-valid-group-id] The
-format of the Group ID MUST be a valid UTF-8 string with the exception of the reserved characters of
-+ (plus), / (forward slash), and # (number sign).*#
+[tck-testable tck-id-topic-structure-namespace-valid-topic-prefix]#[yellow-background]*[tck-id-topic-structure-namespace-valid-topic-prefix] When
+present, the topic_prefix consists of one or more MQTT topic levels separated by the / (forward
+slash) character. Each level MUST be a valid UTF-8 string, MUST NOT contain the reserved characters
++ (plus) or # (number sign), and MUST NOT be equal to the namespace element string.*#
 
-In most use cases to minimize bandwidth, the Group ID should be descriptive but as small as
-possible. Examples of where the [group_id] might be used include Oil/Gas applications where
-Sparkplug Edge Nodes on a physical pipeline segment all have the same [group_id]. Plant floor
-applications may group Sparkplug Edge Nodes based on logical cell or manufacturing line
-requirements.
+Non-normative comment: The topic_prefix is an a priori piece of configuration that must be
+determined by the system architect and configured in both publishing Edge Nodes and consuming Host
+Applications. Because it precedes the namespace element, a topic_prefix scopes an entire Sparkplug
+namespace and is well suited to MQTT Server Access Control Lists (ACLs). The topic_prefix subsumes the
+grouping role played by the group_id element in earlier versions of Sparkplug. For example, the
+levels that once identified an Oil/Gas pipeline segment or a plant-floor manufacturing line can be
+expressed as a topic_prefix.
 
 [[topics_message_type_element]]
 ==== message_type Element
@@ -110,8 +133,14 @@ The edge_node_id element of the Sparkplug topic namespace uniquely identifies th
 Node within the infrastructure.
 
 [tck-testable tck-id-topic-structure-namespace-unique-edge-node-descriptor]#[yellow-background]*[tck-id-topic-structure-namespace-unique-edge-node-descriptor] The
-group_id combined with the _edge_node_id_ element MUST be unique from any other
-group_id/edge_node_id assigned in the MQTT infrastructure.*#
+topic_prefix combined with the _edge_node_id_ element MUST be unique from any other
+topic_prefix/edge_node_id assigned in the MQTT infrastructure.*#
+
+Non-normative comment: This uniqueness is required because of MQTT Will Message handling. Each
+combination of a topic_prefix and edge_node_id represents a single MQTT client, and that client
+registers exactly one Will Message whose NDEATH topic is formed from the same topic_prefix and
+edge_node_id. Two Edge Nodes sharing the same topic_prefix and edge_node_id would register
+conflicting Will Topics on the MQTT Server, so their births and deaths could not be told apart.
 
 [tck-testable tck-id-topic-structure-namespace-valid-edge-node-id]#[yellow-background]*[tck-id-topic-structure-namespace-valid-edge-node-id] The
 format of the _edge_node_id_ MUST be a valid UTF-8 string with the exception of the reserved
@@ -120,31 +149,83 @@ characters of + (plus), / (forward slash), and # (number sign).*#
 The topic element edge_node_id travels with every message published and should be as short as
  possible.
 
-[[topics_device_id_element]]
-==== device_id Element
+[[topics_device_tokens_element]]
+==== device_tokens Element (Expanded MQTT Topic Namespace)
 
-The device_id element of the Sparkplug topic namespace identifies a device attached (physically
-or logically) to the Sparkplug Edge Node. Note that the device_id is an optional element within
-the topic namespace as some messages will be either originating or destined to the edge_node_id
-and the device_id would not be required.
+The device_tokens are one or more additional topic levels appended after the edge_node_id on
+Device-scoped ('D') message types. They identify the Sparkplug Device that the message pertains to.
+The device_tokens appear only on 'D' message types. Edge Node ('N') message types and STATE never
+include device_tokens. Because 'D' message types are themselves optional in Sparkplug (an Edge Node
+is not required to report any Sparkplug Devices), an Edge Node that uses no 'D' message types carries
+no device_tokens at all (a device_tokens length of zero).
 
-[tck-testable tck-id-topic-structure-namespace-valid-device-id]#[yellow-background]*[tck-id-topic-structure-namespace-valid-device-id] The
-format of the device_id MUST be a valid UTF-8 string except for the reserved characters of + (plus),
-/ (forward slash), and # (number sign).*#
+In earlier versions of Sparkplug the topic namespace included a dedicated device_id element, a
+single topic level placed after the edge_node_id that identified a Sparkplug Device attached
+(physically or logically) to the Sparkplug Edge Node. Sparkplug 4 removes the dedicated device_id
+element. A Sparkplug Device is now identified by the device_tokens, and the former single-level
+device_id is simply device_tokens of one level. The 'D' message_type verbs (DMETA, DMMETA, DBIRTH,
+DREBIRTH, DDATA, DDEATH, DCMD, DRESP) continue to denote Device-scoped messages, and device_tokens
+are bound to those verbs.
 
-[tck-testable tck-id-topic-structure-namespace-unique-device-id]#[yellow-background]*[tck-id-topic-structure-namespace-unique-device-id] The
-device_id MUST be unique from other devices being reported on by the same Edge Node.*#
+Non-normative comment: The device_tokens need not represent a physical device. A Sparkplug Device
+identified by the device_tokens may be any logical grouping of data that makes sense within the
+Sparkplug application (for example a process area, a production line, a logical asset, or any set of
+related metrics) encapsulated by the 'D' Sparkplug message_type verbs.
 
-[tck-testable tck-id-topic-structure-namespace-duplicate-device-id-across-edge-node]#[yellow-background]*[tck-id-topic-structure-namespace-duplicate-device-id-across-edge-node] The
-device_id MAY be duplicated from Edge Node to other Edge Nodes.*#
-The device_id element travels with every message published and should be as short as possible.
+Non-normative comment: A Sparkplug Device's metric names are often hierarchical: a forward-slash
+delimited path of folder tokens followed by the metric identifier. Those leading folder tokens MAY
+be published either at the start of the metric name in the payload or, equivalently, as additional
+device_tokens levels on the topic. The two placements are interchangeable and do not change the
+metric's fully-qualified name. Publishing more of the path as device_tokens simply gives consuming
+applications finer-grained control over their subscriptions. For example, the following three Device
+topics all describe a metric whose fully-qualified name is
+'edge_node26/plc4/line3/machine1/counter/total_count' (topic_prefix empty, Edge Node 'edge_node26'):
 
-[tck-testable tck-id-topic-structure-namespace-device-id-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-associated-message-types] The
-device_id MUST be included with message_type elements DMETA, DMMETA, DBIRTH, DDEATH, DDATA, DCMD, and DRESP based topics.*#
+  spCv1.0/DBIRTH/edge_node26/plc4                + metric name: line3/machine1/counter/total_count
+  spCv1.0/DBIRTH/edge_node26/plc4/line3          + metric name: machine1/counter/total_count
+  spCv1.0/DBIRTH/edge_node26/plc4/line3/machine1 + metric name: counter/total_count
 
-[tck-testable tck-id-topic-structure-namespace-device-id-non-associated-message-types]#[yellow-background]*[tck-id-topic-structure-namespace-device-id-non-associated-message-types] The
-device_id MUST NOT be included with message_type elements NMETA, NMMETA, NBIRTH, NDEATH, NDATA, NCMD, NRESP, and STATE
-based topics*#
+[tck-testable tck-id-topics-device-tokens-valid]#[yellow-background]*[tck-id-topics-device-tokens-valid] When
+present, the device_tokens consist of one or more MQTT topic levels separated by the / (forward
+slash) character. Each level MUST be a valid UTF-8 string and MUST NOT contain the reserved
+characters + (plus) or # (number sign).*#
+
+[tck-testable tck-id-topics-device-tokens-d-verbs]#[yellow-background]*[tck-id-topics-device-tokens-d-verbs] The
+device_tokens MUST be included with every Device message_type verb (DMETA, DMMETA, DBIRTH, DREBIRTH,
+DDATA, DDEATH, DCMD, and DRESP). They identify the Sparkplug Device.*#
+
+[tck-testable tck-id-topics-device-tokens-n-verbs]#[yellow-background]*[tck-id-topics-device-tokens-n-verbs] The
+device_tokens MUST NOT be included with any Edge Node ('N') message type (NMETA, NMMETA, NBIRTH,
+NREBIRTH, NDATA, NCMD, NRESP, NDEATH) or with STATE.*#
+
+[tck-testable tck-id-topics-fully-qualified-name]#[yellow-background]*[tck-id-topics-fully-qualified-name] The
+fully-qualified name of a metric MUST be the topic_prefix (if present), the edge_node_id, the
+device_tokens (present only for Device metrics), and the metric name carried in the payload, in that
+order, separated by the / (forward slash) character.*#
+
+Non-normative comment: A consuming application typically forms a metric's fully-qualified name by
+joining the topic_prefix, edge_node_id, device_tokens, and the payload metric name. However, this is
+not required. A Host Application MAY be configured or designed to use the fully-qualified name, the
+payload metric name, or the individual topic elements independently, as best suits its needs.
+
+[tck-testable tck-id-topics-device-tokens-birth-fixity]#[yellow-background]*[tck-id-topics-device-tokens-birth-fixity] The
+device_tokens established for a Sparkplug Device in its DMETA/DBIRTH MUST be used unchanged on all
+subsequent messages for that same Device (DMMETA, DREBIRTH, DDATA, and DDEATH), so that the Device
+identity, its metric aliases, and the metric structure established at birth remain consistent.*#
+
+[tck-testable tck-id-topics-device-tokens-cmd-match]#[yellow-background]*[tck-id-topics-device-tokens-cmd-match] A
+Host Application publishing a command (NCMD or DCMD) MUST use the same full topic form (the
+topic_prefix, the edge_node_id, and, for Device commands, the device_tokens) that the target Edge
+Node or Device used for its BIRTH and META messages. A Host Application MUST NOT swap metric prefix
+tokens with device_tokens (that is, construct a different topic and metric name that resolve to the
+same fully-qualified path) and expect the metric to be written.*#
+
+[NOTE]
+====
+Editor's note (pending Sparkplug working-group confirmation): the birth-fixity rule
+(tck-id-topics-device-tokens-birth-fixity) is a proposed default for issue #598 and is a point
+likely to change in review.
+====
 
 [[topics_message_type_overview]]
 === Message Types and Contents
@@ -192,9 +273,9 @@ This section defines the payload contents and how each of the associated message
 [[metadata_message_nmeta]]
 ===== Metadata Message (NMETA)
 
-The NMETA message describes the metric structure (metadata) of a Sparkplug Edge Node - metric name,
-datatype, alias, properties, metadata, Command-datatype metric definitions, and all Template
-definitions - but not the current metric values. It is identified by a _definition identifier_ that
+The NMETA message describes the metric structure (metadata) of a Sparkplug Edge Node, namely the
+metric name, datatype, alias, properties, metadata, Command-datatype metric definitions, and all
+Template definitions, but not the current metric values. It is identified by a _definition identifier_ that
 is a recalculatable content hash of the metric definitions it contains, and the value-carrying
 NBIRTH, NDATA, DBIRTH and DDATA messages reference that identifier.
 
@@ -210,9 +291,10 @@ structure changes while the Edge Node is online, the change is published as an N
 ====== Topic (NMETA)
 
 * [tck-testable tck-id-topics-nmeta-topic]#[yellow-background]*[tck-id-topics-nmeta-topic] The
-Metadata topic for a Sparkplug Edge Node MUST be of the form 'namespace/group_id/NMETA/edge_node_id'
-where the namespace is replaced with the specific namespace for this version of Sparkplug and the
-group_id and edge_node_id are replaced with the Group and Edge Node ID for this specific Edge Node.*#
+Metadata topic for a Sparkplug Edge Node MUST be of the form
+'[topic_prefix/]namespace/NMETA/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
 
 [[payloads_desc_nmeta]]
 ====== Payload (NMETA)
@@ -232,7 +314,7 @@ full NMETA MUST include the definition of every Command-datatype metric the Edge
 including its command argument and result definitions.*#
 * [tck-testable tck-id-topics-nmeta-metrics]#[yellow-background]*[tck-id-topics-nmeta-metrics] For each
 metric a full NMETA MUST include the metric name and datatype. The metric alias, properties, and
-metadata MAY also be included; aliases are optional.*#
+metadata MAY also be included. Aliases are optional.*#
 * [tck-testable tck-id-topics-nmeta-no-value]#[yellow-background]*[tck-id-topics-nmeta-no-value] The
 NMETA MUST NOT be used to convey current metric values.*#
 * [tck-testable tck-id-topics-nmeta-templates]#[yellow-background]*[tck-id-topics-nmeta-templates] If
@@ -250,10 +332,10 @@ MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 [[metadata_message_nmmeta]]
 ===== Modified Metadata Message (NMMETA)
 
-When the metric structure of an Edge Node changes while it is online - a metric is added, removed, or
-modified - the change is conveyed with an NMMETA message. The NMMETA carries only the affected
+When the metric structure of an Edge Node changes while it is online (a metric is added, removed, or
+modified), the change is conveyed with an NMMETA message. The NMMETA carries only the affected
 metrics, each tagged with an ADD, UPDATE, or DELETE operation, rather than requiring a full Rebirth.
-The NMMETA is published with the MQTT retain flag set to false; to keep the retained metadata
+The NMMETA is published with the MQTT retain flag set to false. To keep the retained metadata
 complete for late or reconnecting consumers, every NMMETA MUST be accompanied by an updated full
 NMETA published with the retain flag set to true. Publishing the small NMMETA lets already-connected
 consumers apply just the delta, while the retained full NMETA keeps the current structure available
@@ -264,8 +346,9 @@ for discovery.
 
 * [tck-testable tck-id-topics-nmmeta-topic]#[yellow-background]*[tck-id-topics-nmmeta-topic] The
 Modified Metadata topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NMMETA/edge_node_id' where the namespace, group_id, and edge_node_id are replaced
-as for the other Edge Node topics.*#
+'[topic_prefix/]namespace/NMMETA/edge_node_id' where the namespace, optional topic_prefix, and
+edge_node_id are as defined in the link:#topics_sparkplug_topic_namespace_elements[Topic Namespace
+Elements] section.*#
 
 [[payloads_desc_nmmeta]]
 ====== Payload (NMMETA)
@@ -298,15 +381,15 @@ MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 * [tck-testable tck-id-topics-nbirth-topic]#[yellow-background]*[tck-id-topics-nbirth-topic] The
 Birth Certificate topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NBIRTH/edge_node_id' where the namespace is replaced with the specific namespace
-for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
-Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NBIRTH/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
 
 [[payloads_desc_nbirth]]
 ====== Payload (NBIRTH)
 
 The Sparkplug Edge Node Birth Certificate payload reports the current _values_ of the Edge Node's
-metrics. The metric structure itself (metadata) is described in the Edge Node's NMETA message; the
+metrics. The metric structure itself (metadata) is described in the Edge Node's NMETA message. The
 NBIRTH references that structure by its definition identifier and identifies each metric by its alias
 or name. At the time any Host Application receives an NBIRTH, the 'online' state of this Edge Node
 should be set to 'true' along with the associated 'online' date and time parameter. Note that the
@@ -320,7 +403,7 @@ The NBIRTH message requires the following payload components.
 messages MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
 * [tck-testable tck-id-topics-nbirth-seq-num]#[yellow-background]*[tck-id-topics-nbirth-seq-num] The
 NBIRTH MUST include a sequence number in the payload. If no NMETA is published in the BIRTH sequence,
-the NBIRTH is the first message and its sequence number MUST be 0; if an NMETA is published (sequence
+the NBIRTH is the first message and its sequence number MUST be 0. If an NMETA is published (sequence
 number 0), the NBIRTH's sequence number MUST be 1.*#
 * [tck-testable tck-id-topics-nbirth-timestamp-1]#[yellow-background]*[tck-id-topics-nbirth-timestamp-1] The
 NBIRTH MUST include the overall payload timestamp denoting the date and time the message was sent
@@ -341,7 +424,7 @@ alias was assigned to it in the referenced NMETA, or otherwise by its metric nam
 metric reported in an NBIRTH MUST be described by the NMETA referenced by the shared definition
 identifier.*#
 * [tck-testable tck-id-topics-nbirth-no-metadata]#[yellow-background]*[tck-id-topics-nbirth-no-metadata] The
-NBIRTH MUST NOT be used to convey metric datatype, properties, or metadata; these are conveyed only
+NBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
 in the NMETA and NMMETA.*#
 * [tck-testable tck-id-topics-nbirth-bdseq-included]#[yellow-background]*[tck-id-topics-nbirth-bdseq-included] A
 bd_seq number MUST be included in the payload, and it MUST match the bd_seq number included in the
@@ -385,9 +468,9 @@ examples of Property metrics.
 
 * [tck-testable tck-id-topics-nrebirth-topic]#[yellow-background]*[tck-id-topics-nrebirth-topic] The
 Birth Certificate topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NREBIRTH/edge_node_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id and edge_node_id are replaced with the
-Group and Edge Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NREBIRTH/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
 
 [[payloads_desc_nrebirth]]
 ====== Payload (NREBIRTH)
@@ -470,9 +553,9 @@ is not necessary to send the same data again on a periodic basis.
 
 * [tck-testable tck-id-topics-ndata-topic]#[yellow-background]*[tck-id-topics-ndata-topic] The
 Edge Node data topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NDATA/edge_node_id' where the namespace is replaced with the specific namespace
-for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
-Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NDATA/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
 
 The payload of NDATA messages will contain any RBE or time based metric Edge Node values that need
 to be reported to any subscribing MQTT clients.
@@ -516,9 +599,9 @@ when the NDEATH message was received.
 
 * [tck-testable tck-id-topics-ndeath-topic]#[yellow-background]*[tck-id-topics-ndeath-topic] The
 Edge Node Death Certificate topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NDEATH/edge_node_id' where the namespace is replaced with the specific namespace
-for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
-Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NDEATH/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
   
 [[payloads_desc_ndeath]]
 ====== Payload (NDEATH)
@@ -548,9 +631,9 @@ metric list.
 
 * [tck-testable tck-id-topics-ncmd-topic]#[yellow-background]*[tck-id-topics-ncmd-topic] The
 Edge Node command topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NCMD/edge_node_id' where the namespace is replaced with the specific namespace
-for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
-Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NCMD/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
   
 [[payloads_desc_ncmd]]
 ====== Payload (NCMD)
@@ -579,9 +662,9 @@ result of an Edge Node level Command that was invoked with an NCMD message.
 
 * [tck-testable tck-id-topics-nresp-topic]#[yellow-background]*[tck-id-topics-nresp-topic] The
 Edge Node command response topic for a Sparkplug Edge Node MUST be of the form
-'namespace/group_id/NRESP/edge_node_id' where the namespace is replaced with the specific namespace
-for this version of Sparkplug and the group_id and edge_node_id are replaced with the Group and Edge
-Node ID for this specific Edge Node.*#
+'[topic_prefix/]namespace/NRESP/edge_node_id'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section.*#
 
 [[payloads_desc_nresp]]
 ====== Payload (NRESP)
@@ -615,9 +698,11 @@ full DMETA is published with the MQTT retain flag set to true.
 ====== Topic (DMETA)
 
 * [tck-testable tck-id-topics-dmeta-topic]#[yellow-background]*[tck-id-topics-dmeta-topic] The Metadata
-topic for a Sparkplug Device MUST be of the form 'namespace/group_id/DMETA/edge_node_id/device_id'
-where the namespace, group_id, edge_node_id, and device_id are replaced as for the other Device
-topics.*#
+topic for a Sparkplug Device MUST be of the form
+'[topic_prefix/]namespace/DMETA/edge_node_id/device_tokens' where the namespace, optional
+topic_prefix, and edge_node_id are as defined in the link:#topics_sparkplug_topic_namespace_elements[Topic
+Namespace Elements] section, and the device_tokens identify the Sparkplug Device as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 [[payloads_desc_dmeta]]
 ====== Payload (DMETA)
@@ -635,7 +720,7 @@ full DMETA MUST include the definition of every Command-datatype metric the Devi
 its command argument and result definitions.*#
 * [tck-testable tck-id-topics-dmeta-metrics]#[yellow-background]*[tck-id-topics-dmeta-metrics] For each
 metric a full DMETA MUST include the metric name and datatype. The metric alias, properties, and
-metadata MAY also be included; aliases are optional.*#
+metadata MAY also be included. Aliases are optional.*#
 * [tck-testable tck-id-topics-dmeta-no-value]#[yellow-background]*[tck-id-topics-dmeta-no-value] The
 DMETA MUST NOT be used to convey current metric values.*#
 * [tck-testable tck-id-topics-dmeta-seq]#[yellow-background]*[tck-id-topics-dmeta-seq] The DMETA MUST
@@ -659,8 +744,10 @@ true.
 
 * [tck-testable tck-id-topics-dmmeta-topic]#[yellow-background]*[tck-id-topics-dmmeta-topic] The
 Modified Metadata topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DMMETA/edge_node_id/device_id' where the namespace, group_id, edge_node_id, and
-device_id are replaced as for the other Device topics.*#
+'[topic_prefix/]namespace/DMMETA/edge_node_id/device_tokens' where the namespace, optional
+topic_prefix, and edge_node_id are as defined in the link:#topics_sparkplug_topic_namespace_elements[Topic
+Namespace Elements] section, and the device_tokens identify the Sparkplug Device as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 [[payloads_desc_dmmeta]]
 ====== Payload (DMMETA)
@@ -696,7 +783,7 @@ create/update the metric structure (if this is the first time this device has be
 associated metrics in the application to a “*GOOD*” state.
 
 The DBIRTH payload reports the current _values_ of the Device's metrics. The metric structure itself
-(metadata) is described in the Device's DMETA message; the DBIRTH references that structure by its
+(metadata) is described in the Device's DMETA message. The DBIRTH references that structure by its
 definition identifier and identifies each metric by its alias or name. The 'online' state of this
 device should be set to TRUE along with the associated 'online' date and time this message was
 received.
@@ -706,9 +793,11 @@ received.
 
 * [tck-testable tck-id-topics-dbirth-topic]#[yellow-background]*[tck-id-topics-dbirth-topic] The
 Device Birth topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DBIRTH/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+'[topic_prefix/]namespace/DBIRTH/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the Sparkplug Device, as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 [[payloads_desc_dbirth]]
 ====== Payload (DBIRTH)
@@ -741,7 +830,7 @@ alias was assigned to it in the referenced DMETA, or otherwise by its metric nam
 metric reported in a DBIRTH MUST be described by the DMETA referenced by the shared definition
 identifier.*#
 * [tck-testable tck-id-topics-dbirth-no-metadata]#[yellow-background]*[tck-id-topics-dbirth-no-metadata] The
-DBIRTH MUST NOT be used to convey metric datatype, properties, or metadata; these are conveyed only
+DBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
 in the DMETA and DMMETA.*#
 
 The DBIRTH message can also include optional ‘Device Control’ payload components. These are used by
@@ -782,9 +871,11 @@ this device. The 'online' state of this device should be set to TRUE along with 
 
 * [tck-testable tck-id-topics-drebirth-topic]#[yellow-background]*[tck-id-topics-drebirth-topic] The
 Device Rebirth topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DBIRTH/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+'[topic_prefix/]namespace/DREBIRTH/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the Sparkplug Device, as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 [[payloads_desc_drebirth]]
 ====== Payload (DREBIRTH)
@@ -842,10 +933,12 @@ typically unnecessary.
 ====== Topic (DDATA)
 
 * [tck-testable tck-id-topics-ddata-topic]#[yellow-background]*[tck-id-topics-ddata-topic] The
-Device command topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DDATA/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+Device data topic for a Sparkplug Device MUST be of the form
+'[topic_prefix/]namespace/DDATA/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the Sparkplug Device, as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 The payload of DDATA messages can contain one or more metric values that need to be reported.
 
@@ -887,9 +980,11 @@ DDEATH message was received.
 
 * [tck-testable tck-id-topics-ddeath-topic]#[yellow-background]*[tck-id-topics-ddeath-topic] The
 Device Death Certificate topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DDEATH/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+'[topic_prefix/]namespace/DDEATH/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the Sparkplug Device as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
   
 [[payloads_desc_ddeath]]
 ====== Payload (DDEATH)
@@ -914,9 +1009,12 @@ means sending a new metric value to an associated metric included in the DBIRTH 
 
 * [tck-testable tck-id-topics-dcmd-topic]#[yellow-background]*[tck-id-topics-dcmd-topic] The
 Device command topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DCMD/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+'[topic_prefix/]namespace/DCMD/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the target Sparkplug Device and MUST match the device_tokens used by that
+Device's DDATA messages as defined in the link:#topics_device_tokens_element[Expanded MQTT Topic
+Namespace] section.*#
   
 [[payloads_desc_dcmd]]
 ====== Payload (DCMD)
@@ -945,9 +1043,11 @@ result of a Device level Command that was invoked with a DCMD message.
 
 * [tck-testable tck-id-topics-dresp-topic]#[yellow-background]*[tck-id-topics-dresp-topic] The
 Device command response topic for a Sparkplug Device MUST be of the form
-'namespace/group_id/DRESP/edge_node_id/device_id' where the namespace is replaced with the specific
-namespace for this version of Sparkplug and the group_id, edge_node_id, and device_id are replaced
-with the Group, Edge Node, and Device ID for this specific Device.*#
+'[topic_prefix/]namespace/DRESP/edge_node_id/device_tokens'
+where the namespace, the optional topic_prefix, and the edge_node_id are as defined in the
+link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] section, and the
+device_tokens identify the Sparkplug Device as defined in the
+link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 
 [[payloads_desc_dresp]]
 ====== Payload (DRESP)
@@ -998,11 +1098,18 @@ Application.*#
 * [tck-testable tck-id-host-topic-phid-birth-sub-required]#[yellow-background]*[tck-id-host-topic-phid-birth-sub-required] The
 Sparkplug Host Application MUST subscribe to its own spCv1.0/STATE/sparkplug_host_id and the
 appropriate spCv1.0 topic(s) immediately after successfully connecting to the MQTT Server.*#
-** An 'appropriate' spCv1.0 topic could simply be 'spCv1.0/#'. However, it may also make sense for
-a Host Application to subscribe only to a specific Sparkplug Group. For example subscribing to
-spCv1.0/Group1/# is also valid. A Host Application could even issue a subscription to subscribe to
-only a single Sparkplug Edge Node using this: spCv1.0/Group1/+/EdgeNode1/#. A Sparkplug Host
-Application could subscribe to a combination of specific Sparkplug Groups and/or Edge Nodes as well.
+** An 'appropriate' spCv1.0 topic could simply be 'spCv1.0/#' when no topic_prefix is in use.
+However, when Edge Nodes publish beneath a topic_prefix it makes sense for a Host Application to
+subscribe beneath that prefix, for example subscribing to 'my/prefix/spCv1.0/#'; the Host
+Application must know the topic_prefix a priori. A Host Application could even issue a subscription
+to only a single Sparkplug Edge Node using this: '[topic_prefix/]spCv1.0/+/EdgeNode1/#', where the +
+matches the message_type element that now immediately follows the namespace. A Sparkplug Host
+Application could subscribe to a combination of specific topic_prefixes and/or Edge Nodes as well.
+Note that the STATE topic is never prefixed and always remains at 'spCv1.0/STATE/sparkplug_host_id'.
+** For dynamic discovery, a Host Application that does not know the topic_prefixes in use in advance
+can subscribe at each prefix depth in turn - 'spCv1.0/#' (no prefix), '+/spCv1.0/#' (a one-level
+prefix), '+/+/spCv1.0/#' (a two-level prefix), '+/+/+/spCv1.0/#' (a three-level prefix), and so on -
+to discover Sparkplug namespaces published beneath any topic_prefix.
 * [tck-testable tck-id-host-topic-phid-birth-required]#[yellow-background]*[tck-id-host-topic-phid-birth-required] The
 Sparkplug Host Application MUST publish a Sparkplug Host Application BIRTH message to the MQTT
 Server immediately after successfully subscribing its own spCv1.0/STATE/sparkplug_host_id topic.*#

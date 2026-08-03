@@ -30,13 +30,13 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_CASE_SENSITI
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_HOST_TOPIC_PHID_BIRTH_PAYLOAD;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_HOST_TOPIC_PHID_DEATH_PAYLOAD_TIMESTAMP_CONNECT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_HOST_TOPIC_PHID_DEATH_PAYLOAD_TIMESTAMP_DISCONNECT_CLEAN;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_DEVICE_ID_CHARS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_DEVICE_ID_STRING;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_DEVICE_TOKENS_CHARS;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_DEVICE_TOKENS_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_EDGE_NODE_ID_CHARS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_EDGE_NODE_ID_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_EDGE_NODE_ID_UNIQUENESS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_GROUP_ID_CHARS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_GROUP_ID_STRING;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_TOPIC_PREFIX_CHARS;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_INTRO_TOPIC_PREFIX_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_MESSAGE_FLOW_DEVICE_BIRTH_PUBLISH_DBIRTH_PAYLOAD_SEQ;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_PAYLOAD_BDSEQ;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH;
@@ -61,23 +61,23 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_PRINCIPLES_R
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DBIRTH_METRIC_REQS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NBIRTH_BDSEQ_INCREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NBIRTH_METRIC_REQS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NBIRTH_TEMPLATES;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_NMETA_TEMPLATES;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_A;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DEVICE_TOKENS_D_VERBS;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DEVICE_TOKENS_N_VERBS;
+// TODO(#598): device_id UNIQUE / DUPLICATE-ACROSS-EDGE-NODE statements removed with the device_id
+// element; re-implement as device_tokens coverage when the TCK topic model is updated.
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPICS_DEVICE_TOKENS_VALID;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_VALID_EDGE_NODE_ID;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_DEVICE_ID_STRING;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.ID_TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_DEVICE_TOKENS_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_EDGE_NODE_ID_CHARS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_EDGE_NODE_ID_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_EDGE_NODE_ID_UNIQUENESS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_GROUP_ID_CHARS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_GROUP_ID_STRING;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_TOPIC_PREFIX_CHARS;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.INTRO_TOPIC_PREFIX_STRING;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.MESSAGE_FLOW_DEVICE_BIRTH_PUBLISH_DBIRTH_PAYLOAD_SEQ;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_PAYLOAD_BDSEQ;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH;
@@ -102,17 +102,16 @@ import static org.eclipse.sparkplug.tck.test.common.Requirements.PRINCIPLES_RBE_
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DBIRTH_METRIC_REQS;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NBIRTH_BDSEQ_INCREMENT;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NBIRTH_METRIC_REQS;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NBIRTH_TEMPLATES;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_NMETA_TEMPLATES;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_A;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DEVICE_TOKENS_D_VERBS;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DEVICE_TOKENS_N_VERBS;
+// TODO(#598): device_id UNIQUE / DUPLICATE-ACROSS-EDGE-NODE statements removed (see above).
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPICS_DEVICE_TOKENS_VALID;
 import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_VALID_EDGE_NODE_ID;
-import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID;
+import static org.eclipse.sparkplug.tck.test.common.Requirements.TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX;
 import static org.eclipse.sparkplug.tck.test.common.Utils.checkUTC;
 import static org.eclipse.sparkplug.tck.test.common.Utils.getNextSeq;
 import static org.eclipse.sparkplug.tck.test.common.Utils.getSparkplugPayload;
@@ -170,10 +169,10 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	private static final @NotNull String NAMESPACE = TOPIC_ROOT_SP_BV_1_0;
 	private final TreeMap<String, String> testResults = new TreeMap<>();
 	public static final @NotNull List<String> testIds = List.of(ID_INTRO_EDGE_NODE_ID_UNIQUENESS,
-			ID_TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE,
-			ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR, ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID,
+			// TODO(#598): removed device_id UNIQUE / DUPLICATE-ACROSS-EDGE-NODE assertion ids
+			ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_EDGE_NODE_DESCRIPTOR,
 			ID_PAYLOADS_DBIRTH_SEQ_INC, ID_PAYLOADS_NBIRTH_EDGE_NODE_DESCRIPTOR, ID_TOPICS_DBIRTH_METRIC_REQS,
-			ID_TOPICS_NBIRTH_METRIC_REQS, ID_TOPICS_NBIRTH_TEMPLATES, ID_TOPICS_NBIRTH_BDSEQ_INCREMENT,
+			ID_TOPICS_NBIRTH_METRIC_REQS, ID_TOPICS_NMETA_TEMPLATES, ID_TOPICS_NBIRTH_BDSEQ_INCREMENT,
 			ID_PAYLOADS_STATE_WILL_MESSAGE_PAYLOAD, ID_HOST_TOPIC_PHID_DEATH_PAYLOAD_TIMESTAMP_CONNECT,
 			ID_OPERATIONAL_BEHAVIOR_HOST_APPLICATION_CONNECT_WILL_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_NBIRTH,
 			ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH, ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_NBIRTH_ORDER,
@@ -181,12 +180,12 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH_CHANGE, ID_PRINCIPLES_RBE_RECOMMENDED,
 			ID_PAYLOADS_STATE_BIRTH_PAYLOAD, ID_OPERATIONAL_BEHAVIOR_HOST_APPLICATION_HOST_ID,
 			ID_CASE_SENSITIVITY_SPARKPLUG_IDS, ID_PAYLOADS_SEQUENCE_NUM_INCREMENTING, ID_PAYLOADS_TIMESTAMP_IN_UTC,
-			ID_INTRO_GROUP_ID_STRING, ID_INTRO_GROUP_ID_CHARS, ID_INTRO_EDGE_NODE_ID_STRING,
-			ID_INTRO_EDGE_NODE_ID_CHARS, ID_INTRO_DEVICE_ID_STRING, ID_INTRO_DEVICE_ID_CHARS, ID_TOPIC_STRUCTURE,
-			ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES,
-			ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES,
-			ID_TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID, ID_TOPIC_STRUCTURE_NAMESPACE_VALID_EDGE_NODE_ID,
-			ID_TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID,
+			ID_INTRO_TOPIC_PREFIX_STRING, ID_INTRO_TOPIC_PREFIX_CHARS, ID_INTRO_EDGE_NODE_ID_STRING,
+			ID_INTRO_EDGE_NODE_ID_CHARS, ID_INTRO_DEVICE_TOKENS_STRING, ID_INTRO_DEVICE_TOKENS_CHARS, ID_TOPIC_STRUCTURE,
+			ID_TOPICS_DEVICE_TOKENS_D_VERBS,
+			ID_TOPICS_DEVICE_TOKENS_N_VERBS,
+			ID_TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX, ID_TOPIC_STRUCTURE_NAMESPACE_VALID_EDGE_NODE_ID,
+			ID_TOPICS_DEVICE_TOKENS_VALID,
 			ID_MESSAGE_FLOW_EDGE_NODE_BIRTH_PUBLISH_WILL_MESSAGE_PAYLOAD_BDSEQ, ID_HOST_TOPIC_PHID_BIRTH_PAYLOAD,
 			ID_PAYLOADS_NDATA_SEQ_INC, ID_PAYLOADS_DDATA_SEQ_INC, ID_TOPIC_STRUCTURE_NAMESPACE_A,
 			ID_PAYLOADS_DDEATH_SEQ_INC, ID_PAYLOADS_NBIRTH_SEQ,
@@ -577,10 +576,10 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			id = ID_TOPIC_STRUCTURE)
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
-			id = ID_INTRO_GROUP_ID_STRING)
+			id = ID_INTRO_TOPIC_PREFIX_STRING)
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
-			id = ID_INTRO_GROUP_ID_CHARS)
+			id = ID_INTRO_TOPIC_PREFIX_CHARS)
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
 			id = ID_INTRO_EDGE_NODE_ID_STRING)
@@ -589,25 +588,25 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			id = ID_INTRO_EDGE_NODE_ID_CHARS)
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
-			id = ID_INTRO_DEVICE_ID_STRING)
+			id = ID_INTRO_DEVICE_TOKENS_STRING)
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
-			id = ID_INTRO_DEVICE_ID_CHARS)
+			id = ID_INTRO_DEVICE_TOKENS_CHARS)
 	@SpecAssertion(
-			section = Sections.TOPICS_GROUP_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID)
+			section = Sections.TOPICS_TOPIC_PREFIX_ELEMENT,
+			id = ID_TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX)
 	@SpecAssertion(
 			section = Sections.TOPICS_EDGE_NODE_ID_ELEMENT,
 			id = ID_TOPIC_STRUCTURE_NAMESPACE_VALID_EDGE_NODE_ID)
 	@SpecAssertion(
-			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID)
+			section = Sections.TOPICS_DEVICE_TOKENS_ELEMENT,
+			id = ID_TOPICS_DEVICE_TOKENS_VALID)
 	@SpecAssertion(
-			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES)
+			section = Sections.TOPICS_DEVICE_TOKENS_ELEMENT,
+			id = ID_TOPICS_DEVICE_TOKENS_D_VERBS)
 	@SpecAssertion(
-			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES)
+			section = Sections.TOPICS_DEVICE_TOKENS_ELEMENT,
+			id = ID_TOPICS_DEVICE_TOKENS_N_VERBS)
 	public void checkTopic(String[] elements) {
 		Boolean result = false;
 		if (elements[0].equals(TOPIC_ROOT_SP_BV_1_0) && elements[1].equals(TOPIC_PATH_STATE)) {
@@ -631,16 +630,16 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 				if (message_type.equals("DBIRTH") || message_type.equals("DDEATH") || message_type.equals("DDATA")
 						|| message_type.equals("DCMD")) {
 
-					testResult(ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES, setResult(
-							elements.length == 5, TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_ASSOCIATED_MESSAGE_TYPES));
+					testResult(ID_TOPICS_DEVICE_TOKENS_D_VERBS, setResult(
+							elements.length == 5, TOPICS_DEVICE_TOKENS_D_VERBS));
 					result = (elements.length == 5) ? true : false;
 				}
 
 				if (message_type.equals("NBIRTH") || message_type.equals("NDEATH") || message_type.equals("NDATA")
 						|| message_type.equals("NCMD")) {
 
-					testResult(ID_TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES, setResult(
-							elements.length == 4, TOPIC_STRUCTURE_NAMESPACE_DEVICE_ID_NON_ASSOCIATED_MESSAGE_TYPES));
+					testResult(ID_TOPICS_DEVICE_TOKENS_N_VERBS, setResult(
+							elements.length == 4, TOPICS_DEVICE_TOKENS_N_VERBS));
 					result = (elements.length == 4) ? true : false;
 				}
 				testResult(ID_TOPIC_STRUCTURE, setResult(result, TOPIC_STRUCTURE));
@@ -648,15 +647,15 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 				result = true;
 				if (!checkUTF8String(group_id)) {
 					result = false;
-					testResult(ID_INTRO_GROUP_ID_STRING, setResult(false, INTRO_GROUP_ID_STRING));
+					testResult(ID_INTRO_TOPIC_PREFIX_STRING, setResult(false, INTRO_TOPIC_PREFIX_STRING));
 				}
 
 				if (!checkMQTTChars(group_id)) {
 					result = false;
-					testResult(ID_INTRO_GROUP_ID_CHARS, setResult(false, INTRO_GROUP_ID_CHARS));
+					testResult(ID_INTRO_TOPIC_PREFIX_CHARS, setResult(false, INTRO_TOPIC_PREFIX_CHARS));
 				}
-				testResult(ID_TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID,
-						setResult(result, TOPIC_STRUCTURE_NAMESPACE_VALID_GROUP_ID));
+				testResult(ID_TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX,
+						setResult(result, TOPIC_STRUCTURE_NAMESPACE_VALID_TOPIC_PREFIX));
 
 				result = true;
 				if (!checkUTF8String(edge_node_id)) {
@@ -675,15 +674,15 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 					result = true;
 					if (!checkUTF8String(device_id)) {
 						result = false;
-						testResult(ID_INTRO_DEVICE_ID_STRING, setResult(false, INTRO_DEVICE_ID_STRING));
+						testResult(ID_INTRO_DEVICE_TOKENS_STRING, setResult(false, INTRO_DEVICE_TOKENS_STRING));
 					}
 
 					if (!checkMQTTChars(device_id)) {
 						result = false;
-						testResult(ID_INTRO_DEVICE_ID_CHARS, setResult(false, INTRO_DEVICE_ID_STRING));
+						testResult(ID_INTRO_DEVICE_TOKENS_CHARS, setResult(false, INTRO_DEVICE_TOKENS_STRING));
 					}
-					testResult(ID_TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID,
-							setResult(result, TOPIC_STRUCTURE_NAMESPACE_VALID_DEVICE_ID));
+					testResult(ID_TOPICS_DEVICE_TOKENS_VALID,
+							setResult(result, TOPICS_DEVICE_TOKENS_VALID));
 				}
 			}
 		}
@@ -859,7 +858,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			id = ID_TOPICS_NBIRTH_METRIC_REQS)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
-			id = ID_TOPICS_NBIRTH_TEMPLATES)
+			id = ID_TOPICS_NMETA_TEMPLATES)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_DATA_PUBLISH,
 			id = ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_NBIRTH)
@@ -957,9 +956,9 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 
 							}
 						}
-						if (!setResultIfNotFail(testResults, found, ID_TOPICS_NBIRTH_TEMPLATES,
-								TOPICS_NBIRTH_TEMPLATES)) {
-							log(TEST_FAILED_FOR_ASSERTION + ID_TOPICS_NBIRTH_TEMPLATES + ": metric name: "
+						if (!setResultIfNotFail(testResults, found, ID_TOPICS_NMETA_TEMPLATES,
+								TOPICS_NMETA_TEMPLATES)) {
+							log(TEST_FAILED_FOR_ASSERTION + ID_TOPICS_NMETA_TEMPLATES + ": metric name: "
 									+ currentMetricName);
 						}
 					}
@@ -1012,12 +1011,8 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 	@SpecAssertion(
 			section = Sections.INTRODUCTION_SPARKPLUG_IDS,
 			id = ID_INTRO_EDGE_NODE_ID_UNIQUENESS)
-	@SpecAssertion(
-			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID)
-	@SpecAssertion(
-			section = Sections.TOPICS_DEVICE_ID_ELEMENT,
-			id = ID_TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE)
+	// TODO(#598): device_id UNIQUE / DUPLICATE-ACROSS-EDGE-NODE @SpecAssertions removed with the
+	// device_id element; re-add device_tokens coverage when the TCK topic model is updated.
 	@SpecAssertion(
 			section = Sections.PAYLOADS_C_DBIRTH,
 			id = ID_PAYLOADS_DBIRTH_SEQ_INC)
@@ -1038,13 +1033,11 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			HashSet<String> devices = (HashSet<String>) edge_to_devices.get(edge_node_id);
 			if (devices.contains(device_id)) {
 				logger.error("Monitor: edge_node {} using device_id {} twice", edge_node_id, device_id);
-				testResults.put(ID_TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID,
-						setResult(false, TOPIC_STRUCTURE_NAMESPACE_UNIQUE_DEVICE_ID));
+				// TODO(#598): device_id UNIQUE statement removed; re-implement for device_tokens.
 				testResults.put(ID_INTRO_EDGE_NODE_ID_UNIQUENESS, setResult(false, INTRO_EDGE_NODE_ID_UNIQUENESS));
 			} else {
-				// the following is true as it's a MAY clause. So record a +ve result
-				testResults.put(ID_TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE,
-						setResult(true, TOPIC_STRUCTURE_NAMESPACE_DUPLICATE_DEVICE_ID_ACROSS_EDGE_NODE));
+				// TODO(#598): device_id DUPLICATE-ACROSS-EDGE-NODE (MAY) statement removed; re-implement
+				// for device_tokens.
 				logger.info("Monitor: adding device id {} for edge node id {} on DBIRTH", device_id, edge_node_id);
 				devices.add(device_id);
 			}
@@ -1187,7 +1180,7 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 			id = ID_TOPICS_DBIRTH_METRIC_REQS)
 	@SpecAssertion(
 			section = Sections.PAYLOADS_DESC_NBIRTH,
-			id = ID_TOPICS_NBIRTH_TEMPLATES)
+			id = ID_TOPICS_NMETA_TEMPLATES)
 	@SpecAssertion(
 			section = Sections.OPERATIONAL_BEHAVIOR_DATA_PUBLISH,
 			id = ID_OPERATIONAL_BEHAVIOR_DATA_PUBLISH_DBIRTH)
@@ -1286,9 +1279,9 @@ public class Monitor extends TCKTest implements ClientLifecycleEventListener {
 
 							}
 						}
-						if (!setResultIfNotFail(testResults, found, ID_TOPICS_NBIRTH_TEMPLATES,
-								TOPICS_NBIRTH_TEMPLATES)) {
-							log(TEST_FAILED_FOR_ASSERTION + ID_TOPICS_NBIRTH_TEMPLATES + ": metric name: "
+						if (!setResultIfNotFail(testResults, found, ID_TOPICS_NMETA_TEMPLATES,
+								TOPICS_NMETA_TEMPLATES)) {
+							log(TEST_FAILED_FOR_ASSERTION + ID_TOPICS_NMETA_TEMPLATES + ": metric name: "
 									+ currentMetricName);
 						}
 					}

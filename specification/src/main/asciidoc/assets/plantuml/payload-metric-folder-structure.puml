@@ -3,9 +3,9 @@ scale 2
 {
 {T!
 +**__Metric__**       | **__Value__**       | **__Data Type__**
-+ **group_id**        | ""               "" | ""               "" 
++ **topic_prefix**    | ""               "" | ""               ""
 ++ edge_node_id       | ""               "" | ""               ""
-+++ device_id         | ""               "" | ""               ""
++++ device_tokens     | ""               "" | ""               ""
 ++++ Metric Level 1   | ""               "" | ""               ""
 +++++ Metric Level 2  | ""               "" | ""               ""
 ++++++ Metric Name    | ""               "" | ""               ""
