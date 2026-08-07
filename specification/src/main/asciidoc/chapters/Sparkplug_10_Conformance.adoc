@@ -75,8 +75,8 @@ Sparkplug Host Application that invokes a Command MUST send the command request 
 NRESP or DRESP command response as defined in the
 link:#operational_behavior_commands_typed[Typed Commands and Command Responses Section].*#
 * [tck-testable tck-id-conformance-host-nmeta-resolve]#[yellow-background]*[tck-id-conformance-host-nmeta-resolve] A
-Sparkplug Host Application MUST resolve metrics in an NBIRTH/DBIRTH/NDATA/DDATA - whether identified
-by alias or by name - against the metric definitions in the NMETA/DMETA sharing the same definition
+Sparkplug Host Application MUST resolve metrics in an NBIRTH/DBIRTH/NDATA/DDATA (whether identified
+by alias or by name) against the metric definitions in the NMETA/DMETA sharing the same definition
 identifier.*#
 * [tck-testable tck-id-conformance-host-nmeta-missing]#[yellow-background]*[tck-id-conformance-host-nmeta-missing] If
 a Host Application receives a value message whose definition identifier does not match a known
@@ -116,7 +116,7 @@ DMETA messages that are published with the MQTT retain flag set to true. The cur
 therefore retained and delivered to subscribing clients by any Sparkplug Compliant MQTT Server
 through the normal MQTT retain mechanism, including while the Edge Node is offline. As a result, a
 Sparkplug Aware MQTT Server is NOT required to store NBIRTH or DBIRTH messages, and is NOT required to
-republish metadata on a $sparkplug topic; metric structure discovery is provided directly by the
+republish metadata on a $sparkplug topic. Metric structure discovery is provided directly by the
 retained NMETA and DMETA messages on their normal Sparkplug topics. NBIRTH and DBIRTH messages
 continue to be published with the MQTT retain flag set to false and are not retained.
 

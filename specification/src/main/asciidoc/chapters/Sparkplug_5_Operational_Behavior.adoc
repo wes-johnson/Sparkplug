@@ -61,10 +61,10 @@ the two metric names as unique. Many databases are case-insensitive and would no
 this situation well.
 
 * [tck-testable tck-id-case-sensitivity-sparkplug-ids]#[yellow-background]*[tck-id-case-sensitivity-sparkplug-ids] Edge
-Nodes in a Sparkplug environment SHOULD NOT have Sparkplug IDs (Group, Edge Node, or Device IDs)
-that when converted to lower case match*#
+Nodes in a Sparkplug environment SHOULD NOT have Edge Node IDs, Topic Prefixes, or device_tokens
+(which identify Sparkplug Devices) that when converted to lower case match*#
 ** For example there should not be two different Edge Nodes publishing NBIRTH messages on these two
-topics spCv1.0/Group1/NBIRTH/EdgeNode1 and spCv1.0/group1/NBIRTH/edgenode1
+topics spCv1.0/NBIRTH/EdgeNode1 and spCv1.0/NBIRTH/edgenode1
 * [tck-testable tck-id-case-sensitivity-metric-names]#[yellow-background]*[tck-id-case-sensitivity-metric-names] An
 Edge Node SHOULD NOT publish metric names that when converted to all lower case match.*#
 ** For example a DBIRTH should not contain a metric 'a' and another metric 'A'.
@@ -157,15 +157,15 @@ receive NCMD messages with the following rules.
 
 * [tck-testable tck-id-message-flow-edge-node-rebirth-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-rebirth-subscribe] The
 MQTT client associated with the Edge Node MUST subscribe to a topic of the form
-'spCv1.0/group_id/REBIRTH/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
-is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on this topic with a QoS of
-0.*#
+'[topic_prefix/]spCv1.0/REBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on
+this topic with a QoS of 0.*#
 ** This subscription is mandatory as Edge Nodes MUST be able to respond to 'rebirth requests'.
 * [tck-testable tck-id-message-flow-edge-node-ncmd-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-ncmd-subscribe] The
 MQTT client associated with the Edge Node SHOULD subscribe to a topic of the form
-'spCv1.0/group_id/NCMD/edge_node_id' where group_id is the Sparkplug Group ID and the edge_node_id
-is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on this topic with a QoS of
-0.*#
+'[topic_prefix/]spCv1.0/NCMD/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node. If it subscribes, it
+MUST do so with a QoS of 0.*#
 
 After subscribing, the Edge Node must follow these additional rules.
 
@@ -175,9 +175,9 @@ DBIRTH messages.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message] When
 a Sparkplug Edge Node sends its MQTT CONNECT packet, it MUST include a Will Message.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-topic] The
-Edge Node's MQTT Will Message's topic MUST be of the form 'spCv1.0/group_id/NDEATH/edge_node_id'
-where group_id is the Sparkplug Group ID and the edge_node_id is the Sparkplug Edge Node ID for this
-Edge Node*#
+Edge Node's MQTT Will Message's topic MUST be of the form '[topic_prefix/]spCv1.0/NDEATH/edge_node_id'
+where the optional topic_prefix is the Sparkplug Topic Prefix and the edge_node_id is the Sparkplug
+Edge Node ID for this Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload] The
 Edge Node's MQTT Will Message's payload MUST be a Sparkplug Google Protobuf encoded payload.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload-bdSeq]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload-bdSeq] The
@@ -222,9 +222,9 @@ payload before considering the Primary Host Application to be online and active.
 STATE message timestamp value has been received by this Edge Node it MUST consider the incoming
 STATE message to be the latest/valid.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-topic] The
-Edge Node's NBIRTH MQTT topic MUST be of the form 'spCv1.0/group_id/NBIRTH/edge_node_id' where
-group_id is the Sparkplug Group ID and the edge_node_id is the Sparkplug Edge Node ID for this Edge
-Node*#
+Edge Node's NBIRTH MQTT topic MUST be of the form
+'[topic_prefix/]spCv1.0/NBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload] The
 Edge Node's NBIRTH payload MUST be a Sparkplug Google Protobuf encoded payload.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload-bdSeq]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload-bdSeq] The
@@ -321,7 +321,7 @@ correlation of values to definitions relies on the definition identifier, not on
 
 * [tck-testable tck-id-message-flow-birth-metadata-available]#[yellow-background]*[tck-id-message-flow-birth-metadata-available] An
 Edge Node MUST NOT publish an NBIRTH or DBIRTH that references a definition identifier unless the
-corresponding NMETA or DMETA has been made available - either published in the current MQTT session,
+corresponding NMETA or DMETA has been made available, either published in the current MQTT session,
 or previously published with retain true and therefore still retained by the MQTT Server on the
 NMETA/DMETA topic.*#
 * [tck-testable tck-id-message-flow-birth-metadata-publish-order]#[yellow-background]*[tck-id-message-flow-birth-metadata-publish-order] When
@@ -330,8 +330,8 @@ or DBIRTH that will reference it, it MUST publish the NMETA or DMETA before that
 * [tck-testable tck-id-message-flow-host-birth-metadata-resolve]#[yellow-background]*[tck-id-message-flow-host-birth-metadata-resolve] A
 Sparkplug Host Application MUST NOT rely on receiving an NMETA or DMETA before the NBIRTH or DBIRTH
 that references it. If a Host Application receives a BIRTH whose definition identifier does not match
-metadata it already holds, it MUST obtain the referenced metadata - for example by subscribing to the
-retained NMETA/DMETA topic - before interpreting the BIRTH's metric values.*#
+metadata it already holds, it MUST obtain the referenced metadata (for example by subscribing to the
+retained NMETA/DMETA topic) before interpreting the BIRTH's metric values.*#
 
 [[operational_behavior_reconnect_optimization]]
 ==== Reconnect Optimization
@@ -354,8 +354,8 @@ identifier.*#
 [[operational_behavior_modified_metadata_updates]]
 ==== Modified Metadata Updates (CRUD)
 
-When the metric structure of an Edge Node or Device changes while it is online - a metric is added,
-removed, or modified - the change is conveyed with an NMMETA or DMMETA message that carries only the
+When the metric structure of an Edge Node or Device changes while it is online (a metric is added,
+removed, or modified), the change is conveyed with an NMMETA or DMMETA message that carries only the
 affected metrics, each tagged with an operation (ADD, UPDATE, or DELETE), rather than requiring a full
 Rebirth.
 
@@ -490,10 +490,11 @@ associated with the Sparkplug Device must subscribe to receive DCMD messages wit
 rules.
 
 * [tck-testable tck-id-message-flow-device-dcmd-subscribe]#[yellow-background]*[tck-id-message-flow-device-dcmd-subscribe] If
-the Device supports writing to outputs, the MQTT client associated with the Device MUST subscribe to
-a topic of the form 'spCv1.0/group_id/DCMD/edge_node_id/device_id' where group_id is the Sparkplug
-Group ID the edge_node_id is the Sparkplug Edge Node ID and the device_id is the Sparkplug Device ID
-for this Device. It MUST subscribe on this topic with a QoS of 1.*#
+the Device supports Device Command (DCMD) messages, the MQTT client associated with the Device MUST
+subscribe to a topic of the form '[topic_prefix/]spCv1.0/DCMD/edge_node_id/device_tokens' where the
+optional topic_prefix is the Sparkplug Topic Prefix, the edge_node_id is the Sparkplug Edge Node ID,
+and the device_tokens identify the Sparkplug Device (and MUST match the device_tokens used by that
+Device's DDATA messages). Any such subscription MUST use a QoS of 0.*#
 
 A Device can publish a DBIRTH as long as an NBIRTH has been sent previously and the MQTT session is
 active. The DBIRTH message must follow the following rules.
@@ -502,12 +503,13 @@ active. The DBIRTH message must follow the following rules.
 NBIRTH message MUST have been sent within the current MQTT session prior to a DBIRTH being
 published.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-topic] The
-Device's DBIRTH MQTT topic MUST be of the form 'spCv1.0/group_id/DBIRTH/edge_node_id/device_id'
-where group_id is the Sparkplug Group ID the edge_node_id is the Sparkplug Edge Node ID and the
-device_id is the Sparkplug Device ID for this Device.*#
+Device's DBIRTH MQTT topic MUST be of the form
+'[topic_prefix/]spCv1.0/DBIRTH/edge_node_id/device_tokens' where the optional topic_prefix is the
+Sparkplug Topic Prefix, the edge_node_id is the Sparkplug Edge Node ID, and the device_tokens
+identify the Sparkplug Device.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic] The
-Device's DBIRTH MQTT topic group_id and edge_node_id MUST match the group_id and edge_node_id that
-were sent in the prior NBIRTH message for the Edge Node this Device is associated with.*#
+Device's DBIRTH MQTT topic topic_prefix and edge_node_id MUST match the topic_prefix and edge_node_id
+that were sent in the prior NBIRTH message for the Edge Node this Device is associated with.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-payload]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-payload] The
 Device's DBIRTH payload MUST be a Sparkplug Google Protobuf encoded payload.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-qos]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-qos] The
@@ -1140,7 +1142,7 @@ data or error code, can be reliably matched back to the request that produced it
 Command metric is defined in the link:#payloads_c_command[Command Section].
 
 The general flow is: a Host Application publishes an NCMD or DCMD that targets a Command metric and
-includes the argument values and a correlation_id; the Edge Node executes the command; and the Edge
+includes the argument values and a correlation_id. The Edge Node executes the command, and the Edge
 Node publishes an NRESP or DRESP that echoes the correlation_id and carries the execution status and
 any results.
 

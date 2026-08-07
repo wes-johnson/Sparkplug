@@ -69,10 +69,12 @@ evolution of Sparkplug.
 
 * https://github.com/eclipse/kura/blob/develop/kura/org.eclipse.kura.core.cloud/src/main/protobuf/kurapayload.proto
 
-[[introduction_raspberry_pi]]
-=== Raspberry Pi Hardware
+[[introduction_reference_implementation]]
+=== Reference Implementation
 
 For the sake of keeping the Sparkplug Specification as real world as possible, a reference
 implementation of a Sparkplug Edge Node and associated Device is provided for the examples and
-screen shots in this document. All of this was implemented on Raspberry Pi hardware representing the
-Edge Node with a Pibrella I/O board representing the Device.
+screen shots in this document. The examples model a Unified Namespace organized along an ISA-95
+hierarchy: the topic_prefix 'Acme/Dublin/Packaging' locates the Sparkplug namespace beneath an
+Enterprise/Site/Area root, the Edge Node 'EdgeNode1' represents an edge gateway on a packaging line, and
+the device_tokens 'Filler' identify a filling machine reported by that Edge Node.

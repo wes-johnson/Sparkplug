@@ -327,14 +327,15 @@ message Payload {
 
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
     repeated Metric   metrics       = 2;        // Repeated forever - no limit in Google Protobufs
-    optional uint64   seq           = 3;        // Message sequence number
+    optional uint64   seq           = 3;        // Message sequence number - ordered stream of all messages from the Edge Node
     optional uint64   bd_seq        = 4;        // The Birth/Death sequence number for BIRTH and DEATH payloads
     optional string   source        = 5;        // Source for CMD and REBIRTH messages - the Host Application ID that sent the message
     optional string   uuid          = 6;        // UUID to track message type in terms of schema definitions
     optional bytes    body          = 7;        // To optionally bypass the whole definition above
     optional string   definition_id          = 8; // Definition identifier: content hash of the metric definitions this message reports against
     optional string   previous_definition_id = 9; // NMMETA/DMMETA only: the definition_id in effect before the change
-    extensions                      10 to max;  // For third party extensions
+    optional uint64   descriptor_seq         = 10; // Descriptor sequence number - ordered stream per Sparkplug Descriptor (the Edge Node Descriptor for Edge Node messages, or a Device Descriptor for Device messages)
+    extensions                      11 to max;  // For third party extensions
 }
 ----
 
@@ -384,9 +385,8 @@ of:
 
 ‘Folder 1/Folder 2/Metric Name’
 
-Using this convention in conjunction with the *group_id*, *edge_node_id* and *device_id* already
-defined in the Topic Namespace, consuming applications can organize metrics in the same hierarchical
-fashion:
+Using this convention in conjunction with the *edge_node_id* and *device_tokens* already defined in the
+Topic Namespace, consuming applications can organize metrics in the same hierarchical fashion:
 
 .Figure 9 – Payload Metric Folder Structure
 plantuml::{assetsdir}assets/plantuml/payload-metric-folder-structure.puml[format=svg, alt="Payload Metric Folder Structure"]
@@ -427,7 +427,16 @@ link:#payloads_c_metric[here].
 *** This is the sequence number which is an unsigned 64-bit integer.
 **** [tck-testable tck-id-payloads-sequence-num-always-included]#[yellow-background]*[tck-id-payloads-sequence-num-always-included] A
 sequence number MUST be included in the payload of every Sparkplug MQTT message from an Edge Node
-except NDEATH messages.*#
+except an NDEATH message that is delivered as the Edge Node's registered MQTT Will Message.*#
+**** [tck-testable tck-id-payloads-sequence-num-ndeath-direct]#[yellow-background]*[tck-id-payloads-sequence-num-ndeath-direct] An
+NDEATH message that is published directly by an Edge Node (that is, not delivered as the Edge Node's
+registered MQTT Will Message) MUST include a sequence number that is properly ordered in the same way
+as a DATA message, continuing to increase by one from the previous message published by that Edge
+Node.*#
+***** Non-normative comment: An NDEATH delivered by the MQTT Server as the Edge Node's registered
+Will Message does not include a sequence number, whereas an NDEATH published directly by the Edge
+Node does. This allows Host Applications to easily distinguish an NDEATH delivered as a Will Message
+from an NDEATH published by the Edge Node itself.
 **** [tck-testable tck-id-payloads-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-sequence-num-req-nbirth] A
 NBIRTH message from an Edge Node MUST always contain a sequence number between 0 and
 18446744073709551615 (inclusive).*#
@@ -449,6 +458,36 @@ subsequent messages after an NBIRTH from an Edge Node MUST contain a birth/death
 that is continually increasing by one in each message from that Edge Node until a value of
 18446744073709551615 (max value of a UINT64) is reached. At that point, the sequence number of the
 following message MUST be zero.*#
+** _descriptor_seq_
+*** This is the descriptor sequence number which is an unsigned 64-bit integer. It is an ordered
+sequence number stream scoped to a single Sparkplug Descriptor (see the
+link:#introduction_sparkplug_ids[Sparkplug Identifiers] section), either the Edge Node Descriptor for
+an Edge Node's messages (NBIRTH, NDATA) or a Device Descriptor for a Device's messages (DBIRTH,
+DDATA). It is carried in addition to the Edge-Node-wide sequence number (seq). The Edge Node has its own
+descriptor_seq stream, and each Sparkplug Device has its own independent descriptor_seq stream.
+Whereas seq tracks every message emitted by the Edge Node across all of its Sparkplug Descriptors,
+descriptor_seq lets a consuming application detect a gap on one specific Descriptor's BIRTH/DATA
+stream.
+**** [tck-testable tck-id-payloads-descriptor-seq-included]#[yellow-background]*[tck-id-payloads-descriptor-seq-included] A
+descriptor sequence number MUST be included in the payload of every NMETA, NMMETA, NBIRTH, NREBIRTH,
+NDATA, and NRESP message, every DMETA, DMMETA, DBIRTH, DREBIRTH, DDATA, DRESP, and DDEATH message,
+and every NDEATH message that is published directly by an Edge Node (not delivered as its registered
+MQTT Will Message).*#
+**** [tck-testable tck-id-payloads-descriptor-seq-req-birth]#[yellow-background]*[tck-id-payloads-descriptor-seq-req-birth] The
+first message published in each descriptor sequence stream MUST carry a descriptor sequence number
+of 0. When an NMETA precedes the NBIRTH, or a DMETA precedes the DBIRTH, that NMETA or DMETA is the
+first message of the stream and MUST carry 0. When the NMETA or DMETA is not published in the BIRTH
+sequence (see the Reconnect Optimization), the NBIRTH or DBIRTH is the first message and MUST carry
+0.*#
+**** [tck-testable tck-id-payloads-descriptor-seq-incrementing]#[yellow-background]*[tck-id-payloads-descriptor-seq-incrementing] Each
+subsequent message in a descriptor sequence stream MUST contain a descriptor sequence number that is
+one greater than the descriptor sequence number of the previous message in that same stream, until a
+value of 18446744073709551615 (max value of a UINT64) is reached, after which the next descriptor
+sequence number MUST be 0.*#
+**** [tck-testable tck-id-payloads-descriptor-seq-rebirth]#[yellow-background]*[tck-id-payloads-descriptor-seq-rebirth] An
+NREBIRTH or DREBIRTH slip-streams a Host Application into the existing data stream and MUST NOT reset
+the descriptor sequence stream. It MUST carry the next incrementing descriptor sequence number,
+continuing the stream like any other message.*#
 ** _source_
 *** This is the source field which represents the Sparkplug Host Application ID of the publisher for
 NCMD, DCMD, and REBIRTH messages
@@ -495,6 +534,8 @@ metrics.*#
 **** Non-normative comment: no two metrics for the same Edge Node can have the same alias. Upon being
 defined in the NBIRTH or DBIRTH, subsequent messages can supply only the alias instead of the metric
 friendly name to reduce overall message size.
+**** Non-normative comment: In effect, this means a metric alias, when used, must be unique across
+the entire Edge Node and all of its Sparkplug Devices.
 *** [tck-testable tck-id-payloads-alias-birth-requirement]#[yellow-background]*[tck-id-payloads-alias-birth-requirement] NBIRTH
 and DBIRTH messages MUST include both a metric name and alias.*#
 *** [tck-testable tck-id-payloads-alias-data-cmd-requirement]#[yellow-background]*[tck-id-payloads-alias-data-cmd-requirement] NDATA,
@@ -916,12 +957,12 @@ A Sparkplug Command includes the following components.
 
 * *arguments*
 ** This is an array of Metric objects representing the inputs to the command. In a Command
-Definition each argument is a definition (a name and datatype with no value); in a Command Request
+Definition each argument is a definition (a name and datatype with no value). In a Command Request
 each argument carries the value supplied for that invocation. Arguments MAY be Template instances to
 represent structured or complex inputs.
 * *results*
 ** This is an array of Metric objects representing the outputs of the command. In a Command
-Definition each result is a definition (a name and datatype with no value); in a Command Response
+Definition each result is a definition (a name and datatype with no value). In a Command Response
 each result carries the returned value. Results MAY be Template instances to represent structured or
 complex outputs.
 * *correlation_id*
@@ -1218,8 +1259,8 @@ value from the same metric definitions:
 
 [arabic]
 . *Metadata projection.* Build a structure containing only definition fields: for every metric its
-name, alias, datatype, the is_transient flag, all properties, metadata, and - for Command-datatype
-metrics - the command argument and result definitions; plus every Template (UDT) definition. Current
+name, alias, datatype, the is_transient flag, all properties, metadata, and (for Command-datatype
+metrics) the command argument and result definitions, plus every Template (UDT) definition. Current
 values, quality, quality_context, timestamps, sequence numbers, bd_seq, source, definition_id, and
 previous_definition_id MUST be excluded.
 . *Stable ordering.* The metrics MUST be ordered by metric name, each property set by key, Template
@@ -1263,7 +1304,7 @@ messages MUST include a definition_id equal to the content hash of the metric de
 contain.*#
 * [tck-testable tck-id-payloads-nmeta-metric-defs]#[yellow-background]*[tck-id-payloads-nmeta-metric-defs] For
 each metric a full NMETA MUST include the metric name and datatype. The metric alias, properties, and
-metadata MAY also be included; aliases are optional.*#
+metadata MAY also be included. Aliases are optional.*#
 * [tck-testable tck-id-payloads-nmeta-cmd-metrics]#[yellow-background]*[tck-id-payloads-nmeta-cmd-metrics] A
 full NMETA MUST include the definition of every Command-datatype metric the Edge Node exposes,
 including its command argument and result definitions, so that Host Applications can invoke it via
@@ -1290,7 +1331,7 @@ messages MUST include a definition_id equal to the content hash of the metric de
 contain.*#
 * [tck-testable tck-id-payloads-dmeta-metric-defs]#[yellow-background]*[tck-id-payloads-dmeta-metric-defs] For
 each metric a full DMETA MUST include the metric name and datatype. The metric alias, properties, and
-metadata MAY also be included; aliases are optional.*#
+metadata MAY also be included. Aliases are optional.*#
 * [tck-testable tck-id-payloads-dmeta-cmd-metrics]#[yellow-background]*[tck-id-payloads-dmeta-cmd-metrics] A
 full DMETA MUST include the definition of every Command-datatype metric the Device exposes, including
 its command argument and result definitions, so that Host Applications can invoke it via DCMD and
@@ -1306,7 +1347,7 @@ DMETA MUST be published with the MQTT retain flag set to true.*#
 ==== NMMETA and DMMETA
 
 An NMMETA (for an Edge Node) or DMMETA (for a Device) conveys a change to the metric structure after
-it has been established - a metric added, removed, or modified - without requiring a full Rebirth. It
+it has been established (a metric added, removed, or modified) without requiring a full Rebirth. It
 carries only the affected metrics, each tagged with an operation, and is a live, non-retained,
 sequenced message. Because it is not retained, every NMMETA/DMMETA MUST be accompanied by an updated
 full NMETA/DMETA (retain true) so that the retained metadata always reflects the complete current
@@ -1360,8 +1401,8 @@ alias was assigned to it in the referenced NMETA, or otherwise by its metric nam
 NOT be used to convey metric datatype, properties, or metadata.*#
 * [tck-testable tck-id-payloads-nbirth-seq]#[yellow-background]*[tck-id-payloads-nbirth-seq] Every
 NBIRTH message MUST include a sequence number. If no NMETA is published in the BIRTH sequence, the
-NBIRTH's sequence number MUST be 0; if an NMETA is published (sequence number 0), the NBIRTH's
-sequence number MUST be 1.*#
+NBIRTH is the first message and its sequence number MUST be 0. If an NMETA is published (sequence
+number 0), the NBIRTH's sequence number MUST be 1.*#
 * [tck-testable tck-id-payloads-nbirth-bdseq]#[yellow-background]*[tck-id-payloads-nbirth-bdseq] Every
 NBIRTH message MUST include a bd_seq number in the payload.*#
 * [tck-testable tck-id-payloads-nbirth-bdseq-repeat]#[yellow-background]*[tck-id-payloads-nbirth-bdseq-repeat] The
@@ -1384,14 +1425,14 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NBIRTH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NBIRTH/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NBIRTH/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The 'Edge Node Descriptor' is the combination of the Group ID and Edge Node ID.
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The 'Edge Node Descriptor' is the combination of the Topic Prefix and Edge Node ID.
 * This is an NBIRTH message based on the 'NBIRTH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NBIRTH message shown above:
@@ -1419,19 +1460,19 @@ Consider the following Sparkplug B payload in the NBIRTH message shown above:
         }, {
                 "name": "Properties/Hardware Make",
                 "timestamp": 1486144502122,
-                "value": "Raspberry Pi"
+                "value": "Acme"
         }, {
                 "name": "Properties/Hardware Model",
                 "timestamp": 1486144502122,
-                "value": "Pi 3 Model B"
+                "value": "EdgeGate 2000"
         }, {
                 "name": "Properties/OS",
                 "timestamp": 1486144502122,
-                "value": "Raspbian"
+                "value": "Linux"
         }, {
                 "name": "Properties/OS Version",
                 "timestamp": 1486144502122,
-                "value": "Jessie with PIXEL/11.01.2017"
+                "value": "6.1"
         }, {
                 "name": "Supply Voltage",
                 "timestamp": 1486144502122,
@@ -1495,14 +1536,14 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NREBIRTH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NREBIRTH/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NREBIRTH/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The 'Edge Node Descriptor' is the combination of the Group ID and Edge Node ID.
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The 'Edge Node Descriptor' is the combination of the Topic Prefix and Edge Node ID.
 * This is an NREBIRTH message based on the 'NREBIRTH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NREBIRTH message shown above:
@@ -1530,19 +1571,19 @@ Consider the following Sparkplug B payload in the NREBIRTH message shown above:
         }, {
                 "name": "Properties/Hardware Make",
                 "timestamp": 1486144502122,
-                "value": "Raspberry Pi"
+                "value": "Acme"
         }, {
                 "name": "Properties/Hardware Model",
                 "timestamp": 1486144502122,
-                "value": "Pi 3 Model B"
+                "value": "EdgeGate 2000"
         }, {
                 "name": "Properties/OS",
                 "timestamp": 1486144502122,
-                "value": "Raspbian"
+                "value": "Linux"
         }, {
                 "name": "Properties/OS Version",
                 "timestamp": 1486144502122,
-                "value": "Jessie with PIXEL/11.01.2017"
+                "value": "6.1"
         }, {
                 "name": "Supply Voltage",
                 "timestamp": 1486144502122,
@@ -1592,14 +1633,14 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DBIRTH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/DBIRTH/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DBIRTH/EdgeNode1/Filler
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is a DBIRTH message based on the 'DBIRTH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DBIRTH message shown above:
@@ -1609,61 +1650,41 @@ Consider the following Sparkplug B payload in the DBIRTH message shown above:
         "timestamp": 1486144502122,
         "definition_id": "a1c9...77",
         "metrics": [{
-                "name": "Inputs/A",
+                "name": "Running",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/B",
+                "name": "Faulted",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/C",
+                "name": "Speed",
+                "timestamp": 1486144502122,
+                "value": 0
+        }, {
+                "name": "Fill/Setpoint",
+                "timestamp": 1486144502122,
+                "value": 500.0
+        }, {
+                "name": "Fill/Actual",
+                "timestamp": 1486144502122,
+                "value": 0.0
+        }, {
+                "name": "Temperature",
+                "timestamp": 1486144502122,
+                "value": 21.5
+        }, {
+                "name": "Motor/Run",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/D",
+                "name": "Motor/Speed Setpoint",
                 "timestamp": 1486144502122,
-                "value": false
+                "value": 0
         }, {
-                "name": "Inputs/Button",
+                "name": "Properties/Manufacturer",
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/E",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/F",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/G",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/H",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Green",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Red",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Yellow",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/Buzzer",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Pibrella"
+                "value": "Acme"
         }],
         "seq": 1
 }
@@ -1701,14 +1722,14 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DREBIRTH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/DREBIRTH/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DREBIRTH/EdgeNode1/Filler
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is a DREBIRTH message based on the 'DREBIRTH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DREBIRTH message shown above:
@@ -1718,61 +1739,41 @@ Consider the following Sparkplug B payload in the DREBIRTH message shown above:
         "timestamp": 1486144502122,
         "definition_id": "a1c9...77",
         "metrics": [{
-                "name": "Inputs/A",
+                "name": "Running",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/B",
+                "name": "Faulted",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/C",
+                "name": "Speed",
+                "timestamp": 1486144502122,
+                "value": 0
+        }, {
+                "name": "Fill/Setpoint",
+                "timestamp": 1486144502122,
+                "value": 500.0
+        }, {
+                "name": "Fill/Actual",
+                "timestamp": 1486144502122,
+                "value": 0.0
+        }, {
+                "name": "Temperature",
+                "timestamp": 1486144502122,
+                "value": 21.5
+        }, {
+                "name": "Motor/Run",
                 "timestamp": 1486144502122,
                 "value": false
         }, {
-                "name": "Inputs/D",
+                "name": "Motor/Speed Setpoint",
                 "timestamp": 1486144502122,
-                "value": false
+                "value": 0
         }, {
-                "name": "Inputs/Button",
+                "name": "Properties/Manufacturer",
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/E",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/F",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/G",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/H",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Green",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Red",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/LEDs/Yellow",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Outputs/Buzzer",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Pibrella"
+                "value": "Acme"
         }],
         "seq": 1
 }
@@ -1818,13 +1819,13 @@ describes this Edge Node, and MUST identify each metric by its alias or name.*#
 The following is a representation of a simple NDATA message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NDATA/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NDATA/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
 * This is an NDATA message based on the 'NDATA' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NDATA message shown above:
@@ -1878,11 +1879,11 @@ describes this Device, and MUST identify each metric by its alias or name.*#
 
 The following is a representation of a simple DDATA message on the topic:
 
-spCv1.0/Sparkplug B Devices/DDATA/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DDATA/EdgeNode1/Filler
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is an DDATA message based on the 'NDATA' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DDATA message shown above:
@@ -1892,19 +1893,19 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
         "timestamp": 1486144502122,
         "definition_id": "a1c9...77",
         "metrics": [{
-                "name": "Inputs/A",
+                "name": "Running",
                 "timestamp": 1486144502122,
                 "value": true
         }, {
-                "name": "Inputs/C",
+                "name": "Speed",
                 "timestamp": 1486144502122,
-                "value": true
+                "value": 120
         }],
         "seq": 0
 }
 ----
 
-This would result in the Host Application updating the value of the ‘Inputs/A’ metric and ‘Inputs/C’ 
+This would result in the Host Application updating the value of the ‘Running’ metric and ‘Speed’
 metric.
 
 [[payloads_c_rebirth]]
@@ -1928,11 +1929,11 @@ value representing the Host ID of the Sparkplug Host Application that sent the R
 The following is a representation of a REBIRTH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/REBIRTH/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/REBIRTH/EdgeNode1
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
 * This is an REBIRTH message based on the 'REBIRTH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the REBIRTH message shown above:
@@ -1975,11 +1976,11 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple NCMD message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NCMD/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NCMD/EdgeNode1
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
 * This is an NCMD message based on the 'NDATA' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NCMD message shown above:
@@ -2061,12 +2062,12 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple DCMD message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/DCMD/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DCMD/EdgeNode1/Filler
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is an DCMD message based on the 'DCMD' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DCMD message shown above:
@@ -2075,23 +2076,23 @@ Consider the following Sparkplug B payload in the DCMD message shown above:
 {
         "timestamp": 1486144502122,
         "metrics": [{
-                "name": "Outputs/LEDs/Green",
+                "name": "Motor/Run",
                 "timestamp": 1486144502122,
                 "dataType": "Boolean",
                 "value": true
         }, {
-                "name": "Outputs/LEDs/Yellow",
+                "name": "Motor/Speed Setpoint",
                 "timestamp": 1486144502122,
-                "dataType": "Boolean",
-                "value": true
+                "dataType": "Int32",
+                "value": 120
         }],
         "source": "IamHost"
 }
 ----
 
-The DCMD payload tells the Edge Node to write true to the attached device’s green and yellow LEDs.
-As a result, the LEDs should turn on and result in a DDATA message back to the MQTT Server after the
-LEDs are successfully turned on.
+The DCMD payload tells the Edge Node to start the attached Filler's motor and set its speed setpoint.
+As a result, the Filler should begin running and result in a DDATA message back to the MQTT Server
+after the motor is successfully started.
 
 A DCMD message MAY also invoke a strongly typed Command that was supplied in the DBIRTH, following
 the same Command Request rules as NCMD. See the link:#payloads_c_command[Command Section].
@@ -2120,11 +2121,11 @@ NRESP message MUST include a status for the command being responded to.*#
 The following is a representation of a simple NRESP message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NRESP/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NRESP/EdgeNode1
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
 * This is an NRESP message based on the 'NRESP' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NRESP message shown above:
@@ -2176,12 +2177,12 @@ DRESP message MUST include a status for the command being responded to.*#
 The following is a representation of a simple DRESP message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/DRESP/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DRESP/EdgeNode1/Filler
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is a DRESP message based on the 'DRESP' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DRESP message shown above:
@@ -2190,7 +2191,7 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
 {
         "timestamp": 1486144502122,
         "metrics": [{
-                "name": "Outputs/Blink",
+                "name": "Reset",
                 "timestamp": 1486144502122,
                 "dataType": "Command",
                 "command": {
@@ -2204,7 +2205,7 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
 }
 ----
 
-The DRESP payload returns an error status for the 'Outputs/Blink' command that was invoked in a prior
+The DRESP payload returns an error status for the 'Reset' command that was invoked in a prior
 DCMD, correlated by the matching correlation_id.
 
 [[payloads_c_ndeath]]
@@ -2258,11 +2259,11 @@ NBIRTH.
 The following is a representation of a NDEATH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/NDEATH/Raspberry Pi
+Acme/Dublin/Packaging/spCv1.0/NDEATH/EdgeNode1
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
 * This is an NDEATH message based on the 'NDEATH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the NDEATH message shown above:
@@ -2298,12 +2299,12 @@ sequence number sent MUST have a value of 0.*#
 The following is a representation of a simple DDEATH message on the topic:
 
 ----
-spCv1.0/Sparkplug B Devices/DDEATH/Raspberry Pi/Pibrella
+Acme/Dublin/Packaging/spCv1.0/DDEATH/EdgeNode1/Filler
 ----
 
-* The ‘Group ID’ is: Sparkplug B Devices
-* The ‘Edge Node ID’ is: Raspberry Pi
-* The ‘Device ID’ is: Pibrella
+* The ‘Topic Prefix’ is: Acme/Dublin/Packaging
+* The ‘Edge Node ID’ is: EdgeNode1
+* The ‘device_tokens’ (identifying the Sparkplug Device) are: Filler
 * This is a DDEATH message based on the 'DDEATH' Sparkplug Verb
 
 Consider the following Sparkplug B payload in the DDEATH message shown above:
@@ -2496,8 +2497,8 @@ receiving application SHOULD publish an acknowledgment for each received file me
 confirm receipt and, for a multi-part file publish, advance the transfer to the next part.*#
 * [tck-testable tck-id-payloads-file-ack-topic]#[yellow-background]*[tck-id-payloads-file-ack-topic] When
 a receiving application acknowledges a received file metric, the acknowledgment MUST be published as an
-NCMD message on topic 'spCv1.0/group_id/NCMD/edge_node_id' if the file metric was received in an NDATA
-message, or as a DCMD message on topic 'spCv1.0/group_id/DCMD/edge_node_id/device_id' if the file metric
+NCMD message on topic '[topic_prefix/]spCv1.0/NCMD/edge_node_id' if the file metric was received in an NDATA
+message, or as a DCMD message on topic '[topic_prefix/]spCv1.0/DCMD/edge_node_id/device_tokens' if the file metric
 was received in a DDATA message, scoped to the same Sparkplug Edge Node or Device that published the
 file.*#
 * [tck-testable tck-id-payloads-file-ack-seq-metric]#[yellow-background]*[tck-id-payloads-file-ack-seq-metric] The

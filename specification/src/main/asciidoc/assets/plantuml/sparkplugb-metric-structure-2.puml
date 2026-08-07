@@ -3,30 +3,25 @@ scale 2
 {
 {T!
 +**__Metric__**                 | ""           "" | **__Value__**      | **__Data Type__**
-+**Sparkplug B Devices**        | /group_id       | ""              "" | ""           "" 
-++ Raspberry Pi                 | /edge_node_id   | ""              "" | ""           ""
-+++ Pibrella                    | /device_id      | ""              "" | ""           ""
-++++ Inputs                     | ""           "" | ""              "" | ""           ""
-+++++ A                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ B                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ C                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ D                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-++++ Outputs                    | ""           "" | ""              "" | ""           ""
-+++++ LEDs                      | ""           "" | ""              "" | ""           ""
-++++++ Green                    | ""           "" | ""        FALSE "" | ""   Boolean ""
-++++++ Red                      | ""           "" | ""        FALSE "" | ""   Boolean ""
-++++++ Yellow                   | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ E                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ F                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ G                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ H                         | ""           "" | ""        FALSE "" | ""   Boolean ""
-+++++ Buzzer                    | ""           "" | ""        FALSE "" | ""   Boolean ""
++**Acme/Dublin/Packaging**      | /topic_prefix   | ""              "" | ""           ""
+++ EdgeNode1                    | /edge_node_id   | ""              "" | ""           ""
++++ Filler                      | /device_tokens  | ""              "" | ""           ""
+++++ Running                    | ""           "" | ""        FALSE "" | ""   Boolean ""
+++++ Faulted                    | ""           "" | ""        FALSE "" | ""   Boolean ""
+++++ Speed                      | ""           "" | ""            0 "" | ""     Int32 ""
+++++ Fill                       | ""           "" | ""              "" | ""           ""
++++++ Setpoint                  | ""           "" | ""        500.0 "" | ""     Float ""
++++++ Actual                    | ""           "" | ""          0.0 "" | ""     Float ""
+++++ Temperature                | ""           "" | ""         21.5 "" | ""     Float ""
+++++ Motor                      | ""           "" | ""              "" | ""           ""
++++++ Run                       | ""           "" | ""        FALSE "" | ""   Boolean ""
++++++ Speed Setpoint            | ""           "" | ""            0 "" | ""     Int32 ""
 ++++ Properties                 | ""           "" | ""              "" | ""           ""
-+++++ Hardware Make             | ""           "" | ""     Pibrella "" | ""    String ""
++++++ Manufacturer              | ""           "" | ""         Acme "" | ""    String ""
 }
 .
 {+
-   Everything under the Pibrella node is 
+   Everything under Filler is
    Device Process Variables and Metric Tags
 }
 
