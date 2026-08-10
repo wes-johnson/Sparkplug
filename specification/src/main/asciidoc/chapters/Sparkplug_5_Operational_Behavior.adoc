@@ -804,18 +804,18 @@ descriptor_seq, and MUST NOT treat the absence of those fields as a malformed pa
 any sequence stream.*#
 ** Non-normative comment: an NDEATH delivered by the MQTT Server as the Edge Node's registered Will
 Message carries neither sequence number, whereas an NDEATH published directly by the Edge Node
-carries both. In either form, the NDEATH means that the Edge Node session identified by the bd_seq
-number in its payload has ended. It does not by itself mean the Edge Node is offline now, since a
-subsequent session may already have been established.
+carries both. Both forms carry a bd_seq number, so both can be correlated to a session. In either
+form, the NDEATH means that the Edge Node session identified by the bd_seq number in its payload has
+ended. It does not by itself mean the Edge Node is offline now, since a subsequent session may already
+have been established.
 * [tck-testable tck-id-operational-behavior-host-partial-ndeath-bdseq-correlate]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-bdseq-correlate] A
 Host Application with partial subscriptions MUST correlate an incoming NDEATH to the Sparkplug session
-it holds for that Edge Node by matching the NDEATH's bd_seq number against the bd_seq number carried in
-the NMETA, NBIRTH, and NREBIRTH messages it received for that session. It MUST NOT rely on the
-NDEATH's timestamp, which is typically set at MQTT CONNECT time and does not indicate when the Edge
-Node went offline.*#
-** All three of the NMETA, NBIRTH, and NREBIRTH carry the bd_seq number of the MQTT session they were
-published in, so any of them establishes the bd_seq number that the terminating NDEATH will carry. A
-Host Application that holds only some of them still holds the session's bd_seq number.
+it holds for that Edge Node by matching the NDEATH's bd_seq number against the bd_seq number of that
+session. It MUST NOT rely on the NDEATH's timestamp, which is typically set at MQTT CONNECT time and
+does not indicate when the Edge Node went offline.*#
+** Every message an Edge Node publishes carries the bd_seq number of the session it was published in,
+so a Host Application learns a session's bd_seq number from whichever messages it happens to subscribe
+to. It does not need to have received any particular message type to be able to correlate the NDEATH.
 * [tck-testable tck-id-operational-behavior-host-partial-ndeath-bdseq-mismatch]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-bdseq-mismatch] A
 Host Application with partial subscriptions MUST NOT mark its Devices of interest offline on an NDEATH
 whose bd_seq number does not match the bd_seq number of the Sparkplug session it currently holds for
@@ -897,6 +897,27 @@ link:#operational_behavior_host_application_message_ordering[Sparkplug Host Appl
 Ordering] section MUST be applied per Sparkplug Descriptor when a Host Application is tracking
 descriptor_seq, and a Reorder Timeout on one Descriptor's stream MUST NOT be interpreted as a gap on
 any other Descriptor's stream.*#
+
+Because every message an Edge Node publishes carries the bd_seq number of its MQTT session, a Host
+Application with partial subscriptions can attribute any single message it receives to a session,
+without having had to observe the BIRTH sequence that opened it. A descriptor sequence stream is scoped
+to one session, so the bd_seq number is what tells a Host Application whether a descriptor_seq value it
+receives belongs to the stream it is currently tracking.
+
+* [tck-testable tck-id-operational-behavior-host-partial-bdseq-scope]#[yellow-background]*[tck-id-operational-behavior-host-partial-bdseq-scope] A
+Host Application with partial subscriptions MUST use the bd_seq number of each message it receives to
+determine which Edge Node session that message belongs to, and MUST NOT apply a message to the session
+state it holds unless the message's bd_seq number matches the bd_seq number of that held session.*#
+* [tck-testable tck-id-operational-behavior-host-partial-bdseq-new-session]#[yellow-background]*[tck-id-operational-behavior-host-partial-bdseq-new-session] If
+a Host Application with partial subscriptions receives a message whose bd_seq number does not match the
+session it holds for that Edge Node, and it has not received a BIRTH sequence for the session that
+message identifies, it MUST treat its held session state for that Edge Node as no longer valid and
+SHOULD issue a Rebirth Request to resynchronize.*#
+** Non-normative comment: this is the situation a Host Application with partial subscriptions is in when
+it starts up while an Edge Node is already running, or when the Edge Node reconnects while the Host
+Application is not subscribed to that Edge Node's NBIRTH. The bd_seq number makes the condition
+detectable from the first message received, rather than only becoming apparent when descriptor_seq
+values stop making sense.
 
 A Host Application also has to establish where in a descriptor sequence stream it is starting from.
 A BIRTH begins a stream and carries a descriptor_seq of 0. A REBIRTH does not begin a stream; it

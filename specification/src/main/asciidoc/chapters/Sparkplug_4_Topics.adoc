@@ -599,6 +599,8 @@ payload.*#
 * [tck-testable tck-id-topics-ndata-payload]#[yellow-background]*[tck-id-topics-ndata-payload] The
 NDATA MUST include the Edge Node’s metrics that have changed since the last NBIRTH or NDATA
 message.*#
+* [tck-testable tck-id-topics-ndata-bdseq]#[yellow-background]*[tck-id-topics-ndata-bdseq] The
+NDATA MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 [[death_message_ndeath]]
 ===== Death Message (NDEATH)
@@ -701,6 +703,8 @@ MQTT client.*#
 NRESP MUST include the correlation_id from the NCMD Command Request that it is responding to.*#
 * [tck-testable tck-id-topics-nresp-payload-status]#[yellow-background]*[tck-id-topics-nresp-payload-status] The
 NRESP MUST include a status for the command that it is responding to.*#
+* [tck-testable tck-id-topics-nresp-bdseq]#[yellow-background]*[tck-id-topics-nresp-bdseq] The
+NRESP MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 [[topics_device]]
 ==== Device
@@ -853,6 +857,8 @@ identifier.*#
 * [tck-testable tck-id-topics-dbirth-no-metadata]#[yellow-background]*[tck-id-topics-dbirth-no-metadata] The
 DBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
 in the DMETA and DMMETA.*#
+* [tck-testable tck-id-topics-dbirth-bdseq]#[yellow-background]*[tck-id-topics-dbirth-bdseq] The
+DBIRTH MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 The DBIRTH message can also include optional ‘Device Control’ payload components. These are used by
 a Host Application to control aspects of a device. The following are examples of Device Control
@@ -939,6 +945,8 @@ identifier.*#
 * [tck-testable tck-id-topics-drebirth-no-metadata]#[yellow-background]*[tck-id-topics-drebirth-no-metadata] The
 DREBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
 in the DMETA and DMMETA.*#
+* [tck-testable tck-id-topics-drebirth-bdseq]#[yellow-background]*[tck-id-topics-drebirth-bdseq] The
+DREBIRTH MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 The DREBIRTH message can also include optional ‘Device Control’ payload components. These are used
 by a Host Application to control aspects of a device. The following are examples of Device Control
@@ -1002,6 +1010,8 @@ individual Metric in the payload MAY include its own timestamp. If it does not, 
 payload.*#
 * [tck-testable tck-id-topics-ddata-payload]#[yellow-background]*[tck-id-topics-ddata-payload] The
 DDATA MUST include the Device’s metrics that have changed since the last DBIRTH or DDATA message.*#
+* [tck-testable tck-id-topics-ddata-bdseq]#[yellow-background]*[tck-id-topics-ddata-bdseq] The
+DDATA MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 [[death_message_ddeath]]
 ===== Death Message (DDEATH)
@@ -1037,6 +1047,8 @@ messages MUST be published with MQTT QoS equal to 0 and retain equal to false.*#
 DDEATH MUST include a sequence number in the payload and it MUST have a value of one greater than
 the previous MQTT message from the Edge Node contained unless the previous MQTT message contained a
 value of 18446744073709551615 (max value of a UINT64). In this case the sequence number MUST be 0.*#
+* [tck-testable tck-id-topics-ddeath-bdseq]#[yellow-background]*[tck-id-topics-ddeath-bdseq] The
+DDEATH MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 [[command_dcmd]]
 ===== Command (DCMD)
@@ -1103,6 +1115,8 @@ MQTT client.*#
 DRESP MUST include the correlation_id from the DCMD Command Request that it is responding to.*#
 * [tck-testable tck-id-topics-dresp-payload-status]#[yellow-background]*[tck-id-topics-dresp-payload-status] The
 DRESP MUST include a status for the command that it is responding to.*#
+* [tck-testable tck-id-topics-dresp-bdseq]#[yellow-background]*[tck-id-topics-dresp-bdseq] The
+DRESP MUST include a bd_seq number matching the bd_seq of the current MQTT session.*#
 
 [[topics_sparkplug_host_application]]
 [upperalpha, start=1]
