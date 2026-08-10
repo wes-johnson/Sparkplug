@@ -64,7 +64,7 @@ this situation well.
 Nodes in a Sparkplug environment SHOULD NOT have Edge Node IDs, Topic Prefixes, or device_tokens
 (which identify Sparkplug Devices) that when converted to lower case match*#
 ** For example there should not be two different Edge Nodes publishing NBIRTH messages on these two
-topics spCv1.0/NBIRTH/EdgeNode1 and spCv1.0/NBIRTH/edgenode1
+topics spCv4.0/NBIRTH/EdgeNode1 and spCv4.0/NBIRTH/edgenode1
 * [tck-testable tck-id-case-sensitivity-metric-names]#[yellow-background]*[tck-id-case-sensitivity-metric-names] An
 Edge Node SHOULD NOT publish metric names that when converted to all lower case match.*#
 ** For example a DBIRTH should not contain a metric 'a' and another metric 'A'.
@@ -157,13 +157,13 @@ receive NCMD messages with the following rules.
 
 * [tck-testable tck-id-message-flow-edge-node-rebirth-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-rebirth-subscribe] The
 MQTT client associated with the Edge Node MUST subscribe to a topic of the form
-'[topic_prefix/]spCv1.0/REBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+'[topic_prefix/]spCv4.0/REBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
 Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node. It MUST subscribe on
 this topic with a QoS of 0.*#
 ** This subscription is mandatory as Edge Nodes MUST be able to respond to 'rebirth requests'.
 * [tck-testable tck-id-message-flow-edge-node-ncmd-subscribe]#[yellow-background]*[tck-id-message-flow-edge-node-ncmd-subscribe] The
 MQTT client associated with the Edge Node SHOULD subscribe to a topic of the form
-'[topic_prefix/]spCv1.0/NCMD/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+'[topic_prefix/]spCv4.0/NCMD/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
 Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node. If it subscribes, it
 MUST do so with a QoS of 0.*#
 
@@ -175,7 +175,7 @@ DBIRTH messages.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message] When
 a Sparkplug Edge Node sends its MQTT CONNECT packet, it MUST include a Will Message.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-topic] The
-Edge Node's MQTT Will Message's topic MUST be of the form '[topic_prefix/]spCv1.0/NDEATH/edge_node_id'
+Edge Node's MQTT Will Message's topic MUST be of the form '[topic_prefix/]spCv4.0/NDEATH/edge_node_id'
 where the optional topic_prefix is the Sparkplug Topic Prefix and the edge_node_id is the Sparkplug
 Edge Node ID for this Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-will-message-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-will-message-payload] The
@@ -223,7 +223,7 @@ STATE message timestamp value has been received by this Edge Node it MUST consid
 STATE message to be the latest/valid.*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-topic] The
 Edge Node's NBIRTH MQTT topic MUST be of the form
-'[topic_prefix/]spCv1.0/NBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
+'[topic_prefix/]spCv4.0/NBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
 Prefix and the edge_node_id is the Sparkplug Edge Node ID for this Edge Node*#
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-payload]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-payload] The
 Edge Node's NBIRTH payload MUST be a Sparkplug Google Protobuf encoded payload.*#
@@ -491,7 +491,7 @@ rules.
 
 * [tck-testable tck-id-message-flow-device-dcmd-subscribe]#[yellow-background]*[tck-id-message-flow-device-dcmd-subscribe] If
 the Device supports Device Command (DCMD) messages, the MQTT client associated with the Device MUST
-subscribe to a topic of the form '[topic_prefix/]spCv1.0/DCMD/edge_node_id/device_tokens' where the
+subscribe to a topic of the form '[topic_prefix/]spCv4.0/DCMD/edge_node_id/device_tokens' where the
 optional topic_prefix is the Sparkplug Topic Prefix, the edge_node_id is the Sparkplug Edge Node ID,
 and the device_tokens identify the Sparkplug Device (and MUST match the device_tokens used by that
 Device's DDATA messages). Any such subscription MUST use a QoS of 0.*#
@@ -504,7 +504,7 @@ NBIRTH message MUST have been sent within the current MQTT session prior to a DB
 published.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-topic] The
 Device's DBIRTH MQTT topic MUST be of the form
-'[topic_prefix/]spCv1.0/DBIRTH/edge_node_id/device_tokens' where the optional topic_prefix is the
+'[topic_prefix/]spCv4.0/DBIRTH/edge_node_id/device_tokens' where the optional topic_prefix is the
 Sparkplug Topic Prefix, the edge_node_id is the Sparkplug Edge Node ID, and the device_tokens
 identify the Sparkplug Device.*#
 * [tck-testable tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic]#[yellow-background]*[tck-id-message-flow-device-birth-publish-dbirth-match-edge-node-topic] The
@@ -620,8 +620,25 @@ Primary Host Application is online before publishing data.
 === Sparkplug Host Application Message Ordering
 
 Sparkplug Host Applications are required to validate the order of messages arriving from Edge Nodes.
-This is done using the sequence number which is sent in every NBIRTH, DBIRTH, NDATA, and DDATA
-message that comes from an Edge Node. Because these MQTT messages are sent on different topics, it
+Two sequence numbers are available for this purpose, and both are carried in every message an Edge
+Node publishes, namely the NMETA, NMMETA, NBIRTH, NREBIRTH, NDATA, NRESP, DMETA, DMMETA, DBIRTH,
+DREBIRTH, DDATA, DRESP, and DDEATH messages, together with an NDEATH that the Edge Node publishes
+directly. The one exception is an NDEATH delivered by the MQTT Server as the Edge Node's registered
+Will Message, which carries neither sequence number. Messages published by Host Applications rather
+than by Edge Nodes, namely NCMD, DCMD, REBIRTH, and STATE, carry neither.
+
+The Edge-Node-wide sequence number (seq) increments across all of those messages, spanning the Edge
+Node and every one of its Sparkplug Devices, and can therefore only be validated as a contiguous
+stream by a Host Application that subscribes to all of them. The descriptor sequence number
+(descriptor_seq) increments independently within each Sparkplug Descriptor, and can therefore be
+validated by any Host Application that subscribes to all of the messages of the Descriptors it
+consumes. A Host Application that subscribes to only a subset of an Edge Node's messages MUST use
+descriptor_seq as described in the
+link:#operational_behavior_host_application_partial_subscriptions[Host Applications with Partial
+Subscriptions] section. Throughout the remainder of this section, 'sequence number' refers to
+whichever of the two sequence numbers the Host Application is tracking.
+
+Because these MQTT messages are sent on different topics, it
 is possible based on MQTT Server implementations that these messages may arrive at the Sparkplug
 Host Application in a different order than they were sent from the Edge Node. This can be especially
 common when using clustered MQTT Servers. It is the responsibility of the Sparkplug Host Application
@@ -661,6 +678,273 @@ MUST send an REBIRTH request to the Edge Node*#
 the missing message(s) that triggered the start of the Reorder Timeout timer arrive before the
 reordering timer elapses, the timer MUST be terminated and normal operation in the Host Application
 MUST continue until another out of order message arrives.*#
+
+[[operational_behavior_host_application_partial_subscriptions]]
+=== Host Applications with Partial Subscriptions
+
+The Sparkplug Host Applications described to this point consume an entire Sparkplug namespace. That
+is not the only useful shape for a Host Application. It is common for a Host Application to be
+interested in a single Sparkplug Device, or in a handful of Sparkplug Devices, out of a much larger
+infrastructure. Examples include a dashboard for a single machine, an analytics service scoped to a
+single production line, and a connector that forwards one asset to an external system. Such a Host
+Application narrows its MQTT subscriptions so that the MQTT Server delivers only the messages it
+cares about, rather than delivering the full namespace for the Host Application to filter.
+
+A Host Application with partial subscriptions is still a Sparkplug Host Application, and every
+requirement defined for Host Applications elsewhere in this specification continues to apply to it.
+Narrowing applies only to the Sparkplug message topics that a Host Application consumes from Edge
+Nodes. It never applies to the Host Application's own STATE topic, which MUST always be subscribed
+as described in the link:#topics_birth_message_state[Birth Certificate Topic (STATE)] section.
+
+[[operational_behavior_host_partial_subscriptions_selecting]]
+==== Selecting the Subscriptions
+
+Because the message_type element immediately follows the namespace element, a single '+' wildcard in
+the message_type position selects all message types for a given Edge Node or Device. For a Host
+Application interested only in 'Device1' beneath 'EdgeNode1', two subscriptions are sufficient:
+
+  [topic_prefix/]spCv4.0/+/EdgeNode1              <- all Edge Node scoped messages for EdgeNode1
+  [topic_prefix/]spCv4.0/+/EdgeNode1/Device1/#    <- all messages for Device1 and anything beneath it
+
+A Host Application that does not want the Edge Node's own data messages can subscribe to the
+specific Edge Node scoped message types it requires instead of using the '+' wildcard, for example
+'[topic_prefix/]spCv4.0/NBIRTH/EdgeNode1', '[topic_prefix/]spCv4.0/NREBIRTH/EdgeNode1', and
+'[topic_prefix/]spCv4.0/NDEATH/EdgeNode1'.
+
+Whatever form the subscriptions take, a Host Application cannot correctly interpret a Device's data
+unless it also receives the messages that define and terminate that Device's Sparkplug session.
+
+* [tck-testable tck-id-operational-behavior-host-partial-device-subscribe]#[yellow-background]*[tck-id-operational-behavior-host-partial-device-subscribe] A
+Host Application that consumes DDATA messages for a Sparkplug Device MUST also subscribe to the
+DBIRTH, DREBIRTH, DMETA, DMMETA, DRESP, and DDEATH topics for that same Device.*#
+** Non-normative comment: the DBIRTH establishes the metric values, aliases, and definition
+identifier that subsequent DDATA messages are interpreted against, and the DMETA carries the metric
+structure that the definition identifier refers to. Without them, the DDATA messages cannot be
+resolved to metrics.
+** Non-normative comment: DRESP is included in this list because every message an Edge Node publishes
+on behalf of a Device occupies a position in that Device's descriptor sequence stream, including a
+DRESP that responds to a command issued by some other Host Application. A Host Application that does
+not subscribe to DRESP will observe gaps in the Device's descriptor_seq stream that are not lost
+messages. The single '+' wildcard subscription shown above covers this automatically.
+
+A Host Application also cannot interpret a Device's data without knowing the state of the Edge Node
+that reports it. A Sparkplug Device does not have a Sparkplug session of its own. It exists only
+within the Sparkplug session of its Edge Node, and that session is delimited by the Edge Node's
+NBIRTH and NDEATH. Narrowing subscriptions down to a Device therefore never means narrowing away the
+Edge Node state messages that encapsulate it.
+
+* [tck-testable tck-id-operational-behavior-host-partial-node-state-subscribe]#[yellow-background]*[tck-id-operational-behavior-host-partial-node-state-subscribe] A
+Host Application that consumes messages for a Sparkplug Device MUST subscribe to the NBIRTH, NREBIRTH,
+and NDEATH topics of the Edge Node that reports that Device.*#
+** These three message types carry the state of the Edge Node, and the state of an Edge Node
+encapsulates the state of every Sparkplug Device beneath it. A Host Application cannot determine
+whether the Device data it holds is current without them.
+** Non-normative comment: NREBIRTH is required alongside NBIRTH because an NBIRTH is not retained by
+the MQTT Server. A Host Application that starts up while the Edge Node is already in an established
+Sparkplug session has missed that session's NBIRTH and will never receive it. The NREBIRTH it
+receives in response to its Rebirth Request is the Edge Node state message that takes its place.
+* [tck-testable tck-id-operational-behavior-host-partial-nbirth-supersedes]#[yellow-background]*[tck-id-operational-behavior-host-partial-nbirth-supersedes] On
+receipt of an NBIRTH from an Edge Node, a Host Application MUST treat any Device state it holds for
+Devices beneath that Edge Node as superseded, and MUST NOT treat that state as current until it
+receives a DBIRTH for the Device in question.*#
+** Non-normative comment: an NBIRTH marks the start of a new Sparkplug session for the Edge Node and
+therefore for all of the Devices beneath it. A Host Application that observes the NBIRTH knows to
+expect a DBIRTH for each Device of interest. An NREBIRTH does not supersede Device state in this way,
+because it does not start a new Sparkplug session.
+* [tck-testable tck-id-operational-behavior-host-partial-nmeta-subscribe]#[yellow-background]*[tck-id-operational-behavior-host-partial-nmeta-subscribe] A
+Host Application that consumes messages for a Sparkplug Device MAY subscribe to the NMETA topic of
+the Edge Node that reports that Device in order to receive the Template definitions that the Device's
+metrics reference.*#
+** Template definitions are scoped to the Edge Node and are carried in the Edge Node's NMETA, not in
+each Device's DMETA. A Template Instance belonging to a Device references its Template definition by
+name through the template_ref field, and that definition is only available from the Edge Node's
+NMETA.
+** Non-normative comment: this is a MAY rather than a MUST because a Device's metrics need not include
+any Template Instances at all. A Host Application whose Device of interest reports no Template
+Instances has no Template definitions to resolve and gains nothing from the NMETA. A Host Application
+that does receive a Template Instance it cannot resolve, because it holds no Template definition
+matching the instance's template_ref, needs the Edge Node's NMETA in order to interpret that metric.
+** Non-normative comment: because a full NMETA is published with the MQTT retain flag set to true, a
+Host Application that subscribes to the NMETA topic receives the current metric structure immediately
+on subscribing, even while the Edge Node is offline. It also receives every subsequent full NMETA
+republish, so the Template definitions it holds stay current as the Edge Node's metric structure
+changes without the Host Application needing to subscribe to NMMETA.
+
+[[operational_behavior_host_partial_subscriptions_ndeath]]
+==== NDEATH and Partial Subscriptions
+
+NDEATH requires particular attention from a Host Application with partial subscriptions. When an Edge
+Node's MQTT session terminates, whether
+intentionally or through loss of connectivity, the message that conveys this to Host Applications is
+the Edge Node's NDEATH. An Edge Node is not required to publish a DDEATH for each of its Devices
+before its session ends, and when the session is lost rather than terminated intentionally it has no
+opportunity to do so. The Devices beneath that Edge Node go offline by implication of the NDEATH, as
+described in the
+link:#operational_behavior_edge_node_session_termination[Edge Node Session Termination] section.
+
+A Host Application that subscribed only to a Device's own topics would therefore receive nothing at
+all when the Edge Node reporting that Device goes offline. The Device's DDATA messages would simply
+stop arriving, and the Host Application would continue to present the last values it received as
+though they were current, indefinitely. This is why the Edge Node state messages are a required
+subscription for every Host Application that consumes a Device, no matter how narrow its interest in
+the rest of the Edge Node.
+
+* [tck-testable tck-id-operational-behavior-host-partial-ndeath-action]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-action] On
+receipt of an NDEATH that it has correlated to the Sparkplug session it currently holds for an Edge
+Node, a Host Application with partial subscriptions MUST mark the Devices of interest beneath that Edge
+Node as offline and MUST mark their metrics as STALE, using the current Host Application's system UTC
+time, exactly as required in the
+link:#operational_behavior_edge_node_session_termination[Edge Node Session Termination] section. It
+MUST do so whether or not it subscribes to any other message from that Edge Node.*#
+** Correlation is by bd_seq number, as required below. A Host Application's narrow subscriptions never
+exempt it from acting on a correlated NDEATH.
+* [tck-testable tck-id-operational-behavior-host-partial-ndeath-will]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-will] A
+Host Application with partial subscriptions MUST accept an NDEATH that carries no seq and no
+descriptor_seq, and MUST NOT treat the absence of those fields as a malformed payload or as a gap in
+any sequence stream.*#
+** Non-normative comment: an NDEATH delivered by the MQTT Server as the Edge Node's registered Will
+Message carries neither sequence number, whereas an NDEATH published directly by the Edge Node
+carries both. In either form, the NDEATH means that the Edge Node session identified by the bd_seq
+number in its payload has ended. It does not by itself mean the Edge Node is offline now, since a
+subsequent session may already have been established.
+* [tck-testable tck-id-operational-behavior-host-partial-ndeath-bdseq-correlate]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-bdseq-correlate] A
+Host Application with partial subscriptions MUST correlate an incoming NDEATH to the Sparkplug session
+it holds for that Edge Node by matching the NDEATH's bd_seq number against the bd_seq number carried in
+the NMETA, NBIRTH, and NREBIRTH messages it received for that session. It MUST NOT rely on the
+NDEATH's timestamp, which is typically set at MQTT CONNECT time and does not indicate when the Edge
+Node went offline.*#
+** All three of the NMETA, NBIRTH, and NREBIRTH carry the bd_seq number of the MQTT session they were
+published in, so any of them establishes the bd_seq number that the terminating NDEATH will carry. A
+Host Application that holds only some of them still holds the session's bd_seq number.
+* [tck-testable tck-id-operational-behavior-host-partial-ndeath-bdseq-mismatch]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-bdseq-mismatch] A
+Host Application with partial subscriptions MUST NOT mark its Devices of interest offline on an NDEATH
+whose bd_seq number does not match the bd_seq number of the Sparkplug session it currently holds for
+that Edge Node.*#
+** Non-normative comment: an NDEATH belonging to an earlier session can be delivered after a new
+session has already been established, particularly when a Will Message is released late. Applying it
+would mark a live Device offline.
+* [tck-testable tck-id-operational-behavior-host-partial-nmeta-bdseq-not-online]#[yellow-background]*[tck-id-operational-behavior-host-partial-nmeta-bdseq-not-online] A
+Host Application MUST NOT infer from the bd_seq number of a retained NMETA that the Edge Node is
+online or that the session identified by that bd_seq number is current.*#
+** Non-normative comment: this is specific to the optional NMETA subscription. Because a full NMETA is
+retained, the MQTT Server delivers it on subscribe even when the Edge Node is offline, and the bd_seq
+number it carries is that of the session in which it was published, which may already have ended. The
+NMETA establishes metric structure and the bd_seq number to correlate against; it does not establish
+liveness. Only an NBIRTH or NREBIRTH, or Device messages arriving on that session, do that.
+* [tck-testable tck-id-operational-behavior-host-partial-ndeath-duplicate]#[yellow-background]*[tck-id-operational-behavior-host-partial-ndeath-duplicate] A
+Host Application with partial subscriptions MUST ignore an NDEATH whose bd_seq number duplicates the
+bd_seq number of an NDEATH it has already applied for that Edge Node.*#
+** Non-normative comment: an Edge Node that publishes an NDEATH and then disconnects without an MQTT
+DISCONNECT packet will cause a second, duplicate NDEATH to be delivered as the Will Message.
+
+Non-normative comment: a Host Application with partial subscriptions is also the case in which the
+distinction between DDEATH and NDEATH matters most. A DDEATH means that one Device has stopped
+reporting while its Edge Node remains online and its Sparkplug session remains established, so the
+Host Application marks that one Device's metrics STALE and continues to expect messages on the same
+descriptor sequence stream when the Device returns. An NDEATH means the Edge Node's Sparkplug
+session has ended, so every descriptor sequence stream beneath that Edge Node has ended with it, and
+the Host Application must wait for a new BIRTH sequence before it can interpret anything further.
+
+[[operational_behavior_host_partial_subscriptions_descriptor_seq]]
+==== Sequence Numbers and Partial Subscriptions
+
+The Edge-Node-wide sequence number (seq) increments across every message the Edge Node publishes, on
+behalf of itself and on behalf of all of its Devices. A Host Application that subscribes to only a
+subset of an Edge Node's messages will therefore see a seq stream with gaps in it as a matter of
+normal operation. Those gaps are not lost messages. They are the messages the Host Application chose
+not to subscribe to.
+
+The descriptor sequence number (descriptor_seq) exists for exactly this case. It is scoped to a
+single Sparkplug Descriptor, so the Edge Node has one descriptor sequence stream of its own and each
+Sparkplug Device has an independent stream of its own. A Host Application that subscribes to all of
+the messages of a given Descriptor observes that Descriptor's descriptor_seq stream in full, with no
+legitimate gaps, no matter how much of the rest of the Edge Node it ignores.
+
+The messages that advance each descriptor sequence stream are the following.
+
+* The Edge Node Descriptor's stream is advanced by the Edge Node's NMETA, NMMETA, NBIRTH, NREBIRTH,
+NDATA, and NRESP messages, and by an NDEATH that the Edge Node publishes directly.
+* Each Device Descriptor's stream is advanced by that Device's DMETA, DMMETA, DBIRTH, DREBIRTH, DDATA,
+DRESP, and DDEATH messages.
+* An NDEATH delivered by the MQTT Server as the Edge Node's registered Will Message advances no
+stream, because it carries no descriptor_seq. It ends the Edge Node's session and with it every
+descriptor sequence stream beneath that Edge Node.
+
+The following requirements apply to a Host Application that does not subscribe to every message topic
+of an Edge Node.
+
+* [tck-testable tck-id-operational-behavior-host-partial-seq-not-used]#[yellow-background]*[tck-id-operational-behavior-host-partial-seq-not-used] A
+Host Application that does not subscribe to every message topic of an Edge Node MUST NOT treat a gap
+in that Edge Node's seq values as a lost or out of order message, and MUST NOT issue a REBIRTH
+request on the basis of such a gap.*#
+* [tck-testable tck-id-operational-behavior-host-partial-descriptor-seq-used]#[yellow-background]*[tck-id-operational-behavior-host-partial-descriptor-seq-used] A
+Host Application that does not subscribe to every message topic of an Edge Node MUST use the
+descriptor_seq value to detect lost or out of order messages, applied independently to each
+Sparkplug Descriptor it consumes.*#
+** For the purposes of this requirement, a Host Application 'consumes' a Sparkplug Descriptor when it
+subscribes to all of the message types that Edge Node publishes for that Descriptor. A Host
+Application that subscribes to only some of a Descriptor's message types MUST NOT validate that
+Descriptor's descriptor_seq stream for gaps.
+** Non-normative comment: a Host Application that is interested in a Device, and that subscribes to
+the Edge Node's NBIRTH, NREBIRTH, and NDEATH as required above but not to every other message type the
+Edge Node publishes, is not consuming the Edge Node Descriptor. It tracks the Device Descriptor's
+descriptor_seq stream and does not track the Edge Node Descriptor's stream, because one or more of the
+NDATA, NMETA, NMMETA, and NRESP messages that also advance the Edge Node Descriptor's stream are not
+being delivered to it. Adding the optional NMETA subscription described above does not change this.
+* [tck-testable tck-id-operational-behavior-host-partial-descriptor-seq-reorder]#[yellow-background]*[tck-id-operational-behavior-host-partial-descriptor-seq-reorder] The
+Reorder Timeout behavior defined in the
+link:#operational_behavior_host_application_message_ordering[Sparkplug Host Application Message
+Ordering] section MUST be applied per Sparkplug Descriptor when a Host Application is tracking
+descriptor_seq, and a Reorder Timeout on one Descriptor's stream MUST NOT be interpreted as a gap on
+any other Descriptor's stream.*#
+
+A Host Application also has to establish where in a descriptor sequence stream it is starting from.
+A BIRTH begins a stream and carries a descriptor_seq of 0. A REBIRTH does not begin a stream; it
+slip-streams the Host Application into a stream that is already running and carries the next
+incrementing value, which is only 0 in the case of a UINT64 rollover.
+
+* [tck-testable tck-id-operational-behavior-host-partial-descriptor-seq-anchor]#[yellow-background]*[tck-id-operational-behavior-host-partial-descriptor-seq-anchor] A
+Host Application MUST anchor its expected descriptor_seq for a Sparkplug Descriptor on the
+descriptor_seq of the NBIRTH, DBIRTH, NREBIRTH, or DREBIRTH through which it joined that Descriptor's
+stream, and MUST NOT require that value to be 0.*#
+** Non-normative comment: a Host Application that starts up while an Edge Node is already in an
+established Sparkplug session will first observe DDATA messages whose descriptor_seq is an arbitrary
+value. It issues a REBIRTH request, and the resulting DREBIRTH both supplies the current metric
+values and identifies the current position in the stream.
+
+Non-normative comment: descriptor_seq does not remove the need for the Edge-Node-wide seq. A Host
+Application that does subscribe to everything an Edge Node publishes can continue to use seq to
+validate the ordering of the Edge Node's messages relative to one another across all of its
+Descriptors, which descriptor_seq alone cannot express.
+
+[[operational_behavior_host_partial_subscriptions_rebirth]]
+==== Rebirth Requests from Host Applications with Partial Subscriptions
+
+A Rebirth Request is scoped to an Edge Node, not to a Sparkplug Descriptor. An Edge Node that
+receives one republishes its complete BIRTH sequence, including a DREBIRTH for every Device it
+reports, regardless of how few of those Devices the requesting Host Application subscribes to. The
+requesting Host Application will receive only the DREBIRTH messages it is subscribed to, but the
+Edge Node has published all of them and every other Host Application consuming that Edge Node will
+receive them.
+
+* [tck-testable tck-id-operational-behavior-host-partial-rebirth-scope]#[yellow-background]*[tck-id-operational-behavior-host-partial-rebirth-scope] A
+Host Application with partial subscriptions that requires a rebirth of a single Sparkplug Device
+MUST issue the Rebirth Request to the Edge Node that reports that Device, on a topic of the form
+'[topic_prefix/]spCv4.0/REBIRTH/edge_node_id', following the rules in the
+link:#operational_behavior_rebirth[Rebirth Requests] section. There is no Device scoped Rebirth
+Request.*#
+* [tck-testable tck-id-operational-behavior-host-partial-rebirth-rate]#[yellow-background]*[tck-id-operational-behavior-host-partial-rebirth-rate] A
+Host Application SHOULD limit the rate at which it issues Rebirth Requests to any single Edge
+Node.*#
+** Non-normative comment: because the cost of a Rebirth Request is borne by the whole Edge Node and
+by every consumer of it, a Host Application that is interested in one Device out of many should be
+correspondingly conservative about requesting rebirths.
+
+Non-normative comment: a Host Application with partial subscriptions is normally not the Primary
+Host Application for the Edge Nodes it consumes. Edge Nodes gate their entire BIRTH sequence on the
+Primary Host Application being online, so designating a Host Application that is interested in a
+single Device as the Primary Host Application would make the availability of all of that Edge Node's
+data, for all consumers, depend on a Host Application that consumes only part of it.
 
 [[operational_behavior_primary_application_state_in_multiple_mqtt_server_topologies]]
 === Primary Host Application STATE in Multiple MQTT Server Topologies
@@ -849,7 +1133,7 @@ sparkplug_host_id MUST be unique to all other Sparkplug Host IDs in the infrastr
 * [tck-testable tck-id-operational-behavior-host-application-connect-will]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will] When
 a Sparkplug Host Application sends its MQTT CONNECT packet, it MUST include a Will Message.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-topic] The
-MQTT Will Message's topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where host_id is the
+MQTT Will Message's topic MUST be of the form 'spCv4.0/STATE/sparkplug_host_id' where host_id is the
 unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-payload] The
 Death Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
@@ -868,7 +1152,7 @@ birth with the following rules.
 MQTT Client associated with the Sparkplug Host Application MUST send a birth message immediately
 after successfully connecting to the MQTT Server.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-topic] The
-Host Application's Birth topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where host_id
+Host Application's Birth topic MUST be of the form 'spCv4.0/STATE/sparkplug_host_id' where host_id
 is the unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-payload] The
 Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
@@ -897,7 +1181,7 @@ the Sparkplug Host Application ever disconnects intentionally, it MUST publish a
 the following characteristics.*#
 
 * [tck-testable tck-id-operational-behavior-host-application-death-topic]#[yellow-background]*[tck-id-operational-behavior-host-application-death-topic] The
-Sparkplug Host Application's Death topic MUST be of the form 'spCv1.0/STATE/sparkplug_host_id' where
+Sparkplug Host Application's Death topic MUST be of the form 'spCv4.0/STATE/sparkplug_host_id' where
 host_id is the unique identifier of the Sparkplug Host Application.*#
 * [tck-testable tck-id-operational-behavior-host-application-death-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-death-payload] The
 Death Certificate Payload registered as the MQTT Will Message in the MQTT CONNECT packet MUST be
