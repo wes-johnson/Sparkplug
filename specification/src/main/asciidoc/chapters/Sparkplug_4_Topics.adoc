@@ -52,7 +52,7 @@ the structure of the remaining namespace elements as well as the encoding used f
 payload data. The namespace element MAY be preceded by an optional topic_prefix of any number of
 levels (see the link:#topics_topic_prefix_element[topic_prefix Element]). When no topic_prefix is
 used the namespace element is at the root of the topic. Sparkplug defines two payload encodings,
-each with its own namespace constant: spCv1.0 for the Google Protocol Buffers encoding, and spJv1.0
+each with its own namespace constant: spCv4.0 for the Google Protocol Buffers encoding, and spJv4.0
 for a JSON encoding. Earlier payload definitions A (now deprecated) and B used the 'spAv1.0' and
 'spBv1.0' namespaces respectively.
 
@@ -64,11 +64,11 @@ the encoding of the associated payload.*#
 [tck-testable tck-id-topic-structure-namespace-a]#[yellow-background]*[tck-id-topic-structure-namespace-a] The
 UTF-8 string constant for the namespace element MUST be one of the two valid Sparkplug namespaces:*#
 
-  spCv1.0
-  spJv1.0
+  spCv4.0
+  spJv4.0
 
-Note that the topic namespace defined in the remainder of this document applies to both the spCv1.0
-and spJv1.0 namespaces, which differ only in payload encoding. For earlier 'Sparkplug A' and
+Note that the topic namespace defined in the remainder of this document applies to both the spCv4.0
+and spJv4.0 namespaces, which differ only in payload encoding. For earlier 'Sparkplug A' and
 'Sparkplug B' topic namespace definitions and concepts, see the earlier versions of the Sparkplug
 Specification.
 
@@ -181,9 +181,9 @@ applications finer-grained control over their subscriptions. For example, the fo
 topics all describe a metric whose fully-qualified name is
 'edge_node26/plc4/line3/machine1/counter/total_count' (topic_prefix empty, Edge Node 'edge_node26'):
 
-  spCv1.0/DBIRTH/edge_node26/plc4                + metric name: line3/machine1/counter/total_count
-  spCv1.0/DBIRTH/edge_node26/plc4/line3          + metric name: machine1/counter/total_count
-  spCv1.0/DBIRTH/edge_node26/plc4/line3/machine1 + metric name: counter/total_count
+  spCv4.0/DBIRTH/edge_node26/plc4                + metric name: line3/machine1/counter/total_count
+  spCv4.0/DBIRTH/edge_node26/plc4/line3          + metric name: machine1/counter/total_count
+  spCv4.0/DBIRTH/edge_node26/plc4/line3/machine1 + metric name: counter/total_count
 
 [tck-testable tck-id-topics-device-tokens-valid]#[yellow-background]*[tck-id-topics-device-tokens-valid] When
 present, the device_tokens consist of one or more MQTT topic levels separated by the / (forward
@@ -475,11 +475,13 @@ link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] sectio
 [[payloads_desc_nrebirth]]
 ====== Payload (NREBIRTH)
 
-The Sparkplug Edge Node Rebirth Certificate payload contains everything required to build out a data
-structure for all metrics for this Edge Node. NREBIRTH messages are similar to NBIRTH messages but
-are a response to a specific Host Application getting 'caught up' with an Edge Node's data stream.
-The NREBIRTH message still includes all current values for all Metrics under its scope. But, it also
-has a sequence number value that will fall in line with the existing Edge Nodes data stream.
+The Sparkplug Edge Node Rebirth Certificate payload reports the current _values_ of the Edge Node's
+metrics. Like the NBIRTH, it is a value-carrying message: the metric structure itself (metadata) is
+described in the Edge Node's NMETA message, and the NREBIRTH references that structure by its
+definition identifier and identifies each metric by its alias or name. An NREBIRTH differs from an
+NBIRTH in that it is a response to a specific Host Application getting 'caught up' with an Edge Node's
+data stream rather than the start of a new Sparkplug session, so it carries a sequence number that
+falls in line with the Edge Node's existing data stream and it does not change the bd_seq number.
 
 The NREBIRTH message requires the following payload components.
 
@@ -493,15 +495,31 @@ NREBIRTH MUST include the overall payload timestamp denoting the date and time t
 from the Edge Node.*#
 * [tck-testable tck-id-topics-nrebirth-timestamp-2]#[yellow-background]*[tck-id-topics-nrebirth-timestamp-2] Each
 individual Metric in the payload MAY include its own timestamp. If it does not, it is assumed the
-'metric value change time' is that over the overall payload timestamp included in the NREBIRTH
-paylaod.*#
+'metric value change time' is that of the overall payload timestamp included in the NREBIRTH
+payload.*#
+* [tck-testable tck-id-topics-nrebirth-defid]#[yellow-background]*[tck-id-topics-nrebirth-defid] The
+NREBIRTH MUST include a definition identifier equal to the content hash of the NMETA that describes
+this Edge Node.*#
 * [tck-testable tck-id-topics-nrebirth-metric-reqs]#[yellow-background]*[tck-id-topics-nrebirth-metric-reqs] The
-NREBIRTH MUST include every metric the Edge Node will ever report on.*#
-* [tck-testable tck-id-topics-nrebirth-metrics]#[yellow-background]*[tck-id-topics-nrebirth-metrics] At
-a minimum each metric MUST include the metric name, datatype, and current value.*#
-* [tck-testable tck-id-topics-nrebirth-templates]#[yellow-background]*[tck-id-topics-nrebirth-templates] If
-Template instances will be published by this Edge Node or any devices, all Template definitions MUST
-be published in the NREBIRTH.*#
+NREBIRTH MUST report a value for every metric described in the referenced NMETA, with the exception of
+metrics flagged as transient.*#
+* [tck-testable tck-id-topics-nrebirth-metrics]#[yellow-background]*[tck-id-topics-nrebirth-metrics] Each
+metric in the NREBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced NMETA, or otherwise by its metric name.*#
+* [tck-testable tck-id-topics-nrebirth-metrics-defined]#[yellow-background]*[tck-id-topics-nrebirth-metrics-defined] Every
+metric reported in an NREBIRTH MUST be described by the NMETA referenced by the shared definition
+identifier.*#
+* [tck-testable tck-id-topics-nrebirth-no-metadata]#[yellow-background]*[tck-id-topics-nrebirth-no-metadata] The
+NREBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
+in the NMETA and NMMETA.*#
+* [tck-testable tck-id-topics-nrebirth-templates-in-nmeta]#[yellow-background]*[tck-id-topics-nrebirth-templates-in-nmeta] An
+NREBIRTH MUST NOT include Template definitions. The Template definitions that apply to this Edge Node
+and to its Sparkplug Devices are carried in the Edge Node's NMETA, as required in the
+link:#payloads_desc_nmeta[Payload (NMETA)] section.*#
+** Non-normative comment: an NREBIRTH is a value-carrying message. Requiring it to restate the
+Template definitions would defeat the Reconnect Optimization for every Edge Node that uses Templates,
+since the retained NMETA already makes those definitions available to any subscriber, including a Host
+Application that has just issued a Rebirth Request.
 * [tck-testable tck-id-topics-nrebirth-bdseq-included]#[yellow-background]*[tck-id-topics-nrebirth-bdseq-included] A
 bd_seq number MUST be included in the payload.*#
 * [tck-testable tck-id-topics-nrebirth-bdseq-matching]#[yellow-background]*[tck-id-topics-nrebirth-bdseq-matching] This
@@ -608,7 +626,10 @@ link:#topics_sparkplug_topic_namespace_elements[Topic Namespace Elements] sectio
 
 * [tck-testable tck-id-topics-ndeath-payload]#[yellow-background]*[tck-id-topics-ndeath-payload] The
 NDEATH message contains a very simple payload that MUST only include a bd_seq number, so that the
-NDEATH event can be associated with the NBIRTH.*#
+NDEATH event can be associated with the Sparkplug session it terminates.*#
+** The bd_seq number in the NDEATH matches the bd_seq number carried in the NMETA, NBIRTH, and any
+NREBIRTH published in that same MQTT session. A Host Application correlates the NDEATH against
+whichever of those messages it holds, as required in the link:#payloads_c_ndeath[NDEATH] section.
 Since this is typically published by the MQTT Server on behalf of the Edge Node, information about
 the current state of the Edge Node and its devices is not and cannot be known. As a result,
 [tck-testable tck-id-topics-ndeath-seq]#[yellow-background]*[tck-id-topics-ndeath-seq] The NDEATH
@@ -880,6 +901,14 @@ link:#topics_device_tokens_element[Expanded MQTT Topic Namespace] section.*#
 [[payloads_desc_drebirth]]
 ====== Payload (DREBIRTH)
 
+The DREBIRTH message reports the current _values_ of a Sparkplug Device's metrics. Like the DBIRTH, it
+is a value-carrying message: the metric structure itself (metadata) is described in the Device's DMETA
+message, and the DREBIRTH references that structure by its definition identifier and identifies each
+metric by its alias or name. A DREBIRTH differs from a DBIRTH in that it is a response to a specific
+Host Application getting 'caught up' with the Edge Node's data stream rather than the start of a new
+Sparkplug session, so it carries a sequence number that falls in line with the Edge Node's existing
+data stream.
+
 The DREBIRTH message requires the following payload components.
 
 * [tck-testable tck-id-topics-drebirth-mqtt]#[yellow-background]*[tck-id-topics-drebirth-mqtt] DREBIRTH
@@ -893,12 +922,23 @@ DREBIRTH MUST include the overall payload timestamp denoting the date and time t
 from the Edge Node.*#
 * [tck-testable tck-id-topics-drebirth-timestamp-2]#[yellow-background]*[tck-id-topics-drebirth-timestamp-2] Each
 individual Metric in the payload MAY include its own timestamp. If it does not, it is assumed the
-'metric value change time' is that over the overall payload timestamp included in the DREBIRTH
+'metric value change time' is that of the overall payload timestamp included in the DREBIRTH
 payload.*#
+* [tck-testable tck-id-topics-drebirth-defid]#[yellow-background]*[tck-id-topics-drebirth-defid] The
+DREBIRTH MUST include a definition identifier equal to the content hash of the DMETA that describes
+this Device.*#
 * [tck-testable tck-id-topics-drebirth-metric-reqs]#[yellow-background]*[tck-id-topics-drebirth-metric-reqs] The
-DREBIRTH MUST include every metric the Edge Node will ever report on.*#
-* [tck-testable tck-id-topics-drebirth-metrics]#[yellow-background]*[tck-id-topics-drebirth-metrics] At
-a minimum each metric MUST include the metric name, metric datatype, and current value.*#
+DREBIRTH MUST report a value for every metric described in the referenced DMETA, with the exception of
+metrics flagged as transient.*#
+* [tck-testable tck-id-topics-drebirth-metrics]#[yellow-background]*[tck-id-topics-drebirth-metrics] Each
+metric in the DREBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced DMETA, or otherwise by its metric name.*#
+* [tck-testable tck-id-topics-drebirth-metrics-defined]#[yellow-background]*[tck-id-topics-drebirth-metrics-defined] Every
+metric reported in a DREBIRTH MUST be described by the DMETA referenced by the shared definition
+identifier.*#
+* [tck-testable tck-id-topics-drebirth-no-metadata]#[yellow-background]*[tck-id-topics-drebirth-no-metadata] The
+DREBIRTH MUST NOT be used to convey metric datatype, properties, or metadata. These are conveyed only
+in the DMETA and DMMETA.*#
 
 The DREBIRTH message can also include optional ‘Device Control’ payload components. These are used
 by a Host Application to control aspects of a device. The following are examples of Device Control
@@ -1091,28 +1131,28 @@ MQTT retain flag for the Birth Certificate MUST be set to TRUE*#
 The topic used for the Host Birth Certificate is identical to the topic used for the Death
 Certificate.
 [tck-testable tck-id-host-topic-phid-birth-topic]#[yellow-background]*[tck-id-host-topic-phid-birth-topic] The
-Sparkplug Host Application Birth topic MUST be of the form spCv1.0/STATE/sparkplug_host_id where the
+Sparkplug Host Application Birth topic MUST be of the form spCv4.0/STATE/sparkplug_host_id where the
 sparkplug_host_id must be replaced with the specific Spakrplug Host ID of this Sparkplug Host
 Application.*#
 
 * [tck-testable tck-id-host-topic-phid-birth-sub-required]#[yellow-background]*[tck-id-host-topic-phid-birth-sub-required] The
-Sparkplug Host Application MUST subscribe to its own spCv1.0/STATE/sparkplug_host_id and the
-appropriate spCv1.0 topic(s) immediately after successfully connecting to the MQTT Server.*#
-** An 'appropriate' spCv1.0 topic could simply be 'spCv1.0/#' when no topic_prefix is in use.
+Sparkplug Host Application MUST subscribe to its own spCv4.0/STATE/sparkplug_host_id and the
+appropriate spCv4.0 topic(s) immediately after successfully connecting to the MQTT Server.*#
+** An 'appropriate' spCv4.0 topic could simply be 'spCv4.0/#' when no topic_prefix is in use.
 However, when Edge Nodes publish beneath a topic_prefix it makes sense for a Host Application to
-subscribe beneath that prefix, for example subscribing to 'my/prefix/spCv1.0/#'; the Host
+subscribe beneath that prefix, for example subscribing to 'my/prefix/spCv4.0/#'; the Host
 Application must know the topic_prefix a priori. A Host Application could even issue a subscription
-to only a single Sparkplug Edge Node using this: '[topic_prefix/]spCv1.0/+/EdgeNode1/#', where the +
+to only a single Sparkplug Edge Node using this: '[topic_prefix/]spCv4.0/+/EdgeNode1/#', where the +
 matches the message_type element that now immediately follows the namespace. A Sparkplug Host
 Application could subscribe to a combination of specific topic_prefixes and/or Edge Nodes as well.
-Note that the STATE topic is never prefixed and always remains at 'spCv1.0/STATE/sparkplug_host_id'.
+Note that the STATE topic is never prefixed and always remains at 'spCv4.0/STATE/sparkplug_host_id'.
 ** For dynamic discovery, a Host Application that does not know the topic_prefixes in use in advance
-can subscribe at each prefix depth in turn - 'spCv1.0/#' (no prefix), '+/spCv1.0/#' (a one-level
-prefix), '+/+/spCv1.0/#' (a two-level prefix), '+/+/+/spCv1.0/#' (a three-level prefix), and so on -
+can subscribe at each prefix depth in turn - 'spCv4.0/#' (no prefix), '+/spCv4.0/#' (a one-level
+prefix), '+/+/spCv4.0/#' (a two-level prefix), '+/+/+/spCv4.0/#' (a three-level prefix), and so on -
 to discover Sparkplug namespaces published beneath any topic_prefix.
 * [tck-testable tck-id-host-topic-phid-birth-required]#[yellow-background]*[tck-id-host-topic-phid-birth-required] The
 Sparkplug Host Application MUST publish a Sparkplug Host Application BIRTH message to the MQTT
-Server immediately after successfully subscribing its own spCv1.0/STATE/sparkplug_host_id topic.*#
+Server immediately after successfully subscribing its own spCv4.0/STATE/sparkplug_host_id topic.*#
 
 [[payloads_desc_state_birth]]
 ====== Birth Certificate Payload (STATE)
@@ -1144,7 +1184,7 @@ MQTT retain flag for the Birth Certificate MUST be set to TRUE*#
 ====== Death Certificate Topic (STATE)
 
 * [tck-testable tck-id-host-topic-phid-death-topic]#[yellow-background]*[tck-id-host-topic-phid-death-topic] The
-Sparkplug Host Application Death topic MUST be of the form spCv1.0/STATE/sparkplug_host_id where the
+Sparkplug Host Application Death topic MUST be of the form spCv4.0/STATE/sparkplug_host_id where the
 sparkplug_host_id must be replaced with the specific Sparkplug Host ID of this Sparkplug Host
 Application.*#
 * [tck-testable tck-id-host-topic-phid-death-required]#[yellow-background]*[tck-id-host-topic-phid-death-required] The

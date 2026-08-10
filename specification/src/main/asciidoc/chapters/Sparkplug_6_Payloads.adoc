@@ -803,8 +803,14 @@ referred to as 'User Defined Types' or UDTs. There are two types of Templates.
 
 * *Template Definition*
 ** This is the definition of a Sparkplug Template.
-*** [tck-testable tck-id-payloads-template-definition-nbirth-only]#[yellow-background]*[tck-id-payloads-template-definition-nbirth-only] Template
-Definitions MUST only be included in NBIRTH messages.*#
+*** [tck-testable tck-id-payloads-template-definition-nmeta-only]#[yellow-background]*[tck-id-payloads-template-definition-nmeta-only] Template
+Definitions MUST only be included in NMETA messages.*#
+**** A Template Definition is metric structure, not a metric value, so it belongs to the metadata
+carried in the NMETA rather than to the value-carrying NBIRTH, NREBIRTH, NDATA, DBIRTH, DREBIRTH, and
+DDATA messages.
+**** Non-normative comment: Template Definitions are scoped to the Edge Node and are therefore carried
+in the Edge Node's NMETA even when the only Template Instances that reference them belong to the Edge
+Node's Sparkplug Devices. A DMETA does not carry Template Definitions.
 *** [tck-testable tck-id-payloads-template-definition-is-definition]#[yellow-background]*[tck-id-payloads-template-definition-is-definition] A
 Template Definition MUST have is_definition set to true.*#
 *** [tck-testable tck-id-payloads-template-definition-ref]#[yellow-background]*[tck-id-payloads-template-definition-ref] A
@@ -812,11 +818,11 @@ Template Definition MUST omit the template_ref field.*#
 *** [tck-testable tck-id-payloads-template-definition-members]#[yellow-background]*[tck-id-payloads-template-definition-members] A
 Template Definition MUST include all member metrics that will ever be included in corresponding
 template instances.*#
-*** [tck-testable tck-id-payloads-template-definition-nbirth]#[yellow-background]*[tck-id-payloads-template-definition-nbirth] A
-Template Definition MUST be included in the NBIRTH for all Template Instances that are included in
-the NBIRTH and DBIRTH messages.*#
-**** A Template Instance can not reference a Template Definition that was not included in the
-NBIRTH.
+*** [tck-testable tck-id-payloads-template-definition-nmeta]#[yellow-background]*[tck-id-payloads-template-definition-nmeta] A
+Template Definition MUST be included in the Edge Node's NMETA for every Template Instance that is
+declared in that Edge Node's NMETA or in the DMETA of any of its Sparkplug Devices.*#
+**** A Template Instance can not reference a Template Definition that is not present in the Edge
+Node's NMETA.
 *** [tck-testable tck-id-payloads-template-definition-parameters]#[yellow-background]*[tck-id-payloads-template-definition-parameters] A
 Template Definition MUST include all parameters that will be included in the corresponding Template
 Instances.*#
@@ -895,7 +901,10 @@ MUST be an unsigned 32-bit integer representing the datatype.*#
 value MUST be one of the enumerated values as shown in the
 link:#payloads_c_datatype_basic[Sparkplug Basic Data Types].*#
 ** [tck-testable tck-id-payloads-template-parameter-type-req]#[yellow-background]*[tck-id-payloads-template-parameter-type-req] This
-MUST be included in Template Parameter Definitions in NBIRTH and DBIRTH messages.*#
+MUST be included in every Template Parameter Definition in an NMETA message.*#
+*** Non-normative comment: Template Parameter Definitions appear only inside Template Definitions, and
+Template Definitions appear only in the NMETA. A Template Instance in a value-carrying message supplies
+parameter values, not parameter definitions.
 * *value*
 ** The value of a template parameter utilizes the ‘oneof’ mechanism of Google Protocol Buffers.
 ** [tck-testable tck-id-payloads-template-parameter-value]#[yellow-background]*[tck-id-payloads-template-parameter-value] The
@@ -1379,8 +1388,11 @@ name.*#
 [[payloads_c_nbirth]]
 ==== NBIRTH
 
-The NBIRTH is responsible for informing host applications of all of the information about the Edge
-Node. This includes every metric it will publish data for in the future.
+The NBIRTH reports the current values of the Edge Node's metrics to Host Applications. It does not
+carry the metric structure itself, which is described in the Edge Node's NMETA and referenced by the
+NBIRTH through a definition identifier. An NBIRTH together with the NMETA it references gives a Host
+Application everything it needs to build out the Edge Node's data structure and populate it with
+current values.
 
 There is a dependency on the MQTT CONNECT packet with regard to NBIRTH messages that are
 subsequently sent for that given MQTT Session. These are can be found in the 
@@ -1425,7 +1437,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NBIRTH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NBIRTH/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NBIRTH/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1491,8 +1503,9 @@ plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-1.puml[format=s
 [[payloads_c_nrebirth]]
 ==== NREBIRTH
 
-The NREBIRTH is responsible for informing a specific host application of all of the information
-about the Edge Node. This includes every metric it will publish data for in the future.
+The NREBIRTH reports the current values of the Edge Node's metrics to a specific Host Application that
+has requested a rebirth. Like the NBIRTH, it does not carry the metric structure itself, which is
+described in the Edge Node's NMETA and referenced by the NREBIRTH through a definition identifier.
 
 There is a dependency on the MQTT CONNECT packet with regard to NREBIRTH messages that are
 subsequently sent for that given MQTT Session. These are can be found in the 
@@ -1504,6 +1517,13 @@ published.*#
 * [tck-testable tck-id-payloads-nrebirth-edge-node-descriptor]#[yellow-background]*[tck-id-payloads-nrebirth-edge-node-descriptor] Every
 Edge Node Descriptor in any Sparkplug infrastructure MUST be unique in the system.*#
 ** These are used like addresses and need to be unique as a result.
+* [tck-testable tck-id-payloads-nrebirth-defid]#[yellow-background]*[tck-id-payloads-nrebirth-defid] Every
+NREBIRTH message MUST include a definition_id equal to the content hash of the NMETA that describes this
+Edge Node, and MUST report values only for metrics defined in that NMETA.*#
+* [tck-testable tck-id-payloads-nrebirth-metrics]#[yellow-background]*[tck-id-payloads-nrebirth-metrics] Each
+metric in the NREBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced NMETA, or otherwise by its metric name. The NREBIRTH MUST
+NOT be used to convey metric datatype, properties, or metadata.*#
 * [tck-testable tck-id-payloads-nrebirth-seq-1]#[yellow-background]*[tck-id-payloads-nrebirth-seq-1] Every
 NREBIRTH message MUST include a sequence number and it MUST have a value between 0 and
 18446744073709551615 (inclusive).*#
@@ -1536,7 +1556,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple NREBIRTH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NREBIRTH/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NREBIRTH/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1602,8 +1622,11 @@ plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-1.puml[format=s
 [[payloads_c_dbirth]]
 ==== DBIRTH
 
-The DBIRTH is responsible for informing the Host Application of all of the information about the
-device. This includes every metric it will publish data for in the future.
+The DBIRTH reports the current values of a Sparkplug Device's metrics to Host Applications. It does not
+carry the metric structure itself, which is described in the Device's DMETA and referenced by the
+DBIRTH through a definition identifier. A DBIRTH together with the DMETA it references gives a Host
+Application everything it needs to build out the Device's data structure and populate it with current
+values.
 
 * [tck-testable tck-id-payloads-dbirth-timestamp]#[yellow-background]*[tck-id-payloads-dbirth-timestamp] DBIRTH
 messages MUST include an overall payload timestamp that denotes the time at which the message was
@@ -1633,7 +1656,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DBIRTH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/DBIRTH/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DBIRTH/EdgeNode1/Filler
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1698,12 +1721,20 @@ plantuml::{assetsdir}assets/plantuml/sparkplugb-metric-structure-2.puml[format=s
 [[payloads_c_drebirth]]
 ==== DREBIRTH
 
-The DREBIRTH is responsible for informing a Host Application that is requesting a rebirth of all of
-the information about the device. This includes every metric it will publish data for in the future.
+The DREBIRTH reports the current values of a Sparkplug Device's metrics to a specific Host Application
+that has requested a rebirth. Like the DBIRTH, it does not carry the metric structure itself, which is
+described in the Device's DMETA and referenced by the DREBIRTH through a definition identifier.
 
 * [tck-testable tck-id-payloads-drebirth-timestamp]#[yellow-background]*[tck-id-payloads-drebirth-timestamp] DREBIRTH
 messages MUST include an overall payload timestamp that denotes the time at which the message was
 published.*#
+* [tck-testable tck-id-payloads-drebirth-defid]#[yellow-background]*[tck-id-payloads-drebirth-defid] Every
+DREBIRTH message MUST include a definition_id equal to the content hash of the DMETA that describes this
+Device, and MUST report values only for metrics defined in that DMETA.*#
+* [tck-testable tck-id-payloads-drebirth-metrics]#[yellow-background]*[tck-id-payloads-drebirth-metrics] Each
+metric in the DREBIRTH MUST include its current value and MUST be identified either by its alias, if an
+alias was assigned to it in the referenced DMETA, or otherwise by its metric name. The DREBIRTH MUST
+NOT be used to convey metric datatype, properties, or metadata.*#
 * [tck-testable tck-id-payloads-drebirth-seq]#[yellow-background]*[tck-id-payloads-drebirth-seq] Every
 DREBIRTH message MUST include a sequence number.*#
 * [tck-testable tck-id-payloads-drebirth-seq-inc]#[yellow-background]*[tck-id-payloads-drebirth-seq-inc] Every
@@ -1722,7 +1753,7 @@ messages MUST be published with the MQTT retain flag set to false.*#
 The following is a representation of a simple DREBIRTH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/DREBIRTH/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DREBIRTH/EdgeNode1/Filler
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1819,7 +1850,7 @@ describes this Edge Node, and MUST identify each metric by its alias or name.*#
 The following is a representation of a simple NDATA message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NDATA/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NDATA/EdgeNode1
 ----
 
 In the topic above the following information is known based on the Sparkplug topic definition:
@@ -1879,7 +1910,7 @@ describes this Device, and MUST identify each metric by its alias or name.*#
 
 The following is a representation of a simple DDATA message on the topic:
 
-Acme/Dublin/Packaging/spCv1.0/DDATA/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DDATA/EdgeNode1/Filler
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
 * The ‘Edge Node ID’ is: EdgeNode1
@@ -1929,7 +1960,7 @@ value representing the Host ID of the Sparkplug Host Application that sent the R
 The following is a representation of a REBIRTH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/REBIRTH/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/REBIRTH/EdgeNode1
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -1976,7 +2007,7 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple NCMD message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NCMD/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NCMD/EdgeNode1
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2062,7 +2093,7 @@ forwarding metric writes on behalf of another Host Application.*#
 The following is a representation of a simple DCMD message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/DCMD/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DCMD/EdgeNode1/Filler
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2121,7 +2152,7 @@ NRESP message MUST include a status for the command being responded to.*#
 The following is a representation of a simple NRESP message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NRESP/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NRESP/EdgeNode1
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2177,7 +2208,7 @@ DRESP message MUST include a status for the command being responded to.*#
 The following is a representation of a simple DRESP message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/DRESP/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DRESP/EdgeNode1/Filler
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2251,15 +2282,21 @@ with Will Message' reason code MUST be set in the DISCONNECT packet.*#
 Server.
 * An NDEATH message MAY include a timestamp.
 ** It should be noted that this timestamp is typically set at the time of the MQTT CONNECT message
-and as a result may not be useful to Host Applications. If the timestamp is set, Host Applications
-SHOULD NOT use it to determine corresponding NBIRTH messages. Instead, the bd_seq number used in the
-NBIRTH, NREBIRTH, and NDEATH messages MUST be used to determine that an NDEATH matches a prior
-NBIRTH.
+and as a result may not be useful to Host Applications.
+* [tck-testable tck-id-payloads-ndeath-bdseq-correlation]#[yellow-background]*[tck-id-payloads-ndeath-bdseq-correlation] A
+Host Application MUST use the bd_seq number to determine which Sparkplug session an NDEATH terminates,
+matching the bd_seq number in the NDEATH against the bd_seq number carried in the NMETA, NBIRTH, and
+NREBIRTH messages it holds for that Edge Node. A Host Application MUST NOT use an NDEATH's timestamp
+for this purpose.*#
+** Every message an Edge Node publishes that establishes session state - the NMETA, the NBIRTH, and
+any NREBIRTH - carries the bd_seq number of the MQTT session it was published in, and the NDEATH that
+terminates that session carries the same value. The bd_seq number is therefore the only reliable way
+to tell which session an NDEATH refers to.
 
 The following is a representation of a NDEATH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/NDEATH/EdgeNode1
+Acme/Dublin/Packaging/spCv4.0/NDEATH/EdgeNode1
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2299,7 +2336,7 @@ sequence number sent MUST have a value of 0.*#
 The following is a representation of a simple DDEATH message on the topic:
 
 ----
-Acme/Dublin/Packaging/spCv1.0/DDEATH/EdgeNode1/Filler
+Acme/Dublin/Packaging/spCv4.0/DDEATH/EdgeNode1/Filler
 ----
 
 * The ‘Topic Prefix’ is: Acme/Dublin/Packaging
@@ -2329,7 +2366,7 @@ whether or not the Sparkplug Host Application is online and operational or not.
 
 * [tck-testable tck-id-payloads-state-will-message]#[yellow-background]*[tck-id-payloads-state-will-message] Sparkplug
 Host Applications MUST register a Will Message in the MQTT CONNECT packet on the topic
-'spCv1.0/STATE/[sparkplug_host_id]'.*#
+'spCv4.0/STATE/[sparkplug_host_id]'.*#
 ** The [sparkplug_host_id] must be replaced with the Sparkplug Host Application's ID. This can be any
 UTF-8 string.
 * [tck-testable tck-id-payloads-state-will-message-qos]#[yellow-background]*[tck-id-payloads-state-will-message-qos] The
@@ -2342,15 +2379,15 @@ MUST be 'online' and it's value is a boolean 'false'. The other key MUST be 'tim
 value MUST be a numeric value representing the current UTC time in nanoseconds since Epoch.*#
 * [tck-testable tck-id-payloads-state-subscribe]#[yellow-background]*[tck-id-payloads-state-subscribe] After
 establishing an MQTT connection, the Sparkplug Host Application MUST subscribe on it's own
-'spCv1.0/STATE/[sparkplug_host_id]' topic.*#
+'spCv4.0/STATE/[sparkplug_host_id]' topic.*#
 ** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be
 any UTF-8 string.
 ** Non-normative comment: This allows the Sparkplug Host Application handle timing issues around
 STATE 'offline' messages being published on it's behalf by the MQTT Server when it is in fact
 online.
 * [tck-testable tck-id-payloads-state-birth]#[yellow-background]*[tck-id-payloads-state-birth] After
-subscribing on it's own spCv1.0/STATE/[sparkplug_host_id] topic, the Sparkplug Host Application MUST
-publish an MQTT message on the topic 'spCv1.0/STATE/[sparkplug_host_id]' with a QoS of 1, and the
+subscribing on it's own spCv4.0/STATE/[sparkplug_host_id] topic, the Sparkplug Host Application MUST
+publish an MQTT message on the topic 'spCv4.0/STATE/[sparkplug_host_id]' with a QoS of 1, and the
 retain flag set to true.*#
 ** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be
 any UTF-8 string.
@@ -2497,8 +2534,8 @@ receiving application SHOULD publish an acknowledgment for each received file me
 confirm receipt and, for a multi-part file publish, advance the transfer to the next part.*#
 * [tck-testable tck-id-payloads-file-ack-topic]#[yellow-background]*[tck-id-payloads-file-ack-topic] When
 a receiving application acknowledges a received file metric, the acknowledgment MUST be published as an
-NCMD message on topic '[topic_prefix/]spCv1.0/NCMD/edge_node_id' if the file metric was received in an NDATA
-message, or as a DCMD message on topic '[topic_prefix/]spCv1.0/DCMD/edge_node_id/device_tokens' if the file metric
+NCMD message on topic '[topic_prefix/]spCv4.0/NCMD/edge_node_id' if the file metric was received in an NDATA
+message, or as a DCMD message on topic '[topic_prefix/]spCv4.0/DCMD/edge_node_id/device_tokens' if the file metric
 was received in a DDATA message, scoped to the same Sparkplug Edge Node or Device that published the
 file.*#
 * [tck-testable tck-id-payloads-file-ack-seq-metric]#[yellow-background]*[tck-id-payloads-file-ack-seq-metric] The

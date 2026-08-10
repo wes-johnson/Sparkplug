@@ -67,13 +67,15 @@ space.
 Sparkplug has defined an approach where the Topic Namespace can aid in the determination of the
 encoding scheme of any particular payload. Historically there have been three Sparkplug defined
 encoding schemes. The first one was 'Sparkplug A', the second was 'Sparkplug B', and the most recent
-is 'Sparkplug C'. Each of these uses a 'first topic token identifier' so Sparkplug Edge Nodes can
+is 'Sparkplug C'. This version of the specification also reserves a namespace for a JSON encoding of
+the same data model. Each of these uses a 'first topic token identifier' so Sparkplug Edge Nodes can
 declare the payload encoding scheme they are using. These first topic tokens are:
 
 ----
 spAv1.0
 spBv1.0
-spCv1.0
+spCv4.0
+spJv4.0
 ----
 
 Each token is divided up into three distinct components. These are:
@@ -81,9 +83,18 @@ Each token is divided up into three distinct components. These are:
 * Sparkplug Identifier
 ** Always 'sp'
 * Payload Encoding Scheme
-** Currently 'A', 'B', or 'C' but there could be future versions
-* Payload Encoding Scheme Version
-** Currently v1.0 but denoted in the event that future versions are released
+** Currently 'A', 'B', 'C', or 'J' but there could be future encoding schemes
+* Sparkplug Specification Version
+** The major and minor version of the Sparkplug Specification that first defined the encoding scheme
+** 'Sparkplug A' and 'Sparkplug B' were defined by specification versions that predate this
+convention and use 'v1.0'. The encoding schemes defined by this version of the specification use
+'v4.0'.
+
+Note that the version component of the namespace element is not incremented for every release of the
+Sparkplug Specification. It changes only when a change to the topic namespace or the payload
+encoding requires publishers and consumers to distinguish the new definition from the old one on the
+wire. Because the topic namespace and payload encoding defined here are not backward compatible with
+Sparkplug B, the tokens defined by this specification carry the 'v4.0' version component.
 
 The original 'Sparkplug A' encoding scheme was based on the Eclipse Kura™ open source Google
 Protocol Buffer definition. 'Sparkplug B' was released shortly after the release of Sparkplug A and
@@ -99,7 +110,7 @@ The 'Sparkplug C' encoding scheme builds on Sparkplug B, retaining the concepts 
 and data model while adding a number of new features. Some of these include better command/response
 capabilities, better support for multiple host applications (note this does not include multiple
 Primary Host Applications for the same Edge Node), file publishing support, compression, and many
-others. It is the encoding scheme defined by this version of the specification and uses the 'spCv1.0'
+others. It is the encoding scheme defined by this version of the specification and uses the 'spCv4.0'
 namespace.
 
 [[introduction_background]]

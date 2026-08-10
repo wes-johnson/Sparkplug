@@ -1,5 +1,5 @@
 # Eclipse Sparkplug 4.0.0 Release Plan
-The Sparkplug Specification Team is working towards a new release of the Sparkplug Specification. When it is released, this will be version 4.0.0. It will have significant changes that will require a new initial topic token identifier of ‘spCv1.0’ rather than the current 3.0.0 version of ‘spBv1.0’. This is required due to what will be significant differences in the MQTT topic structure and the payload encoding.
+The Sparkplug Specification Team is working towards a new release of the Sparkplug Specification. When it is released, this will be version 4.0.0. It will have significant changes that will require a new initial topic token identifier of ‘spCv4.0’ rather than the current 3.0.0 version of ‘spBv1.0’. This is required due to what will be significant differences in the MQTT topic structure and the payload encoding.
 
 The goal of the new release is to incorporate as many changes as possible into a single release. Because Sparkplug is protocol for a cross-vendor, cross-platform distributed system, we would like to prevent multiple smaller incremental releases. This will make it simpler for implementers of Sparkplug in that a single update can be performed rather than multiple smaller updates.
 

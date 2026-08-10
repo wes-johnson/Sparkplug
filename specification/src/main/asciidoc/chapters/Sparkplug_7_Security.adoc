@@ -75,43 +75,43 @@ device_tokens (Sparkplug Device) = D1
 Based on this, the following could be reasonable MQTT ACLs to be provisioned in the MQTT Server for
 the MQTT client associated with this Edge Node:
 ```
-Publish: plantA/spCv1.0/NBIRTH/E1
-Publish: plantA/spCv1.0/NDATA/E1
-Publish: plantA/spCv1.0/NDEATH/E1
-Publish: plantA/spCv1.0/DBIRTH/E1/D1
-Publish: plantA/spCv1.0/DDATA/E1/D1
-Publish: plantA/spCv1.0/DDEATH/E1/D1
-Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: plantA/spCv1.0/NCMD/E1
-Subscribe: plantA/spCv1.0/DCMD/E1/D1
+Publish: plantA/spCv4.0/NBIRTH/E1
+Publish: plantA/spCv4.0/NDATA/E1
+Publish: plantA/spCv4.0/NDEATH/E1
+Publish: plantA/spCv4.0/DBIRTH/E1/D1
+Publish: plantA/spCv4.0/DDATA/E1/D1
+Publish: plantA/spCv4.0/DDEATH/E1/D1
+Subscribe: spCv4.0/STATE/my_primary_host
+Subscribe: plantA/spCv4.0/NCMD/E1
+Subscribe: plantA/spCv4.0/DCMD/E1/D1
 ```
 
 However, there may be other considerations when creating ACLs for clients. It may be the case that
 an Edge Node has many dynamic associated devices. In this case, it may make sense to wildcard the
 device level topic token. For example, it could look like this:
 ```
-Publish: plantA/spCv1.0/NBIRTH/E1
-Publish: plantA/spCv1.0/NDATA/E1
-Publish: plantA/spCv1.0/NDEATH/E1
-Publish: plantA/spCv1.0/DBIRTH/E1/+
-Publish: plantA/spCv1.0/DDATA/E1/+
-Publish: plantA/spCv1.0/DDEATH/E1/+
-Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: plantA/spCv1.0/NCMD/E1
-Subscribe: plantA/spCv1.0/DCMD/E1/+
+Publish: plantA/spCv4.0/NBIRTH/E1
+Publish: plantA/spCv4.0/NDATA/E1
+Publish: plantA/spCv4.0/NDEATH/E1
+Publish: plantA/spCv4.0/DBIRTH/E1/+
+Publish: plantA/spCv4.0/DDATA/E1/+
+Publish: plantA/spCv4.0/DDEATH/E1/+
+Subscribe: spCv4.0/STATE/my_primary_host
+Subscribe: plantA/spCv4.0/NCMD/E1
+Subscribe: plantA/spCv4.0/DCMD/E1/+
 ```
 
 Also, it may be the case that DCMD messages should not be 'writable'. In this case, maybe DCMD
 subscriptions should not be allowed at all. In this case, the ACLs could look like this:
 ```
-Publish: plantA/spCv1.0/NBIRTH/E1
-Publish: plantA/spCv1.0/NDATA/E1
-Publish: plantA/spCv1.0/NDEATH/E1
-Publish: plantA/spCv1.0/DBIRTH/E1/+
-Publish: plantA/spCv1.0/DDATA/E1/+
-Publish: plantA/spCv1.0/DDEATH/E1/+
-Subscribe: spCv1.0/STATE/my_primary_host
-Subscribe: plantA/spCv1.0/NCMD/E1
+Publish: plantA/spCv4.0/NBIRTH/E1
+Publish: plantA/spCv4.0/NDATA/E1
+Publish: plantA/spCv4.0/NDEATH/E1
+Publish: plantA/spCv4.0/DBIRTH/E1/+
+Publish: plantA/spCv4.0/DDATA/E1/+
+Publish: plantA/spCv4.0/DDEATH/E1/+
+Subscribe: spCv4.0/STATE/my_primary_host
+Subscribe: plantA/spCv4.0/NCMD/E1
 ```
 
 By using ACLs in this way, the access each Edge Node has is restricted to only topics that it should
