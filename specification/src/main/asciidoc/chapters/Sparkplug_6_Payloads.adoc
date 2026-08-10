@@ -328,7 +328,7 @@ message Payload {
     optional uint64   timestamp     = 1;        // Timestamp at message sending time
     repeated Metric   metrics       = 2;        // Repeated forever - no limit in Google Protobufs
     optional uint64   seq           = 3;        // Message sequence number - ordered stream of all messages from the Edge Node
-    optional uint64   bd_seq        = 4;        // The Birth/Death sequence number for BIRTH and DEATH payloads
+    optional uint64   bd_seq        = 4;        // The Birth/Death sequence number - scopes this message to the MQTT session it was published in
     optional string   source        = 5;        // Source for CMD and REBIRTH messages - the Host Application ID that sent the message
     optional string   uuid          = 6;        // UUID to track message type in terms of schema definitions
     optional bytes    body          = 7;        // To optionally bypass the whole definition above
@@ -350,15 +350,15 @@ JSON as follows:
 
 ----
 {
-        "timestamp": <timestamp>,
-        "metrics": [{
-                "name": <metric_name>,
-                "alias": <alias>,
-                "timestamp": <timestamp>,
-                "dataType": <datatype>,
-                "value": <value>
-        }],
-        "seq": <sequence_number>
+        "timestamp": <timestamp>,
+        "metrics": [{
+                "name": <metric_name>,
+                "alias": <alias>,
+                "timestamp": <timestamp>,
+                "dataType": <datatype>,
+                "value": <value>
+        }],
+        "seq": <sequence_number>
 }
 ----
 
@@ -366,15 +366,15 @@ A simple Sparkplug B payload with values would be represented as follows:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "My Metric",
-                "alias": 1,
-                "timestamp": 1479123452194,
-                "dataType": "String",
-                "value": "Test"
-        }],
-        "seq": 2
+        "timestamp": 1486144502122,
+        "metrics": [{
+                "name": "My Metric",
+                "alias": 1,
+                "timestamp": 1479123452194,
+                "dataType": "String",
+                "value": "Test"
+        }],
+        "seq": 2
 }
 ----
 
@@ -445,19 +445,40 @@ subsequent messages after an NBIRTH from an Edge Node MUST contain a sequence nu
 continually increasing by one in each message from that Edge Node until a value of
 18446744073709551615 (max value of a UINT64) is reached. At that point, the sequence number of the
 following message MUST be zero.*#
-** _seq_
-*** This is the birth/death sequence number which is an unsigned 64-bit integer.
+** _bd_seq_
+*** This is the birth/death sequence number which is an unsigned 64-bit integer. It scopes a message to
+the MQTT session in which it was published. Unlike seq and descriptor_seq, which advance from message
+to message, the bd_seq number is constant for the lifetime of an MQTT session and changes only when a
+new session is established.
 **** [tck-testable tck-id-payloads-bd-sequence-num-included]#[yellow-background]*[tck-id-payloads-bd-sequence-num-included] A
-birth/death sequence number MUST be included in the payload of every NBIRTH, NREBIRTH, and NDEATH
-Sparkplug MQTT message from an Edge Node.*#
+birth/death sequence number MUST be included in the payload of every Sparkplug MQTT message published
+by an Edge Node, including an NDEATH delivered by the MQTT Server as the Edge Node's registered MQTT
+Will Message.*#
+***** This means the NMETA, NMMETA, NBIRTH, NREBIRTH, NDATA, NRESP, NDEATH, DMETA, DMMETA, DBIRTH,
+DREBIRTH, DDATA, DRESP, and DDEATH messages all carry a bd_seq number.
+***** Non-normative comment: a Will-delivered NDEATH carries neither a seq nor a descriptor_seq,
+because the MQTT Server cannot know the Edge Node's current position in either stream when it releases
+the Will Message. It does carry a bd_seq number, because that value is fixed for the whole session and
+is therefore known when the Will Message is registered in the MQTT CONNECT packet.
+***** Non-normative comment: messages published by Sparkplug Host Applications rather than by Edge
+Nodes (NCMD, DCMD, REBIRTH, and STATE) do not carry a bd_seq number.
 **** [tck-testable tck-id-payloads-bd-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-bd-sequence-num-req-nbirth] Every
 birth/death sequence number included in the payload from an Edge Node MUST always be between 0 and
 18446744073709551615 (inclusive).*#
-**** [tck-testable tck-id-payloads-bd-sequence-num-incrementing]#[yellow-background]*[tck-id-payloads-bd-sequence-num-incrementing] All
-subsequent messages after an NBIRTH from an Edge Node MUST contain a birth/death sequence number
-that is continually increasing by one in each message from that Edge Node until a value of
-18446744073709551615 (max value of a UINT64) is reached. At that point, the sequence number of the
-following message MUST be zero.*#
+**** [tck-testable tck-id-payloads-bd-sequence-num-session-constant]#[yellow-background]*[tck-id-payloads-bd-sequence-num-session-constant] Every
+message an Edge Node publishes within a single MQTT session MUST carry the same birth/death sequence
+number, and that value MUST be the one registered in the Will Message payload of that session's MQTT
+CONNECT packet.*#
+***** Non-normative comment: this is what makes the bd_seq number a session identifier. Any single
+message from an Edge Node can be attributed to the session that produced it, and a Host Application can
+discard a message belonging to a session it has already replaced.
+**** [tck-testable tck-id-payloads-bd-sequence-num-incrementing]#[yellow-background]*[tck-id-payloads-bd-sequence-num-incrementing] The
+birth/death sequence number MUST start at zero and MUST increment by one on every new MQTT CONNECT
+packet sent by the Edge Node, until a value of 18446744073709551615 (max value of a UINT64) is reached.
+At that point the birth/death sequence number of the following MQTT CONNECT packet MUST be zero.*#
+***** Non-normative comment: the bd_seq number is not incremented from message to message within a
+session, and it is not incremented by an NREBIRTH, because an NREBIRTH does not establish a new MQTT
+session.
 ** _descriptor_seq_
 *** This is the descriptor sequence number which is an unsigned 64-bit integer. It is an ordered
 sequence number stream scoped to a single Sparkplug Descriptor (see the
@@ -1451,46 +1472,46 @@ Consider the following Sparkplug B payload in the NBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Node Control/Reboot",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Rebirth",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Next Server",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Scan Rate",
-                "timestamp": 1486144502122,
-                "value": 3000
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }, {
-                "name": "Properties/Hardware Model",
-                "timestamp": 1486144502122,
-                "value": "EdgeGate 2000"
-        }, {
-                "name": "Properties/OS",
-                "timestamp": 1486144502122,
-                "value": "Linux"
-        }, {
-                "name": "Properties/OS Version",
-                "timestamp": 1486144502122,
-                "value": "6.1"
-        }, {
-                "name": "Supply Voltage",
-                "timestamp": 1486144502122,
-                "value": 12.1
-        }],
-        "seq": 0,
+        "timestamp": 1486144502122,
+        "definition_id": "9f2c...e2",
+        "metrics": [{
+                "name": "Node Control/Reboot",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Rebirth",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Next Server",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Scan Rate",
+                "timestamp": 1486144502122,
+                "value": 3000
+        }, {
+                "name": "Properties/Hardware Make",
+                "timestamp": 1486144502122,
+                "value": "Acme"
+        }, {
+                "name": "Properties/Hardware Model",
+                "timestamp": 1486144502122,
+                "value": "EdgeGate 2000"
+        }, {
+                "name": "Properties/OS",
+                "timestamp": 1486144502122,
+                "value": "Linux"
+        }, {
+                "name": "Properties/OS Version",
+                "timestamp": 1486144502122,
+                "value": "6.1"
+        }, {
+                "name": "Supply Voltage",
+                "timestamp": 1486144502122,
+                "value": 12.1
+        }],
+        "seq": 0,
         "bd_seq": 0
 }
 ----
@@ -1570,46 +1591,46 @@ Consider the following Sparkplug B payload in the NREBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Node Control/Reboot",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Rebirth",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Next Server",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Scan Rate",
-                "timestamp": 1486144502122,
-                "value": 3000
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }, {
-                "name": "Properties/Hardware Model",
-                "timestamp": 1486144502122,
-                "value": "EdgeGate 2000"
-        }, {
-                "name": "Properties/OS",
-                "timestamp": 1486144502122,
-                "value": "Linux"
-        }, {
-                "name": "Properties/OS Version",
-                "timestamp": 1486144502122,
-                "value": "6.1"
-        }, {
-                "name": "Supply Voltage",
-                "timestamp": 1486144502122,
-                "value": 12.1
-        }],
-        "seq": 0,
+        "timestamp": 1486144502122,
+        "definition_id": "9f2c...e2",
+        "metrics": [{
+                "name": "Node Control/Reboot",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Rebirth",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Next Server",
+                "timestamp": 1486144502122,
+                "value": false
+        }, {
+                "name": "Node Control/Scan Rate",
+                "timestamp": 1486144502122,
+                "value": 3000
+        }, {
+                "name": "Properties/Hardware Make",
+                "timestamp": 1486144502122,
+                "value": "Acme"
+        }, {
+                "name": "Properties/Hardware Model",
+                "timestamp": 1486144502122,
+                "value": "EdgeGate 2000"
+        }, {
+                "name": "Properties/OS",
+                "timestamp": 1486144502122,
+                "value": "Linux"
+        }, {
+                "name": "Properties/OS Version",
+                "timestamp": 1486144502122,
+                "value": "6.1"
+        }, {
+                "name": "Supply Voltage",
+                "timestamp": 1486144502122,
+                "value": 12.1
+        }],
+        "seq": 0,
         "bd_seq": 0
 }
 ----
@@ -1709,7 +1730,8 @@ Consider the following Sparkplug B payload in the DBIRTH message shown above:
                 "timestamp": 1486144502122,
                 "value": "Acme"
         }],
-        "seq": 1
+        "seq": 1,
+        "bd_seq": 0
 }
 ----
 
@@ -1806,7 +1828,8 @@ Consider the following Sparkplug B payload in the DREBIRTH message shown above:
                 "timestamp": 1486144502122,
                 "value": "Acme"
         }],
-        "seq": 1
+        "seq": 1,
+        "bd_seq": 0
 }
 ----
 
@@ -1863,14 +1886,15 @@ Consider the following Sparkplug B payload in the NDATA message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Supply Voltage",
-                "timestamp": 1486144502122,
-                "value": 12.3
-        }],
-        "seq": 2
+        "timestamp": 1486144502122,
+        "definition_id": "9f2c...e2",
+        "metrics": [{
+                "name": "Supply Voltage",
+                "timestamp": 1486144502122,
+                "value": 12.3
+        }],
+        "seq": 2,
+        "bd_seq": 0
 }
 ----
 
@@ -1932,7 +1956,8 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
                 "timestamp": 1486144502122,
                 "value": 120
         }],
-        "seq": 0
+        "seq": 0,
+        "bd_seq": 0
 }
 ----
 
@@ -2180,7 +2205,8 @@ Consider the following Sparkplug B payload in the NRESP message shown above:
                                 "value": 0.125
                         }]
                 }
-        }]
+        }],
+        "bd_seq": 0
 }
 ----
 
@@ -2232,7 +2258,8 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
                                 "message": "Device busy"
                         }
                 }
-        }]
+        }],
+        "bd_seq": 0
 }
 ----
 
@@ -2349,7 +2376,8 @@ Consider the following Sparkplug B payload in the DDEATH message shown above:
 ----
 {
         "timestamp": 1486144502122,
-        "seq": 123
+        "seq": 123,
+        "bd_seq": 0
 }
 ----
 
