@@ -112,6 +112,35 @@ the defined Sparkplug Topic Namespace.
 [tck-testable tck-id-message-flow-phid-sparkplug-subscription]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-subscription] The
 subscription on the Sparkplug Topic Namespace and the STATE topic MUST be done immediately after
 successfully establishing the MQTT session and before publishing its own STATE message.*#
++
+[tck-testable tck-id-message-flow-phid-sparkplug-subscription-retain-options]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-subscription-retain-options] A
+Sparkplug Host Application using MQTT 5.0 MUST subscribe to its own STATE topic with the 'Retain As
+Published' subscription option set to 0 and the 'Retain Handling' subscription option set to 0, and
+MUST NOT use a Shared Subscription for its own STATE topic.*#
++
+[tck-testable tck-id-message-flow-phid-sparkplug-subscription-no-local]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-subscription-no-local] A
+Sparkplug Host Application using MQTT 5.0 MAY subscribe to its own STATE topic with the 'No Local'
+subscription option set to either 0 or 1.*#
++
+Non-normative comment: with 'No Local' set to 1 the MQTT Server does not deliver a Host
+Application's own published messages back to it, so the Host Application is delivered only STATE
+messages published by other MQTT clients and by the MQTT Server on its behalf. With 'No Local' set
+to 0, which is the MQTT 5.0 default and the only behavior MQTT 3.1.1 provides, the Host Application
+is also delivered the STATE messages it publishes itself and has to recognize them, as required in
+the link:#operational_behavior_host_application_own_state[Host Application Handling of STATE
+Messages on its Own Host Application ID] section. Both are conformant, and the externally observable
+behavior of the Host Application is the same either way.
++
+Non-normative comment: these are the MQTT 5.0 defaults, and they are the behavior MQTT 3.1.1 always
+provides. They are stated explicitly because the Host Application relies on the RETAIN flag of a
+delivered STATE message to tell a retained value from a live publish, as described in the
+link:#operational_behavior_host_application_own_state[Host Application Handling of STATE Messages on
+its Own Host Application ID] section. With 'Retain As Published' set to 1 the MQTT Server would
+preserve the publisher's RETAIN flag, and because STATE messages are always published with the
+retain flag set, every delivered STATE message would arrive with RETAIN set to 1 and the distinction
+would be lost. With 'Retain Handling' set to 2 the Host Application would never be delivered the
+retained value on its own STATE topic, and MQTT 5.0 does not deliver retained messages to Shared
+Subscriptions at all.
 
 . [tck-testable tck-id-message-flow-phid-sparkplug-state-publish]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-state-publish] Once
 an MQTT Session has been established, the Sparkplug Host Application subscriptions on the Sparkplug
@@ -119,10 +148,13 @@ Topic Namespace have been established and the STATE topic subscription has been 
 Sparkplug Host Application MUST publish a new STATE message.*#
 +
 [tck-testable tck-id-message-flow-phid-sparkplug-state-publish-payload]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-state-publish-payload] The
-Host Application Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value
-pairs where one key MUST be 'online' and its value is a boolean 'true'. The other key MUST be
-'timestamp' and the value MUST be the same value set in the immediately prior MQTT CONNECT packet's
-Will Message payload.*#
+Host Application Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include four key/value
+pairs. One key MUST be 'online' and its value is a boolean 'true'. One key MUST be 'timestamp' and
+the value MUST be the same value set in the immediately prior MQTT CONNECT packet's Will Message
+payload. One key MUST be 'bd_seq' and the value MUST be as defined in the
+link:#payloads_c_state_bd_seq[STATE bd_seq Number] section. One key MUST be 'client_id' and the
+value MUST be the MQTT Client ID of the MQTT session in which the message was published, as defined
+in the link:#payloads_c_state_client_id[STATE client_id] section.*#
 +
 [tck-testable tck-id-message-flow-phid-sparkplug-state-publish-payload-timestamp]#[yellow-background]*[tck-id-message-flow-phid-sparkplug-state-publish-payload-timestamp] The
 timestamp value in the Host Application Birth Certificate payload MUST be the same value set in the
@@ -142,12 +174,238 @@ Application.
 was connected to that MQTT Server and known by the Host Application MUST be updated to a STALE data
 quality if the Host Application loses connection to the MQTT Server.*#
 
-[tck-testable tck-id-message-flow-hid-sparkplug-state-message-delivered]#[yellow-background]*[tck-id-message-flow-hid-sparkplug-state-message-delivered] After
-publishing its own Host Application online STATE message, if at any point the Host Application is delivered
-a STATE message on its own Host Application ID with a timestamp that is newer than the timestamp
-that was used in its own immediately prior MQTT CONNECT packet Will Message, it MUST immediately
-disconnect from the MQTT Server and reconnect. It MUST follow the standard rules for Host
-Applications when establishing the connection to the MQTT Server.*#
+[[operational_behavior_host_application_own_state]]
+=== Host Application Handling of STATE Messages on its Own Host Application ID
+
+A Sparkplug Host Application subscribes to its own STATE topic, so it is delivered every STATE
+message published on its own Host Application ID, including messages it did not publish itself.
+Because the STATE topic is published with the MQTT retain flag set, and because any MQTT client with
+publish access to that topic can overwrite the retained value, a Host Application has to be able to
+tell its own session state from a stale value or from a value published by another client, and to
+restore the retained value when it has been displaced.
+
+Throughout this section, _T_ refers to the timestamp value the Host Application used in the Will
+Message payload of its immediately prior MQTT CONNECT packet to a given MQTT Server, which is also
+the timestamp value in the online STATE message it published to that MQTT Server.
+
+[[operational_behavior_host_application_own_state_will_invariant]]
+==== The Will Message Timestamp Invariant
+
+The Will Message payload is fixed when the MQTT CONNECT packet is sent and cannot be changed for the
+lifetime of that MQTT session. This constrains how a Host Application may correct its retained
+STATE.
+
+* [tck-testable tck-id-operational-behavior-hid-state-will-invariant]#[yellow-background]*[tck-id-operational-behavior-hid-state-will-invariant] The
+timestamp value in a Sparkplug Host Application's registered Will Message payload MUST be greater
+than or equal to the timestamp value of the most recent online STATE message the Host Application
+has published on that MQTT Server.*#
+** Non-normative comment: Edge Nodes MUST NOT act on an offline STATE message whose timestamp is
+older than the last online STATE timestamp they honored (see the
+link:#operational_behavior_edge_node_session_termination[Edge Node Session Termination] section). If
+a Host Application were to publish an online STATE message with a timestamp newer than the one in
+its registered Will Message, its own Death Certificate would be older than that online STATE message
+and Edge Nodes would ignore it. The Host Application's death would become undetectable, and Edge
+Nodes would continue publishing to a Host Application that is no longer present. This is why a Host
+Application cannot simply publish a fresh timestamp into an established session, and why obtaining a
+newer timestamp requires a new MQTT CONNECT packet.
+
+[[operational_behavior_host_application_own_state_classifying]]
+==== Classifying a Delivered STATE Message
+
+The MQTT RETAIN flag of a delivered STATE message distinguishes the value that was retained on the
+topic at the time the Host Application subscribed from a message published while the Host
+Application was already subscribed.
+
+The requirements in this section and in the
+link:#operational_behavior_host_application_own_state_restoring[Restoring the Retained STATE Value]
+section apply only while a Host Application is in the part of its MQTT session in which its own
+online STATE message is the value that should be retained on its STATE topic.
+
+* [tck-testable tck-id-operational-behavior-hid-state-window]#[yellow-background]*[tck-id-operational-behavior-hid-state-window] A
+Sparkplug Host Application MUST classify and act on STATE messages delivered on its own Host
+Application ID as required in this section only after it has published its own online STATE message
+on that MQTT Server and before it has published a Death Certificate or otherwise initiated a
+disconnect from that MQTT Server.*#
+** Non-normative comment: before the online STATE message is published there is nothing to restore,
+because publishing it is the act that establishes the correct retained value, and it will overwrite
+whatever is on the topic. After a Death Certificate has been published, an offline value on the
+topic is the correct value.
+
+[[operational_behavior_host_application_own_state_classifying_retained]]
+===== Messages Delivered with the RETAIN Flag Set
+
+* [tck-testable tck-id-operational-behavior-hid-state-retained-delivery]#[yellow-background]*[tck-id-operational-behavior-hid-state-retained-delivery] A
+Sparkplug Host Application MUST treat a STATE message delivered on its own Host Application ID with
+the MQTT RETAIN flag set to 1 as the value retained on that topic at the time it subscribed, and
+MUST NOT treat such a message as evidence that another MQTT client has published during its own
+session.*#
+** Non-normative comment: because a Host Application subscribes to its own STATE topic before
+publishing its own online STATE message, the retained value it is delivered is normally the Death
+Certificate of its own previous MQTT session, and requires no action. Relying on the RETAIN flag
+rather than on delivery order matters because the delivery of a retained message is asynchronous and
+MAY arrive after the Host Application has published its own online STATE message.
+* [tck-testable tck-id-operational-behavior-hid-state-retained-newer]#[yellow-background]*[tck-id-operational-behavior-hid-state-retained-newer] If
+the STATE message delivered on its own Host Application ID with the MQTT RETAIN flag set to 1
+carries a timestamp greater than or equal to _T_, the Sparkplug Host Application MUST immediately
+disconnect from that MQTT Server and reconnect to it, following all of the rules for Host
+Applications when establishing a connection to an MQTT Server, so that it obtains a Will Message and
+an online STATE message that both carry a timestamp newer than the retained timestamp.*#
+** Non-normative comment: a Host Application whose online STATE message is not newer than the value
+already retained on its own topic begins its session having already lost the timestamp comparison.
+Edge Nodes holding the retained timestamp will not honor its online STATE message, and its
+registered Will Message is below that timestamp, so its own Death Certificate would also be ignored.
+Reconnecting is the only way to obtain a newer timestamp, for the reason given in the
+link:#operational_behavior_host_application_own_state_will_invariant[Will Message Timestamp
+Invariant] section.
+** Non-normative comment: this condition arises when another MQTT client published on the topic
+while this Host Application was offline, and also when this Host Application's own system clock has
+moved backwards relative to its previous session. The required action is the same in both cases.
+
+[[operational_behavior_host_application_own_state_classifying_live]]
+===== Messages Delivered without the RETAIN Flag Set
+
+* [tck-testable tck-id-operational-behavior-hid-state-own-echo]#[yellow-background]*[tck-id-operational-behavior-hid-state-own-echo] A
+Sparkplug Host Application MUST treat a STATE message delivered on its own Host Application ID with
+the MQTT RETAIN flag set to 0 as the delivery of a message it published itself, and MUST take no
+action on it, if the message's client_id is its own MQTT Client ID for that MQTT Server, its bd_seq
+number is the bd_seq number of its current MQTT session with that MQTT Server, and it matches a
+STATE message that the Host Application has published in that session.*#
+** A Host Application's own online STATE message carries an 'online' value of true and a timestamp
+equal to _T_. A Host Application's own Death Certificate published immediately before a clean
+disconnect carries an 'online' value of false and the timestamp at which that disconnect is
+occurring.
+** Non-normative comment: a Host Application remains subscribed to its own STATE topic for the whole
+of its MQTT session, so a STATE message it publishes is normally delivered back to it. Neither its
+own online STATE message nor the Death Certificate it publishes immediately before a clean
+disconnect is a reason to take corrective action.
+** Non-normative comment: this requirement concerns only the two STATE messages a Host Application
+publishes itself. The Death Certificate that the MQTT Server releases as the Will Message is not
+delivered to the Host Application, because the MQTT Server releases it only when the session has
+ended and the Host Application is by then no longer connected to receive it.
+** Non-normative comment: a Host Application that uses the MQTT 5.0 'No Local' subscription option
+on its own STATE topic is never delivered its own published STATE messages at all, so this
+requirement has no effect for it. See the
+link:#operational_behavior_primary_host_application_session_establishment[Host Application Session
+Establishment] section.
+* [tck-testable tck-id-operational-behavior-hid-state-foreign-client-id]#[yellow-background]*[tck-id-operational-behavior-hid-state-foreign-client-id] A
+Sparkplug Host Application MUST treat a STATE message delivered on its own Host Application ID whose
+client_id is not its own MQTT Client ID for that MQTT Server, or whose bd_seq number is not the
+bd_seq number of its current MQTT session with that MQTT Server, as having been published by another
+MQTT client.*#
+** Non-normative comment: two running instances configured with the same Sparkplug Host Application
+ID is a common misconfiguration, and it presents exactly this way. Each instance sees STATE messages
+carrying the other's MQTT Client ID. A Host Application SHOULD report this condition, because
+corrective republishing and reconnecting between two such instances will not converge and the
+underlying cause is a configuration error rather than a hostile client.
+* [tck-testable tck-id-operational-behavior-hid-state-foreign]#[yellow-background]*[tck-id-operational-behavior-hid-state-foreign] A
+Sparkplug Host Application MUST treat any other STATE message delivered on its own Host Application
+ID with the MQTT RETAIN flag set to 0 as having been published by another MQTT client, and MUST act
+on every STATE message it has determined to have been published by another MQTT client as required
+in the link:#operational_behavior_host_application_own_state_restoring[Restoring the Retained STATE
+Value] section.*#
+** Non-normative comment: a Host Application publishes on its own STATE topic at most twice in an
+MQTT session. Its registered Will Message is released by the MQTT Server only when the session ends,
+at which point the Host Application is no longer connected to receive it. Any other live STATE
+message on its own Host Application ID therefore originated elsewhere.
+** Non-normative comment: the client_id and bd_seq values sharpen this classification but do not
+authenticate it. An MQTT client able to publish on the topic can copy both from the retained value.
+A STATE message carrying this Host Application's own client_id and current bd_seq number, with an
+'online' value of false and the timestamp of its own session, remains indistinguishable in content
+from its own registered Will Message.
+** Non-normative comment: the RETAIN flag identifies when a message was published relative to the
+Host Application's own subscription. It does not identify the publisher, and it is not an
+authentication mechanism. See the link:#security_implementation_notes_acls[Access Control Lists]
+section.
+
+[[operational_behavior_host_application_own_state_restoring]]
+==== Restoring the Retained STATE Value
+
+Two corrective actions are available. Which one is required depends on whether the Host
+Application's own timestamp _T_ is still the greatest timestamp seen on its own Host Application ID,
+because that determines whether _T_ is still sufficient for Edge Nodes to honor an online STATE
+message.
+
+* [tck-testable tck-id-operational-behavior-hid-state-restore-republish]#[yellow-background]*[tck-id-operational-behavior-hid-state-restore-republish] If
+the timestamp of the offending STATE message is less than _T_, or the offending STATE message
+carries a payload that is zero length, is not valid JSON UTF-8 data, or does not contain all of the
+'online', 'timestamp', 'bd_seq', and 'client_id' keys, the Sparkplug Host Application MUST
+immediately republish its online STATE message on the same MQTT Server, with an 'online' value of
+true and a timestamp equal to _T_, with a QoS of 1 and the retain flag set to true. It MUST NOT
+disconnect.*#
+** Non-normative comment: a zero length payload published with the retain flag set removes the
+retained message from the topic on the MQTT Server, leaving the Host Application's STATE topic with
+no retained value at all. An Edge Node that connects afterwards finds nothing to evaluate and cannot
+determine that its Primary Host Application is online. Republishing at _T_ restores the retained
+value, and no comparison against the offending message is possible or necessary because it carries
+no timestamp.
+** Non-normative comment: republishing at _T_ restores the retained value and preserves the Will
+Message timestamp invariant, because the registered Will Message timestamp is already equal to _T_.
+A new MQTT CONNECT packet is not required and would cause avoidable disruption.
+** Non-normative comment: an offending STATE message with an 'online' value of false and a timestamp
+older than _T_ is ignored by Edge Nodes that are already in a session with this Host Application,
+but it displaces the retained value on the topic. An Edge Node that connects afterwards has no
+previous timestamp for this Host Application and so honors whatever it finds retained, which would
+leave it waiting for a Primary Host Application that is in fact online. Restoring the retained value
+is what prevents that.
+* [tck-testable tck-id-operational-behavior-hid-state-restore-reconnect]#[yellow-background]*[tck-id-operational-behavior-hid-state-restore-reconnect] If
+the timestamp of the offending STATE message is greater than or equal to _T_, the Sparkplug Host
+Application MUST immediately disconnect from that MQTT Server and reconnect to it, following all of
+the rules for Host Applications when establishing a connection to an MQTT Server, so that it obtains
+a new Will Message and a new online STATE message that both carry a timestamp newer than that of the
+offending STATE message.*#
+** Republishing at _T_ is not sufficient in this case. Where the offending timestamp is greater than
+_T_, an Edge Node that has honored the offending STATE message will not honor an online STATE
+message whose timestamp is older than it. Where the offending timestamp is equal to _T_, an online
+STATE message republished at _T_ would neither win nor lose against it, so which of the two an Edge
+Node ends up honoring would depend on the order in which they arrive, and a Host Application that
+only ever republishes at _T_ could never establish precedence over a client that continues to
+publish at _T_. In both cases a timestamp strictly newer than the offending message is required, and
+the Will Message Timestamp Invariant means such a timestamp can only be obtained through a new MQTT
+CONNECT packet.
+** Non-normative comment: an offending STATE message with an 'online' value of true and a timestamp
+newer than _T_ causes no immediately visible change, because Edge Nodes already consider this Host
+Application to be online. It is nonetheless the most damaging case, because it raises the last
+online STATE timestamp that Edge Nodes hold above the timestamp in this Host Application's
+registered Will Message, which disarms the Host Application's own Death Certificate. Reconnecting
+restores the invariant.
+* [tck-testable tck-id-operational-behavior-hid-state-restore-scope]#[yellow-background]*[tck-id-operational-behavior-hid-state-restore-scope] A
+Sparkplug Host Application MUST apply the corrective action only to the MQTT Server on which the
+offending STATE message was delivered, and MUST NOT disconnect from, or republish its STATE message
+to, any other MQTT Server as a result.*#
+** Non-normative comment: a Primary Host Application maintains an MQTT session, and therefore a
+separate retained STATE value, with every MQTT Server in the infrastructure. A STATE message
+published by another client on one MQTT Server says nothing about the state of any other MQTT
+Server, and disconnecting from a healthy MQTT Server would strand the Edge Nodes connected to it.
+* [tck-testable tck-id-operational-behavior-hid-state-restore-backoff]#[yellow-background]*[tck-id-operational-behavior-hid-state-restore-backoff] A
+Sparkplug Host Application SHOULD limit the rate at which it performs these corrective actions on
+any single MQTT Server, and SHOULD escalate from republishing to reconnecting if republishing does
+not resolve the condition.*#
+** Non-normative comment: each corrective action is triggered by an inbound message, so an MQTT
+client that repeatedly publishes on a Host Application's STATE topic can otherwise drive an
+unbounded sequence of reconnects. Rate limiting bounds that. It does not prevent the underlying
+condition; restricting publish access to the STATE topic does, as described in the
+link:#security_implementation_notes_acls[Access Control Lists] section.
+** Non-normative comment: reconnecting is considerably more disruptive than republishing. Ending an
+MQTT session always announces the Host Application as offline, either through the Death Certificate
+it publishes before a clean disconnect or through the Will Message the MQTT Server releases, so
+every Edge Node configured with it as their Primary Host Application will terminate its session and
+re-establish once the new online STATE message is published. This is unavoidable, because a new Will
+Message can only be registered in a new MQTT CONNECT packet. It is the reason the republish action
+is required wherever it is sufficient.
+
+[[operational_behavior_host_application_own_state_limits]]
+==== Limits of Retained STATE Restoration
+
+Non-normative comment: these requirements make a connected Host Application detect displacement of
+its own retained STATE value and restore it within a bounded time, without ever violating the Will
+Message Timestamp Invariant. They do not make the retained value correct at all times, and cannot.
+There is always an interval between the offending publish and the corrective publish during which
+the retained value is wrong. A client that publishes repeatedly can keep the retained value wrong
+for much of the time. Most importantly, while a Host Application is genuinely offline it cannot
+correct anything at all, so an MQTT client that publishes an online STATE message with a newer
+timestamp on the Host Application's topic while that Host Application is offline will leave Edge
+Nodes believing a Primary Host Application is online when it is not. No Host Application behavior
+can address that case. It is prevented by restricting publish access to the STATE topic.
 
 [[operational_behavior_edge_node_session_establishment]]
 === Edge Node Session Establishment
@@ -221,6 +479,55 @@ value is greater than or equal to the previous STATE message timestamp value in 
 payload before considering the Primary Host Application to be online and active. If no previous
 STATE message timestamp value has been received by this Edge Node it MUST consider the incoming
 STATE message to be the latest/valid.*#
+** [tck-testable tck-id-message-flow-edge-node-birth-publish-phid-wait-retained]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-phid-wait-retained] A
+STATE message delivered to an Edge Node with the MQTT RETAIN flag set to 1 is the value retained on
+the Primary Host Application's STATE topic at the time the Edge Node subscribed, and the Edge Node
+MUST evaluate it as the current state of that Primary Host Application. A STATE message delivered
+with the MQTT RETAIN flag set to 0 is a live publish, and the Edge Node MUST evaluate it as a change
+to that state.*#
+*** Non-normative comment: this is what distinguishes the state an Edge Node finds when it
+subscribes from a subsequent change to that state. It is the case in which no previous STATE message
+timestamp has been received, referred to in the requirement above.
+*** Non-normative comment: the RETAIN flag does not indicate which client published a STATE message.
+An Edge Node cannot use it to distinguish a Death Certificate released by the MQTT Server on behalf
+of a Primary Host Application from an identical message published by another client. See the
+link:#security_implementation_notes_acls[Access Control Lists] section.
+** [tck-testable tck-id-message-flow-edge-node-birth-publish-phid-wait-absent]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-phid-wait-absent] If
+no STATE message is retained on the configured Primary Host Application's STATE topic, an Edge Node
+that is configured to wait for that Primary Host Application MUST NOT consider it to be online, and
+MUST NOT publish its NBIRTH and DBIRTH messages, until it is delivered a STATE message denoting that
+Primary Host Application to be online.*#
+*** An Edge Node SHOULD make this condition visible, because it is not distinguishable by the Edge
+Node from a Primary Host Application that has never been started.
+*** Non-normative comment: an MQTT client that publishes a zero length payload with the retain flag
+set to the Primary Host Application's STATE topic removes the retained value, which leaves every
+Edge Node that connects afterwards waiting indefinitely. The Primary Host Application detects and
+repairs this while it is connected, as required in the
+link:#operational_behavior_host_application_own_state[Host Application Handling of STATE Messages on
+its Own Host Application ID] section, but it cannot do so while it is offline. See the
+link:#security_implementation_notes_acls[Access Control Lists] section.
+** [tck-testable tck-id-message-flow-edge-node-birth-publish-phid-wait-malformed]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-phid-wait-malformed] An
+Edge Node MUST ignore a STATE message delivered on the configured Primary Host Application's STATE
+topic whose payload is zero length, is not valid JSON UTF-8 data, or does not contain all of the
+'online', 'timestamp', 'bd_seq', and 'client_id' keys. It MUST NOT change its view of that Primary
+Host Application's state as a result of such a message, and MUST NOT store its timestamp or bd_seq
+number for later comparison.*#
+*** Non-normative comment: retaining the last valid state is the safer behavior. Treating an
+unparseable payload as an offline indication would allow any client able to publish on the topic to
+strand every Edge Node with a payload that does not even have to be well formed.
+** [tck-testable tck-id-message-flow-edge-node-birth-publish-phid-wait-bdseq]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-phid-wait-bdseq] An
+Edge Node that has honored an online STATE message from its configured Primary Host Application MUST
+store the bd_seq number and client_id from that message, and MUST treat a subsequent offline STATE
+message as terminating that Primary Host Application session only if its bd_seq number and client_id
+match the stored values.*#
+*** Non-normative comment: this is the same correlation an Edge Node performs between an NDEATH and
+the NBIRTH it terminates, applied to a Sparkplug Host Application. It identifies the session an
+offline STATE message refers to directly, rather than inferring it from timestamp ordering alone.
+*** Non-normative comment: the timestamp comparison is still required and is not replaced by this.
+An Edge Node that has not previously honored an online STATE message from a Primary Host Application
+has no stored bd_seq number to compare against, so the bd_seq number is only meaningful relative to
+a session the Edge Node has already observed, whereas the timestamp gives an ordering an Edge Node
+can evaluate on a value it is seeing for the first time.
 * [tck-testable tck-id-message-flow-edge-node-birth-publish-nbirth-topic]#[yellow-background]*[tck-id-message-flow-edge-node-birth-publish-nbirth-topic] The
 Edge Node's NBIRTH MQTT topic MUST be of the form
 '[topic_prefix/]spCv4.0/NBIRTH/edge_node_id' where the optional topic_prefix is the Sparkplug Topic
@@ -1157,10 +1464,13 @@ a Sparkplug Host Application sends its MQTT CONNECT packet, it MUST include a Wi
 MQTT Will Message's topic MUST be of the form 'spCv4.0/STATE/sparkplug_host_id' where host_id is the
 unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-payload] The
-Death Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
-MUST be 'online' and it's value is a boolean 'false'. The other key MUST be 'timestamp' and the
-value MUST be the same value that was used for the timestamp in its own prior MQTT CONNECT packet
-Will Message payload.*#
+Death Certificate Payload MUST be JSON UTF-8 data. It MUST include four key/value pairs. One key
+MUST be 'online' and it's value is a boolean 'false'. One key MUST be 'timestamp' and the value MUST
+be the same value that was used for the timestamp in its own prior MQTT CONNECT packet Will Message
+payload. One key MUST be 'bd_seq' and the value MUST be as defined in the
+link:#payloads_c_state_bd_seq[STATE bd_seq Number] section. One key MUST be 'client_id' and the
+value MUST be the MQTT Client ID of the MQTT session in which the message was published, as defined
+in the link:#payloads_c_state_client_id[STATE client_id] section.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-qos]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-qos] The
 MQTT Will Message's MQTT QoS MUST be 1 (at least once).*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-will-retained]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-will-retained] The
@@ -1176,10 +1486,13 @@ after successfully connecting to the MQTT Server.*#
 Host Application's Birth topic MUST be of the form 'spCv4.0/STATE/sparkplug_host_id' where host_id
 is the unique identifier of the Sparkplug Host Application*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-payload] The
-Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
-MUST be 'online' and it's value is a boolean 'true'. The other key MUST be 'timestamp' and the value
-MUST match the timestamp value that was used in the immediately prior MQTT CONNECT packet Will
-Message payload.*#
+Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include four key/value pairs. One key
+MUST be 'online' and it's value is a boolean 'true'. One key MUST be 'timestamp' and the value MUST
+match the timestamp value that was used in the immediately prior MQTT CONNECT packet Will Message
+payload. One key MUST be 'bd_seq' and the value MUST be as defined in the
+link:#payloads_c_state_bd_seq[STATE bd_seq Number] section. One key MUST be 'client_id' and the
+value MUST be the MQTT Client ID of the MQTT session in which the message was published, as defined
+in the link:#payloads_c_state_client_id[STATE client_id] section.*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-qos]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-qos] The
 Host Application's Birth MQTT QoS MUST be 1 (at least once).*#
 * [tck-testable tck-id-operational-behavior-host-application-connect-birth-retained]#[yellow-background]*[tck-id-operational-behavior-host-application-connect-birth-retained] The
@@ -1206,9 +1519,12 @@ Sparkplug Host Application's Death topic MUST be of the form 'spCv4.0/STATE/spar
 host_id is the unique identifier of the Sparkplug Host Application.*#
 * [tck-testable tck-id-operational-behavior-host-application-death-payload]#[yellow-background]*[tck-id-operational-behavior-host-application-death-payload] The
 Death Certificate Payload registered as the MQTT Will Message in the MQTT CONNECT packet MUST be
-JSON UTF-8 data. It MUST include two key/value pairs where one key MUST be 'online' and it's value
-is a boolean 'false'. The other key MUST be 'timestamp' and the value MUST be a numeric value
-representing the current UTC time in nanoseconds since Epoch.*#
+JSON UTF-8 data. It MUST include four key/value pairs. One key MUST be 'online' and it's value is a
+boolean 'false'. One key MUST be 'timestamp' and the value MUST be a numeric value representing the
+current UTC time in nanoseconds since Epoch. One key MUST be 'bd_seq' and the value MUST be as
+defined in the link:#payloads_c_state_bd_seq[STATE bd_seq Number] section. One key MUST be
+'client_id' and the value MUST be the MQTT Client ID of the MQTT session in which the message was
+published, as defined in the link:#payloads_c_state_client_id[STATE client_id] section.*#
 * [tck-testable tck-id-operational-behavior-host-application-death-qos]#[yellow-background]*[tck-id-operational-behavior-host-application-death-qos] The
 Sparkplug Host Application's Death MQTT QoS MUST be 1 (at least once).*#
 * [tck-testable tck-id-operational-behavior-host-application-death-retained]#[yellow-background]*[tck-id-operational-behavior-host-application-death-retained] The

@@ -460,8 +460,11 @@ DREBIRTH, DDATA, DRESP, and DDEATH messages all carry a bd_seq number.
 because the MQTT Server cannot know the Edge Node's current position in either stream when it releases
 the Will Message. It does carry a bd_seq number, because that value is fixed for the whole session and
 is therefore known when the Will Message is registered in the MQTT CONNECT packet.
-***** Non-normative comment: messages published by Sparkplug Host Applications rather than by Edge
-Nodes (NCMD, DCMD, REBIRTH, and STATE) do not carry a bd_seq number.
+***** Non-normative comment: the NCMD, DCMD, and REBIRTH messages published by Sparkplug Host
+Applications do not carry a bd_seq number. A STATE message does carry one, scoping it to the MQTT
+session of the Sparkplug Host Application that published it, but it is a bd_seq number maintained by
+that Host Application and is unrelated to the bd_seq number of any Edge Node. See the
+link:#payloads_c_state_bd_seq[STATE bd_seq Number] section.
 **** [tck-testable tck-id-payloads-bd-sequence-num-req-nbirth]#[yellow-background]*[tck-id-payloads-bd-sequence-num-req-nbirth] Every
 birth/death sequence number included in the payload from an Edge Node MUST always be between 0 and
 18446744073709551615 (inclusive).*#
@@ -2402,9 +2405,13 @@ Sparkplug Host Application MUST set the the MQTT Will QoS to 1 in the MQTT CONNE
 * [tck-testable tck-id-payloads-state-will-message-retain]#[yellow-background]*[tck-id-payloads-state-will-message-retain] The
 Sparkplug Host Application MUST set the Will Retained flag to true in the MQTT CONNECT packet.*#
 * [tck-testable tck-id-payloads-state-will-message-payload]#[yellow-background]*[tck-id-payloads-state-will-message-payload] The
-Death Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
-MUST be 'online' and it's value is a boolean 'false'. The other key MUST be 'timestamp' and the
-value MUST be a numeric value representing the current UTC time in nanoseconds since Epoch.*#
+Death Certificate Payload MUST be JSON UTF-8 data. It MUST include four key/value pairs. One key
+MUST be 'online' and it's value is a boolean 'false'. One key MUST be 'timestamp' and the value MUST
+be a numeric value representing the current UTC time in nanoseconds since Epoch. One key MUST be
+'bd_seq' and the value MUST be a numeric value as defined in the link:#payloads_c_state_bd_seq[STATE
+bd_seq Number] section. One key MUST be 'client_id' and the value MUST be the UTF-8 MQTT Client ID
+that the Sparkplug Host Application used in the MQTT CONNECT packet that registered this Will
+Message.*#
 * [tck-testable tck-id-payloads-state-subscribe]#[yellow-background]*[tck-id-payloads-state-subscribe] After
 establishing an MQTT connection, the Sparkplug Host Application MUST subscribe on it's own
 'spCv4.0/STATE/[sparkplug_host_id]' topic.*#
@@ -2420,10 +2427,97 @@ retain flag set to true.*#
 ** The [sparkplug_host_id] should be replaced with the Sparkplug Host Application's ID. This can be
 any UTF-8 string.
 * [tck-testable tck-id-payloads-state-birth-payload]#[yellow-background]*[tck-id-payloads-state-birth-payload] The
-Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include two key/value pairs where one key
-MUST be 'online' and it's value is a boolean 'true'. The other key MUST be 'timestamp' and the value
+Birth Certificate Payload MUST be JSON UTF-8 data. It MUST include four key/value pairs. One key
+MUST be 'online' and it's value is a boolean 'true'. One key MUST be 'timestamp' and the value
 MUST match the timestamp value that was used in the immediately prior MQTT CONNECT packet Will
-Message payload.*#
+Message payload. One key MUST be 'bd_seq' and the value MUST match the bd_seq value that was used in
+that same Will Message payload. One key MUST be 'client_id' and the value MUST be the UTF-8 MQTT
+Client ID that the Sparkplug Host Application used in that same MQTT CONNECT packet.*#
+
+[[payloads_c_state_bd_seq]]
+===== STATE bd_seq Number
+
+The bd_seq number in a STATE payload scopes that STATE message to a single MQTT session of a
+Sparkplug Host Application, in the same way that the bd_seq number in an Edge Node's payload scopes
+a message to a single MQTT session of that Edge Node. It allows a Sparkplug Host Application's Death
+Certificate to be matched to the Birth Certificate of the session it terminates.
+
+* [tck-testable tck-id-payloads-state-bdseq-included]#[yellow-background]*[tck-id-payloads-state-bdseq-included] A
+bd_seq number MUST be included in every STATE message published by or on behalf of a Sparkplug Host
+Application, including the Death Certificate registered as the MQTT Will Message.*#
+* [tck-testable tck-id-payloads-state-bdseq-range]#[yellow-background]*[tck-id-payloads-state-bdseq-range] The
+bd_seq number in a STATE payload MUST always be between 0 and 18446744073709551615 (inclusive).*#
+* [tck-testable tck-id-payloads-state-bdseq-session-constant]#[yellow-background]*[tck-id-payloads-state-bdseq-session-constant] Every
+STATE message a Sparkplug Host Application publishes within a single MQTT session MUST carry the
+same bd_seq number, and that value MUST be the one registered in the Will Message payload of that
+session's MQTT CONNECT packet.*#
+* [tck-testable tck-id-payloads-state-bdseq-increment]#[yellow-background]*[tck-id-payloads-state-bdseq-increment] The
+bd_seq number MUST start at zero and MUST increment by one on every new MQTT CONNECT packet the
+Sparkplug Host Application sends to a given MQTT Server, until a value of 18446744073709551615 (max
+value of a UINT64) is reached. At that point the bd_seq number of the following MQTT CONNECT packet
+MUST be zero.*#
+** Non-normative comment: these are the same rules that apply to an Edge Node's bd_seq number. As
+with an Edge Node, the bd_seq number is not incremented from message to message within a session.
+* [tck-testable tck-id-payloads-state-bdseq-per-server]#[yellow-background]*[tck-id-payloads-state-bdseq-per-server] A
+Sparkplug Host Application that maintains MQTT sessions with more than one MQTT Server MUST maintain
+an independent bd_seq number for each MQTT Server.*#
+** Non-normative comment: a Sparkplug Host Application establishes and loses sessions with each MQTT
+Server independently, so a single shared counter would advance for reasons unrelated to the server a
+consuming Edge Node is connected to.
+
+[[payloads_c_state_client_id]]
+===== STATE client_id
+
+The client_id in a STATE payload is the MQTT Client ID of the MQTT client that published the
+message.
+
+* [tck-testable tck-id-payloads-state-client-id-included]#[yellow-background]*[tck-id-payloads-state-client-id-included] A
+client_id MUST be included in every STATE message published by or on behalf of a Sparkplug Host
+Application, including the Death Certificate registered as the MQTT Will Message.*#
+* [tck-testable tck-id-payloads-state-client-id-value]#[yellow-background]*[tck-id-payloads-state-client-id-value] The
+client_id value MUST be the UTF-8 MQTT Client ID used in the MQTT CONNECT packet of the MQTT session
+in which the STATE message was published, or, for a Death Certificate registered as a Will Message,
+of the MQTT session in which that Will Message was registered.*#
+** Non-normative comment: a Sparkplug Host Application ID identifies a logical Host Application,
+whereas the MQTT Client ID identifies the MQTT client instance that published a given STATE message.
+Including it makes it possible to see which client instance produced a STATE message.
+** Non-normative comment: the most common practical use of this field is detecting a
+misconfiguration in which two running instances are configured with the same Sparkplug Host
+Application ID. Each instance subscribes to its own STATE topic, so each will be delivered STATE
+messages carrying the other's MQTT Client ID and can report the conflict. Without this field the two
+instances repeatedly displace each other's retained STATE value and the cause is not visible in the
+messages themselves.
+** Non-normative comment: the client_id is not an authentication mechanism. Any MQTT client able to
+publish on the topic can place any value in this field, including the Sparkplug Host Application's
+own MQTT Client ID. See the link:#security_implementation_notes_acls[Access Control Lists] section.
+
+The following is a representation of a Sparkplug Host Application Birth Certificate published on the
+topic:
+
+----
+spCv4.0/STATE/my_host_application
+----
+
+----
+{
+        "online": true,
+        "timestamp": 1486144502122,
+        "bd_seq": 12,
+        "client_id": "my_host_application_client_1"
+}
+----
+
+The corresponding Death Certificate registered as the MQTT Will Message in the same MQTT CONNECT
+packet carries the same timestamp, the same bd_seq number, and the same client_id:
+
+----
+{
+        "online": false,
+        "timestamp": 1486144502122,
+        "bd_seq": 12,
+        "client_id": "my_host_application_client_1"
+}
+----
 
 [[payloads_c_compression]]
 ==== Compression

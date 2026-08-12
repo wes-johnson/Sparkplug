@@ -120,3 +120,52 @@ compromised, the potential harm that could be done by a malicious client would b
 For example, a client would not be able to appear to be as some other client. Subscribing on # would
 not be allowed so the full scope of a Sparkplug topic namespace could not be realized by the
 malicious client with the compromised credentials.
+
+Note that in every example above the Edge Node is granted subscribe access to the Primary Host
+Application's STATE topic and is never granted publish access to it. This is deliberate and it is
+the single most important ACL in a Sparkplug infrastructure.
+
+* [tck-testable tck-id-security-acl-host-state-publish]#[yellow-background]*[tck-id-security-acl-host-state-publish] When
+the MQTT Server supports Access Control Lists, publish access to a Sparkplug Host Application's
+STATE topic SHOULD be granted only to that Sparkplug Host Application.*#
+
+The STATE topic is the mechanism by which Edge Nodes decide whether their Primary Host Application
+is online, and it is published with the MQTT retain flag set, so its value persists until it is
+overwritten. Any MQTT client permitted to publish on a Host Application's STATE topic can therefore
+declare that Host Application offline and cause every Edge Node configured with it as their Primary
+Host Application to terminate its session and walk to another MQTT Server, or declare it online
+while it is in fact absent and cause Edge Nodes to keep publishing to a Host Application that is not
+there.
+
+A Host Application detects and repairs displacement of its own retained STATE value while it is
+connected, as required in the link:#operational_behavior_host_application_own_state[Host Application
+Handling of STATE Messages on its Own Host Application ID] section. That mechanism is recovery, not
+prevention. It cannot close the interval between a spurious publish and the repair, and it cannot
+act at all while the Host Application is offline, because a Host Application that is not connected
+cannot correct its own retained value. An ACL restricting publish access to the STATE topic is the
+only measure that prevents the condition rather than recovering from it.
+
+Note also that an Edge Node cannot distinguish a Death Certificate released by the MQTT Server on
+behalf of a genuinely disconnected Host Application from an identical message published by another
+client. Both are delivered to an established subscription with the MQTT RETAIN flag set to 0, and a
+Host Application's Will Message payload and its online STATE message payload carry the same
+timestamp, bd_seq number, and client_id, so a spurious offline STATE message that reproduces those
+values is indistinguishable in content from the Host Application's own registered Will Message. The
+bd_seq number and client_id in a STATE payload make a careless or accidental publisher identifiable,
+and in particular make a misconfiguration in which two instances share one Sparkplug Host
+Application ID visible, but they are copied from a retained value that any subscriber can read and
+so do not resist a deliberate forgery. No Edge Node behavior can resolve this, which is a further
+reason to control publish access to the topic.
+
+A zero length payload published to a STATE topic with the retain flag set removes the retained
+message from that topic rather than replacing it. This deserves specific attention when configuring
+ACLs, because it leaves the topic with no retained value and therefore nothing for a newly
+connecting Edge Node to evaluate, without publishing any content that a reviewer of message payloads
+would notice.
+
+Finally, note that topic ACLs do not address every way a Host Application's STATE topic can be
+displaced. If another MQTT client is able to connect using the same MQTT Client ID as a Sparkplug
+Host Application, the MQTT Server will terminate that Host Application's session and release its
+Will Message, and the Host Application cannot correct anything while it is disconnected. Sparkplug
+Host Application and Edge Node credentials SHOULD therefore be scoped so that no two MQTT clients
+are able to connect using the same MQTT Client ID.
