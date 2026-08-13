@@ -75,44 +75,110 @@ device_tokens (Sparkplug Device) = D1
 Based on this, the following could be reasonable MQTT ACLs to be provisioned in the MQTT Server for
 the MQTT client associated with this Edge Node:
 ```
-Publish: plantA/spCv4.0/NBIRTH/E1
-Publish: plantA/spCv4.0/NDATA/E1
-Publish: plantA/spCv4.0/NDEATH/E1
-Publish: plantA/spCv4.0/DBIRTH/E1/D1
-Publish: plantA/spCv4.0/DDATA/E1/D1
-Publish: plantA/spCv4.0/DDEATH/E1/D1
-Subscribe: spCv4.0/STATE/my_primary_host
+Publish:   plantA/spCv4.0/NMETA/E1
+Publish:   plantA/spCv4.0/NMMETA/E1
+Publish:   plantA/spCv4.0/NBIRTH/E1
+Publish:   plantA/spCv4.0/NREBIRTH/E1
+Publish:   plantA/spCv4.0/NDATA/E1
+Publish:   plantA/spCv4.0/NRESP/E1
+Publish:   plantA/spCv4.0/NDEATH/E1
+Publish:   plantA/spCv4.0/DMETA/E1/D1
+Publish:   plantA/spCv4.0/DMMETA/E1/D1
+Publish:   plantA/spCv4.0/DBIRTH/E1/D1
+Publish:   plantA/spCv4.0/DREBIRTH/E1/D1
+Publish:   plantA/spCv4.0/DDATA/E1/D1
+Publish:   plantA/spCv4.0/DRESP/E1/D1
+Publish:   plantA/spCv4.0/DDEATH/E1/D1
+Subscribe: plantA/spCv4.0/REBIRTH/E1
 Subscribe: plantA/spCv4.0/NCMD/E1
 Subscribe: plantA/spCv4.0/DCMD/E1/D1
+Subscribe: plantA/spCv4.0/NMETA/E1
+Subscribe: plantA/spCv4.0/DMETA/E1/D1
+Subscribe: spCv4.0/STATE/my_primary_host
 ```
+
+Three of these are easy to overlook. The subscription on REBIRTH is mandatory, because an Edge Node
+must be able to respond to a Rebirth Request. The subscriptions on the Edge Node's own NMETA topic
+and on each of its Devices' DMETA topics are also mandatory, and they are subscriptions on topics
+that the same Edge Node publishes, which an Edge Node uses to determine whether the MQTT Server
+already holds a retained NMETA or DMETA carrying the current definition identifier. Without them an
+Edge Node cannot perform the reconnect optimization and cannot complete a conformant BIRTH sequence.
+
+Some of the publish entries are only required for optional behavior. NRESP and DRESP are needed only
+by an Edge Node that exposes Command metrics, and NMMETA and DMMETA only by an Edge Node that
+changes its metric structure while online. An Edge Node that does neither does not need them.
 
 However, there may be other considerations when creating ACLs for clients. It may be the case that
 an Edge Node has many dynamic associated devices. In this case, it may make sense to wildcard the
-device level topic token. For example, it could look like this:
+device level topic token. Note that device_tokens may be more than one topic level deep, so a multi
+level wildcard is used here rather than a single level wildcard:
 ```
-Publish: plantA/spCv4.0/NBIRTH/E1
-Publish: plantA/spCv4.0/NDATA/E1
-Publish: plantA/spCv4.0/NDEATH/E1
-Publish: plantA/spCv4.0/DBIRTH/E1/+
-Publish: plantA/spCv4.0/DDATA/E1/+
-Publish: plantA/spCv4.0/DDEATH/E1/+
-Subscribe: spCv4.0/STATE/my_primary_host
+Publish:   plantA/spCv4.0/NMETA/E1
+Publish:   plantA/spCv4.0/NMMETA/E1
+Publish:   plantA/spCv4.0/NBIRTH/E1
+Publish:   plantA/spCv4.0/NREBIRTH/E1
+Publish:   plantA/spCv4.0/NDATA/E1
+Publish:   plantA/spCv4.0/NRESP/E1
+Publish:   plantA/spCv4.0/NDEATH/E1
+Publish:   plantA/spCv4.0/DMETA/E1/#
+Publish:   plantA/spCv4.0/DMMETA/E1/#
+Publish:   plantA/spCv4.0/DBIRTH/E1/#
+Publish:   plantA/spCv4.0/DREBIRTH/E1/#
+Publish:   plantA/spCv4.0/DDATA/E1/#
+Publish:   plantA/spCv4.0/DRESP/E1/#
+Publish:   plantA/spCv4.0/DDEATH/E1/#
+Subscribe: plantA/spCv4.0/REBIRTH/E1
 Subscribe: plantA/spCv4.0/NCMD/E1
-Subscribe: plantA/spCv4.0/DCMD/E1/+
+Subscribe: plantA/spCv4.0/DCMD/E1/#
+Subscribe: plantA/spCv4.0/NMETA/E1
+Subscribe: plantA/spCv4.0/DMETA/E1/#
+Subscribe: spCv4.0/STATE/my_primary_host
 ```
 
 Also, it may be the case that DCMD messages should not be 'writable'. In this case, maybe DCMD
-subscriptions should not be allowed at all. In this case, the ACLs could look like this:
+subscriptions should not be allowed at all. In this case, the DCMD subscription is removed and the
+rest of the ACLs are unchanged:
 ```
-Publish: plantA/spCv4.0/NBIRTH/E1
-Publish: plantA/spCv4.0/NDATA/E1
-Publish: plantA/spCv4.0/NDEATH/E1
-Publish: plantA/spCv4.0/DBIRTH/E1/+
-Publish: plantA/spCv4.0/DDATA/E1/+
-Publish: plantA/spCv4.0/DDEATH/E1/+
-Subscribe: spCv4.0/STATE/my_primary_host
+Subscribe: plantA/spCv4.0/REBIRTH/E1
 Subscribe: plantA/spCv4.0/NCMD/E1
+Subscribe: plantA/spCv4.0/NMETA/E1
+Subscribe: plantA/spCv4.0/DMETA/E1/#
+Subscribe: spCv4.0/STATE/my_primary_host
 ```
+
+Note that the REBIRTH subscription cannot be removed in the same way. Denying it would prevent the
+Edge Node from responding to a Rebirth Request, which every Edge Node is required to be able to do,
+so an Edge Node provisioned without it is not conformant. Restricting which Host Applications may
+publish a Rebirth Request is done through the ACLs of those Host Applications rather than through
+the Edge Node's subscription.
+
+ACLs for a Sparkplug Host Application follow the same approach. Consider a Host Application with the
+Sparkplug Host Application ID 'my_primary_host' that consumes the 'plantA' namespace and sends
+commands to it:
+```
+Publish:   spCv4.0/STATE/my_primary_host
+Subscribe: spCv4.0/STATE/my_primary_host
+Subscribe: plantA/spCv4.0/#
+Publish:   plantA/spCv4.0/REBIRTH/+
+Publish:   plantA/spCv4.0/NCMD/+
+Publish:   plantA/spCv4.0/DCMD/#
+```
+
+The first two entries are the ones that matter most. A Sparkplug Host Application is the only client
+with a legitimate reason to publish on its own STATE topic, and it is required to subscribe to that
+same topic so that it can detect and repair displacement of the retained value. Note that the entry
+granting it publish access names its own STATE topic specifically. An entry of the form
+'spCv4.0/STATE/#' would additionally grant it publish access to every other Host Application's STATE
+topic, which would let it displace their retained STATE values. The consequences of that are
+described in the
+link:#operational_behavior_host_application_own_state_limits[Limits of Retained STATE Restoration]
+section.
+
+A Host Application that only consumes data needs neither the REBIRTH, NCMD, nor DCMD publish
+entries. A Host Application that is interested in a single Sparkplug Device rather than a whole
+namespace can narrow the subscription accordingly, as described in the
+link:#operational_behavior_host_application_partial_subscriptions[Host Applications with Partial
+Subscriptions] section, though it must retain the subscriptions that section requires.
 
 By using ACLs in this way, the access each Edge Node has is restricted to only topics that it should
 be able to publish and subscribe on. If the client credentials for some Edge Node were to be
@@ -121,13 +187,13 @@ For example, a client would not be able to appear to be as some other client. Su
 not be allowed so the full scope of a Sparkplug topic namespace could not be realized by the
 malicious client with the compromised credentials.
 
-Note that in every example above the Edge Node is granted subscribe access to the Primary Host
-Application's STATE topic and is never granted publish access to it. This is deliberate and it is
-the single most important ACL in a Sparkplug infrastructure.
-
-* [tck-testable tck-id-security-acl-host-state-publish]#[yellow-background]*[tck-id-security-acl-host-state-publish] When
-the MQTT Server supports Access Control Lists, publish access to a Sparkplug Host Application's
-STATE topic SHOULD be granted only to that Sparkplug Host Application.*#
+Note that in every Edge Node example above the Edge Node is granted subscribe access to the Primary
+Host Application's STATE topic and is never granted publish access to it. This is deliberate, and it
+is the single most important ACL in a Sparkplug infrastructure. Restricting publish access on a
+Sparkplug Host Application's STATE topic to that Host Application alone is the only measure that
+prevents the conditions described in the
+link:#operational_behavior_host_application_own_state_limits[Limits of Retained STATE Restoration]
+section, rather than recovering from them after they have occurred.
 
 The STATE topic is the mechanism by which Edge Nodes decide whether their Primary Host Application
 is online, and it is published with the MQTT retain flag set, so its value persists until it is
@@ -166,6 +232,7 @@ would notice.
 Finally, note that topic ACLs do not address every way a Host Application's STATE topic can be
 displaced. If another MQTT client is able to connect using the same MQTT Client ID as a Sparkplug
 Host Application, the MQTT Server will terminate that Host Application's session and release its
-Will Message, and the Host Application cannot correct anything while it is disconnected. Sparkplug
-Host Application and Edge Node credentials SHOULD therefore be scoped so that no two MQTT clients
-are able to connect using the same MQTT Client ID.
+Will Message, and the Host Application cannot correct anything while it is disconnected. Scoping
+Sparkplug Host Application and Edge Node credentials so that no two MQTT clients are able to connect
+using the same MQTT Client ID closes this, and is worth considering alongside the topic ACLs
+themselves.
