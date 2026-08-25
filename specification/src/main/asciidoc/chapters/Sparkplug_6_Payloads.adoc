@@ -325,17 +325,33 @@ message Payload {
         extensions 16 to max;
     }
 
-    optional uint64   timestamp     = 1;        // Timestamp at message sending time
-    repeated Metric   metrics       = 2;        // Repeated forever - no limit in Google Protobufs
-    optional uint64   seq           = 3;        // Message sequence number - ordered stream of all messages from the Edge Node
-    optional uint64   bd_seq        = 4;        // The Birth/Death sequence number - scopes this message to the MQTT session it was published in
-    optional string   source        = 5;        // Source for CMD and REBIRTH messages - the Host Application ID that sent the message
-    optional string   uuid          = 6;        // UUID to track message type in terms of schema definitions
-    optional bytes    body          = 7;        // To optionally bypass the whole definition above
-    optional string   definition_id          = 8; // Definition identifier: content hash of the metric definitions this message reports against
-    optional string   previous_definition_id = 9; // NMMETA/DMMETA only: the definition_id in effect before the change
-    optional uint64   descriptor_seq         = 10; // Descriptor sequence number - ordered stream per Sparkplug Descriptor (the Edge Node Descriptor for Edge Node messages, or a Device Descriptor for Device messages)
-    extensions                      11 to max;  // For third party extensions
+    message Header {
+        optional uint64 timestamp              = 1;  // Timestamp at message sending time
+        optional uint64 seq                    = 2;  // Message sequence number - ordered stream of all messages from the Edge Node
+        optional uint64 bd_seq                 = 3;  // The Birth/Death sequence number - scopes this message to the MQTT session it was published in
+        optional uint64 descriptor_seq         = 4;  // Descriptor sequence number - ordered stream per Sparkplug Descriptor (the Edge Node Descriptor for Edge Node messages, or a Device Descriptor for Device messages)
+        optional string definition_id          = 5;  // Definition identifier: content hash of the metric definitions this message reports against
+        optional string previous_definition_id = 6;  // NMMETA/DMMETA only: the definition_id in effect before the change
+        optional string source                 = 7;  // Source for CMD and REBIRTH messages - the Host Application ID that sent the message
+        optional string uuid                   = 8;  // UUID to track message type in terms of schema definitions
+        optional string compression_algorithm  = 9;  // Present only when the content section is compressed - names the algorithm used
+        extensions                             10 to max;  // For third party extensions
+    }
+
+    message Content {
+        repeated Metric metrics = 1;                 // Repeated forever - no limit in Google Protobufs
+        optional bytes  body    = 2;                 // To optionally bypass the whole definition above
+        extensions              3 to max;            // For third party extensions
+    }
+
+    optional Header header = 1;                 // Always present and always uncompressed
+
+    oneof content {
+        Content plain      = 2;                 // The Content of this message, uncompressed
+        bytes   compressed = 3;                 // The compressed bytes of a serialized Content
+    }
+
+    extensions             4 to max;            // For third party extensions
 }
 ----
 
@@ -350,15 +366,22 @@ JSON as follows:
 
 ----
 {
-        "timestamp": <timestamp>,
-        "metrics": [{
-                "name": <metric_name>,
-                "alias": <alias>,
+        "header": {
                 "timestamp": <timestamp>,
-                "dataType": <datatype>,
-                "value": <value>
-        }],
-        "seq": <sequence_number>
+                "seq": <sequence_number>,
+                "bd_seq": <birth_death_sequence_number>,
+                "descriptor_seq": <descriptor_sequence_number>,
+                "definition_id": <definition_identifier>
+        },
+        "content": {
+                "metrics": [{
+                        "name": <metric_name>,
+                        "alias": <alias>,
+                        "timestamp": <timestamp>,
+                        "dataType": <datatype>,
+                        "value": <value>
+                }]
+        }
 }
 ----
 
@@ -366,15 +389,22 @@ A simple Sparkplug B payload with values would be represented as follows:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "My Metric",
-                "alias": 1,
-                "timestamp": 1479123452194,
-                "dataType": "String",
-                "value": "Test"
-        }],
-        "seq": 2
+        "header": {
+                "timestamp": 1486144502122,
+                "seq": 2,
+                "bd_seq": 0,
+                "descriptor_seq": 1,
+                "definition_id": "9f2c...e2"
+        },
+        "content": {
+                "metrics": [{
+                        "name": "My Metric",
+                        "alias": 1,
+                        "timestamp": 1479123452194,
+                        "dataType": "String",
+                        "value": "Test"
+                }]
+        }
 }
 ----
 
@@ -408,21 +438,62 @@ following definitions explain the components that make up a payload.
 [[payloads_c_payload]]
 ==== Payload
 
-A Sparkplug B payload is the top-level component that is encoded and used in an MQTT message. It
-contains some basic information such as an overall payload timestamp and a sequence number as well
-as an array of metrics which contain key/value pairs of data. A Sparkplug B payload includes the
-following components.
+A Sparkplug payload is the top-level component that is encoded and used in an MQTT message. It is
+divided into two sections. The _header_ carries the information a consuming application needs in
+order to place the message in context, such as the overall payload timestamp, the sequence numbers,
+and the definition identifier. The _content_ carries the metrics themselves. Both sections are
+length delimited, so a consuming application that only requires the header can decode it without
+decoding the content.
 
-* *payload*
+* [tck-testable tck-id-payloads-header-present]#[yellow-background]*[tck-id-payloads-header-present] Every
+Sparkplug payload MUST include a header.*#
+** Non-normative comment: this applies to every message that carries a Sparkplug payload, which is
+every message type other than STATE. A STATE message is JSON UTF-8 data published by a Sparkplug
+Host Application and does not use a Sparkplug payload at all, so it has neither a header nor a
+content section. Its required contents are defined in the link:#payloads_c_state[STATE] section.
+* [tck-testable tck-id-payloads-header-first]#[yellow-background]*[tck-id-payloads-header-first] A
+publishing application MUST serialize the header section before the content section.*#
+** Non-normative comment: Google Protocol Buffers implementations serialize fields in ascending
+field number order by default, and the header is field number 1, so this ordering is what a
+publishing application produces without doing anything specific to achieve it. It is stated as a
+requirement because the Google Protocol Buffers encoding does not itself guarantee an ordering.
+* [tck-testable tck-id-payloads-header-reader-tolerant]#[yellow-background]*[tck-id-payloads-header-reader-tolerant] A
+consuming application MUST correctly decode a Sparkplug payload regardless of the order in which its
+sections appear on the wire.*#
+** Non-normative comment: decoding only the header is an optimization that a consuming application
+MAY apply, not a rule for parsing. A consuming application that stops decoding once it has the
+header must still be able to fall back to decoding the whole payload.
+* Non-normative comment: a consuming application that only requires the header can declare the
+content as an opaque byte string rather than as a Content message, because a length delimited
+submessage and a byte string are the same thing on the wire. Doing so lets it use generated decoding
+code and leaves the content undecoded:
++
+----
+message Payload {
+    optional Header header  = 1;
+    optional bytes  content = 2;
+}
+----
++
+* Non-normative comment: this is what makes it inexpensive for a consuming application to evaluate a
+message before deciding whether to process it. A Host Application can read the descriptor sequence
+number to determine whether a message belongs to a stream it is tracking, the bd_seq number to
+determine whether it belongs to a session it currently holds, or the definition identifier to
+determine whether it already holds the metric structure the message reports against, without
+decoding any metrics.
+
+[[payloads_c_payload_header]]
+===== Header
+
+The header section includes the following components.
+
+* *header*
 ** _timestamp_
 *** This is the timestamp in the form of an unsigned 64-bit integer representing the number of
 nanoseconds since epoch (Jan 1, 1970).
 *** [tck-testable tck-id-payloads-timestamp-in-UTC]#[yellow-background]*[tck-id-payloads-timestamp-in-UTC] This
 timestamp MUST be in UTC.*#
 *** This timestamp represents the time at which the message was published.
-** _metrics_
-*** This is an array of metrics representing key/value/datatype values. Metrics are further defined 
-link:#payloads_c_metric[here].
 ** _seq_
 *** This is the sequence number which is an unsigned 64-bit integer.
 **** [tck-testable tck-id-payloads-sequence-num-always-included]#[yellow-background]*[tck-id-payloads-sequence-num-always-included] A
@@ -512,6 +583,12 @@ sequence number MUST be 0.*#
 NREBIRTH or DREBIRTH slip-streams a Host Application into the existing data stream and MUST NOT reset
 the descriptor sequence stream. It MUST carry the next incrementing descriptor sequence number,
 continuing the stream like any other message.*#
+** _definition_id_
+*** This is the definition identifier, a content hash of the metric definitions this message reports
+against. It is defined in the link:#payloads_c_definition_identifier[Definition Identifier] section.
+** _previous_definition_id_
+*** This is the definition identifier that was in effect immediately before the change conveyed by
+an NMMETA or DMMETA message. It is only present in those messages.
 ** _source_
 *** This is the source field which represents the Sparkplug Host Application ID of the publisher for
 NCMD, DCMD, and REBIRTH messages
@@ -525,6 +602,23 @@ message.*#
 *** This is a field which can be used to represent a schema or some other specific form of the
 message. Example usage would be to supply a UUID which represents an encoding mechanism of the
 optional array of bytes associated with a payload.
+** _compression_algorithm_
+*** This names the algorithm used to compress the content section, and is present only when the
+content section is compressed. It is defined in the link:#payloads_c_compression[Compression]
+section.
+
+[[payloads_c_payload_content]]
+===== Content
+
+The content section carries the metrics of the message. It is the section that a consuming
+application can leave undecoded when it only requires the header, and it is the section that is
+compressed when Sparkplug compression is used, as described in the
+link:#payloads_c_compression[Compression] section.
+
+* *content*
+** _metrics_
+*** This is an array of metrics representing key/value/datatype values. Metrics are further defined
+link:#payloads_c_metric[here].
 ** _body_
 *** This is an array of bytes which can be used for any custom binary encoded data.
 
@@ -1475,47 +1569,52 @@ Consider the following Sparkplug B payload in the NBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Node Control/Reboot",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Rebirth",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Next Server",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Scan Rate",
-                "timestamp": 1486144502122,
-                "value": 3000
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }, {
-                "name": "Properties/Hardware Model",
-                "timestamp": 1486144502122,
-                "value": "EdgeGate 2000"
-        }, {
-                "name": "Properties/OS",
-                "timestamp": 1486144502122,
-                "value": "Linux"
-        }, {
-                "name": "Properties/OS Version",
-                "timestamp": 1486144502122,
-                "value": "6.1"
-        }, {
-                "name": "Supply Voltage",
-                "timestamp": 1486144502122,
-                "value": 12.1
-        }],
-        "seq": 0,
-        "bd_seq": 0
+                "definition_id": "9f2c...e2",
+                "seq": 0,
+                "descriptor_seq": 0,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Node Control/Reboot",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Rebirth",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Next Server",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Scan Rate",
+                        "timestamp": 1486144502122,
+                        "value": 3000
+                }, {
+                        "name": "Properties/Hardware Make",
+                        "timestamp": 1486144502122,
+                        "value": "Acme"
+                }, {
+                        "name": "Properties/Hardware Model",
+                        "timestamp": 1486144502122,
+                        "value": "EdgeGate 2000"
+                }, {
+                        "name": "Properties/OS",
+                        "timestamp": 1486144502122,
+                        "value": "Linux"
+                }, {
+                        "name": "Properties/OS Version",
+                        "timestamp": 1486144502122,
+                        "value": "6.1"
+                }, {
+                        "name": "Supply Voltage",
+                        "timestamp": 1486144502122,
+                        "value": 12.1
+                }]
+        }
 }
 ----
 
@@ -1594,47 +1693,52 @@ Consider the following Sparkplug B payload in the NREBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Node Control/Reboot",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Rebirth",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Next Server",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Node Control/Scan Rate",
-                "timestamp": 1486144502122,
-                "value": 3000
-        }, {
-                "name": "Properties/Hardware Make",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }, {
-                "name": "Properties/Hardware Model",
-                "timestamp": 1486144502122,
-                "value": "EdgeGate 2000"
-        }, {
-                "name": "Properties/OS",
-                "timestamp": 1486144502122,
-                "value": "Linux"
-        }, {
-                "name": "Properties/OS Version",
-                "timestamp": 1486144502122,
-                "value": "6.1"
-        }, {
-                "name": "Supply Voltage",
-                "timestamp": 1486144502122,
-                "value": 12.1
-        }],
-        "seq": 0,
-        "bd_seq": 0
+                "definition_id": "9f2c...e2",
+                "seq": 0,
+                "descriptor_seq": 4,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Node Control/Reboot",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Rebirth",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Next Server",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Node Control/Scan Rate",
+                        "timestamp": 1486144502122,
+                        "value": 3000
+                }, {
+                        "name": "Properties/Hardware Make",
+                        "timestamp": 1486144502122,
+                        "value": "Acme"
+                }, {
+                        "name": "Properties/Hardware Model",
+                        "timestamp": 1486144502122,
+                        "value": "EdgeGate 2000"
+                }, {
+                        "name": "Properties/OS",
+                        "timestamp": 1486144502122,
+                        "value": "Linux"
+                }, {
+                        "name": "Properties/OS Version",
+                        "timestamp": 1486144502122,
+                        "value": "6.1"
+                }, {
+                        "name": "Supply Voltage",
+                        "timestamp": 1486144502122,
+                        "value": 12.1
+                }]
+        }
 }
 ----
 
@@ -1694,47 +1798,52 @@ Consider the following Sparkplug B payload in the DBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "a1c9...77",
-        "metrics": [{
-                "name": "Running",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Faulted",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Speed",
-                "timestamp": 1486144502122,
-                "value": 0
-        }, {
-                "name": "Fill/Setpoint",
-                "timestamp": 1486144502122,
-                "value": 500.0
-        }, {
-                "name": "Fill/Actual",
-                "timestamp": 1486144502122,
-                "value": 0.0
-        }, {
-                "name": "Temperature",
-                "timestamp": 1486144502122,
-                "value": 21.5
-        }, {
-                "name": "Motor/Run",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Motor/Speed Setpoint",
-                "timestamp": 1486144502122,
-                "value": 0
-        }, {
-                "name": "Properties/Manufacturer",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }],
-        "seq": 1,
-        "bd_seq": 0
+                "definition_id": "a1c9...77",
+                "seq": 1,
+                "descriptor_seq": 0,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Running",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Faulted",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Speed",
+                        "timestamp": 1486144502122,
+                        "value": 0
+                }, {
+                        "name": "Fill/Setpoint",
+                        "timestamp": 1486144502122,
+                        "value": 500.0
+                }, {
+                        "name": "Fill/Actual",
+                        "timestamp": 1486144502122,
+                        "value": 0.0
+                }, {
+                        "name": "Temperature",
+                        "timestamp": 1486144502122,
+                        "value": 21.5
+                }, {
+                        "name": "Motor/Run",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Motor/Speed Setpoint",
+                        "timestamp": 1486144502122,
+                        "value": 0
+                }, {
+                        "name": "Properties/Manufacturer",
+                        "timestamp": 1486144502122,
+                        "value": "Acme"
+                }]
+        }
 }
 ----
 
@@ -1792,47 +1901,52 @@ Consider the following Sparkplug B payload in the DREBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "a1c9...77",
-        "metrics": [{
-                "name": "Running",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Faulted",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Speed",
-                "timestamp": 1486144502122,
-                "value": 0
-        }, {
-                "name": "Fill/Setpoint",
-                "timestamp": 1486144502122,
-                "value": 500.0
-        }, {
-                "name": "Fill/Actual",
-                "timestamp": 1486144502122,
-                "value": 0.0
-        }, {
-                "name": "Temperature",
-                "timestamp": 1486144502122,
-                "value": 21.5
-        }, {
-                "name": "Motor/Run",
-                "timestamp": 1486144502122,
-                "value": false
-        }, {
-                "name": "Motor/Speed Setpoint",
-                "timestamp": 1486144502122,
-                "value": 0
-        }, {
-                "name": "Properties/Manufacturer",
-                "timestamp": 1486144502122,
-                "value": "Acme"
-        }],
-        "seq": 1,
-        "bd_seq": 0
+                "definition_id": "a1c9...77",
+                "seq": 1,
+                "descriptor_seq": 4,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Running",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Faulted",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Speed",
+                        "timestamp": 1486144502122,
+                        "value": 0
+                }, {
+                        "name": "Fill/Setpoint",
+                        "timestamp": 1486144502122,
+                        "value": 500.0
+                }, {
+                        "name": "Fill/Actual",
+                        "timestamp": 1486144502122,
+                        "value": 0.0
+                }, {
+                        "name": "Temperature",
+                        "timestamp": 1486144502122,
+                        "value": 21.5
+                }, {
+                        "name": "Motor/Run",
+                        "timestamp": 1486144502122,
+                        "value": false
+                }, {
+                        "name": "Motor/Speed Setpoint",
+                        "timestamp": 1486144502122,
+                        "value": 0
+                }, {
+                        "name": "Properties/Manufacturer",
+                        "timestamp": 1486144502122,
+                        "value": "Acme"
+                }]
+        }
 }
 ----
 
@@ -1889,15 +2003,20 @@ Consider the following Sparkplug B payload in the NDATA message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "9f2c...e2",
-        "metrics": [{
-                "name": "Supply Voltage",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": 12.3
-        }],
-        "seq": 2,
-        "bd_seq": 0
+                "definition_id": "9f2c...e2",
+                "seq": 2,
+                "descriptor_seq": 1,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Supply Voltage",
+                        "timestamp": 1486144502122,
+                        "value": 12.3
+                }]
+        }
 }
 ----
 
@@ -1948,19 +2067,24 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "definition_id": "a1c9...77",
-        "metrics": [{
-                "name": "Running",
+        "header": {
                 "timestamp": 1486144502122,
-                "value": true
-        }, {
-                "name": "Speed",
-                "timestamp": 1486144502122,
-                "value": 120
-        }],
-        "seq": 0,
-        "bd_seq": 0
+                "definition_id": "a1c9...77",
+                "seq": 0,
+                "descriptor_seq": 1,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Running",
+                        "timestamp": 1486144502122,
+                        "value": true
+                }, {
+                        "name": "Speed",
+                        "timestamp": 1486144502122,
+                        "value": 120
+                }]
+        }
 }
 ----
 
@@ -1999,8 +2123,10 @@ Consider the following Sparkplug B payload in the REBIRTH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "source" : "IamHost"
+        "header": {
+                "timestamp": 1486144502122,
+                "source" : "IamHost"
+        }
 }
 ----
 
@@ -2046,14 +2172,18 @@ Consider the following Sparkplug B payload in the NCMD message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "DIGITAL_OUT_1",
+        "header": {
                 "timestamp": 1486144502122,
-                "dataType": "Boolean",
-                "value": true
-        }],
-        "source": "IamHost"
+                "source": "IamHost"
+        },
+        "content": {
+                "metrics": [{
+                        "name": "DIGITAL_OUT_1",
+                        "timestamp": 1486144502122,
+                        "dataType": "Boolean",
+                        "value": true
+                }]
+        }
 }
 ----
 
@@ -2073,21 +2203,25 @@ The following is a representation of an NCMD payload that invokes the 'Calibrate
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "Calibrate",
+        "header": {
                 "timestamp": 1486144502122,
-                "dataType": "Command",
-                "command": {
-                        "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
-                        "arguments": [{
-                                "name": "channel",
-                                "dataType": "Int32",
-                                "value": 1
-                        }]
-                }
-        }],
-        "source": "IamHost"
+                "source": "IamHost"
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Calibrate",
+                        "timestamp": 1486144502122,
+                        "dataType": "Command",
+                        "command": {
+                                "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
+                                "arguments": [{
+                                        "name": "channel",
+                                        "dataType": "Int32",
+                                        "value": 1
+                                }]
+                        }
+                }]
+        }
 }
 ----
 
@@ -2133,19 +2267,23 @@ Consider the following Sparkplug B payload in the DCMD message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "Motor/Run",
+        "header": {
                 "timestamp": 1486144502122,
-                "dataType": "Boolean",
-                "value": true
-        }, {
-                "name": "Motor/Speed Setpoint",
-                "timestamp": 1486144502122,
-                "dataType": "Int32",
-                "value": 120
-        }],
-        "source": "IamHost"
+                "source": "IamHost"
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Motor/Run",
+                        "timestamp": 1486144502122,
+                        "dataType": "Boolean",
+                        "value": true
+                }, {
+                        "name": "Motor/Speed Setpoint",
+                        "timestamp": 1486144502122,
+                        "dataType": "Int32",
+                        "value": 120
+                }]
+        }
 }
 ----
 
@@ -2191,25 +2329,31 @@ Consider the following Sparkplug B payload in the NRESP message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "Calibrate",
+        "header": {
                 "timestamp": 1486144502122,
-                "dataType": "Command",
-                "command": {
-                        "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
-                        "status": {
-                                "code": 0,
-                                "message": "OK"
-                        },
-                        "results": [{
-                                "name": "offset",
-                                "dataType": "Double",
-                                "value": 0.125
-                        }]
-                }
-        }],
-        "bd_seq": 0
+                "seq": 3,
+                "descriptor_seq": 2,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Calibrate",
+                        "timestamp": 1486144502122,
+                        "dataType": "Command",
+                        "command": {
+                                "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
+                                "status": {
+                                        "code": 0,
+                                        "message": "OK"
+                                },
+                                "results": [{
+                                        "name": "offset",
+                                        "dataType": "Double",
+                                        "value": 0.125
+                                }]
+                        }
+                }]
+        }
 }
 ----
 
@@ -2249,20 +2393,26 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "metrics": [{
-                "name": "Reset",
+        "header": {
                 "timestamp": 1486144502122,
-                "dataType": "Command",
-                "command": {
-                        "correlation_id": "a1b2c3d4-0001",
-                        "status": {
-                                "code": 1,
-                                "message": "Device busy"
+                "seq": 4,
+                "descriptor_seq": 2,
+                "bd_seq": 0
+        },
+        "content": {
+                "metrics": [{
+                        "name": "Reset",
+                        "timestamp": 1486144502122,
+                        "dataType": "Command",
+                        "command": {
+                                "correlation_id": "a1b2c3d4-0001",
+                                "status": {
+                                        "code": 1,
+                                        "message": "Device busy"
+                                }
                         }
-                }
-        }],
-        "bd_seq": 0
+                }]
+        }
 }
 ----
 
@@ -2337,8 +2487,10 @@ Consider the following Sparkplug B payload in the NDEATH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "bd_seq": 0
+        "header": {
+                "timestamp": 1486144502122,
+                "bd_seq": 0
+        }
 }
 ----
 
@@ -2378,9 +2530,12 @@ Consider the following Sparkplug B payload in the DDEATH message shown above:
 
 ----
 {
-        "timestamp": 1486144502122,
-        "seq": 123,
-        "bd_seq": 0
+        "header": {
+                "timestamp": 1486144502122,
+                "seq": 123,
+                "descriptor_seq": 3,
+                "bd_seq": 0
+        }
 }
 ----
 
@@ -2522,25 +2677,75 @@ packet carries the same timestamp, the same bd_seq number, and the same client_i
 [[payloads_c_compression]]
 ==== Compression
 
-Sparkplug payloads may optionally be compressed to further improve bandwidth utilization. If using
-compression, the following is required.
+Sparkplug payloads may optionally be compressed to further improve bandwidth utilization.
+Compression applies to the content section of a payload only. The header section is never
+compressed, so a consuming application can read the header of a compressed payload without
+decompressing anything.
 
-// FIXME - what payloads can be compressed?
+A compressed payload carries its content in the compressed field of the content oneof rather than in
+the plain field. Which of the two is present is therefore evident from the payload itself, and no
+separate marker is required.
 
-// FIXME - should we specify possible algorithms?
-* [tck-testable tck-id-payloads-compression-algorithm-metric]#[yellow-background]*[tck-id-payloads-compression-algorithm-metric] When using
-Sparkplug compression, the payload MUST include a single Metric with the name 'algorithm', the current
-timestamp, a datatype of 'String', and a String value denoting the algorithm used in compressing the
-original payload.*#
-* [tck-testable tck-id-payloads-compression-seq-num]#[yellow-background]*[tck-id-payloads-compression-seq-num] When
-using Sparkplug compression, the payload MUST include a valid seq number.*#
-// FIXME - are there other considerations around UUIDs?
-* [tck-testable tck-id-payloads-compression-uuid]#[yellow-background]*[tck-id-payloads-compression-uuid] When
-using Sparkplug compression, the payload MUST include a UUID with the String value of
-'SPCV1.0_COMPRESSED'.*#
-* [tck-testable tck-id-payloads-compression-body]#[yellow-background]*[tck-id-payloads-compression-body] When
-using Sparkplug compression, the payload MUST include a body that is the byte array representing the
-compressed bytes of the original non-compressed payload.*#
+* [tck-testable tck-id-payloads-compression-content-only]#[yellow-background]*[tck-id-payloads-compression-content-only] When
+using Sparkplug compression, the compressed field of a payload MUST contain the compressed bytes of
+a serialized Content message, and the plain field MUST NOT be present.*#
+* [tck-testable tck-id-payloads-compression-header-uncompressed]#[yellow-background]*[tck-id-payloads-compression-header-uncompressed] The
+header section of a payload MUST NOT be compressed.*#
+** Non-normative comment: this is what allows a Host Application to evaluate the sequence numbers
+and the definition identifier of a compressed message, and to decide whether the message is of
+interest, without the cost of decompressing it.
+* [tck-testable tck-id-payloads-compression-algorithm]#[yellow-background]*[tck-id-payloads-compression-algorithm] When
+using Sparkplug compression, the header MUST include a compression_algorithm whose value is the name
+of the algorithm used to compress the content, for example 'DEFLATE' or 'GZIP'.*#
+** [tck-testable tck-id-payloads-compression-algorithm-absent]#[yellow-background]*[tck-id-payloads-compression-algorithm-absent] A
+payload whose content section is not compressed MUST NOT include a compression_algorithm.*#
+** Non-normative comment: the algorithm is carried in a dedicated header field rather than as a
+metric so that a consuming application can determine whether it is able to decompress a message
+before decompressing it. In earlier versions of this specification the algorithm was carried as a
+metric inside the payload being compressed, which required the payload to be decompressed in order
+to discover how to decompress it.
+** Non-normative comment: the value names the algorithm only. Whether the content is compressed at
+all is already carried by which field of the content oneof is present, so no marker value is
+required in this field.
+* [tck-testable tck-id-payloads-compression-algorithm-support]#[yellow-background]*[tck-id-payloads-compression-algorithm-support] A
+consuming application that is delivered a compressed payload whose algorithm it does not support
+MUST NOT treat the payload as malformed, and MUST NOT apply the message to the state it holds for
+the Sparkplug Descriptor the message refers to.*#
+** Non-normative comment: because the header is readable, such a consuming application still knows
+which Descriptor and which sequence numbers the message pertains to, and can therefore issue a
+Rebirth Request rather than silently losing synchronization.
+* [tck-testable tck-id-payloads-compression-header-complete]#[yellow-background]*[tck-id-payloads-compression-header-complete] When
+using Sparkplug compression, the header MUST include every field that would have been required had
+the payload not been compressed, including the sequence numbers and the definition identifier.*#
+
+Non-normative comment: compression is most useful on payloads whose content section is large, such
+as an NMETA or DMETA that describes a large metric structure, or a BIRTH that reports a large number
+of values. On a small DATA message the compressed representation of the content may be larger than
+the original, and the header and framing are not compressible in any case.
+
+The following is the NDATA message shown earlier in this chapter, with its content section
+compressed. The header is identical to the uncompressed form apart from the addition of the
+compression_algorithm, the plain field is absent, and the compressed field holds the deflated bytes
+of the serialized Content:
+
+----
+{
+        "header": {
+                "timestamp": 1486144502122,
+                "definition_id": "9f2c...e2",
+                "seq": 2,
+                "descriptor_seq": 1,
+                "bd_seq": 0,
+                "compression_algorithm": "DEFLATE"
+        },
+        "compressed": "0x78, 0x9C, 0x2B, 0x4E, 0x2D, 0x50, 0x08, 0x28, 0xCD, 0x4B, 0x2E, 0xCB, 0x2C, 0x4A, 0x55, 0x30, 0xD4, 0x33, 0x06, 0x00, 0x3E, 0x8C, 0x06, 0x3C"
+}
+----
+
+A consuming application reads the header of this message, including the sequence numbers and the
+definition identifier, without decompressing anything. It decompresses the content only once it has
+determined from the header that the message is of interest to it and that it supports the named
+algorithm.
 
 [[payloads_c_file_publishing]]
 ==== File Publishing
