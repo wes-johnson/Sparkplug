@@ -43,12 +43,45 @@ connect to the next available MQTT Server where STATE for the Primary Host Appli
 [[operational_behavior_timestamps]]
 === Timestamps in Sparkplug
 
-An important aspect of Sparkplug is its use of time. All timestamps must be in Coordinated
-Universal Time (UTC). In order to ensure this is the case, all Sparkplug Edge Nodes and Sparkplug
-Host Applications must have an accurate mechanism for ensuring their clocks remain accurate. This is
-typically left to the system operating system using technologies such as Network Time Protocol
-(NTP). Regardless of the mechanism used, ensuring all timestamps are accurate and in UTC is
-critical to Sparkplug operations.
+An important aspect of Sparkplug is its use of time. All timestamps are in Coordinated Universal
+Time (UTC), as required in the link:#payloads_c_payload_header[Header] section. In order to ensure
+this is the case, all Sparkplug Edge Nodes and Sparkplug Host Applications need an accurate
+mechanism for ensuring their clocks remain accurate. This is typically left to the system operating
+system using technologies such as Network Time Protocol (NTP). Regardless of the mechanism used,
+ensuring all timestamps are accurate and in UTC is critical to Sparkplug operations.
+
+[[operational_behavior_timestamp_resolution]]
+==== Timestamp Resolution
+
+Sparkplug timestamps are denominated in nanoseconds so that data acquired at high rates can be
+ordered and correlated at the resolution at which it was actually sampled.
+
+* [tck-testable tck-id-timestamps-nanoseconds]#[yellow-background]*[tck-id-timestamps-nanoseconds] Every
+Sparkplug timestamp MUST be expressed as the number of nanoseconds elapsed since epoch (Jan 1, 1970)
+in UTC.*#
+** This applies to the payload timestamp, to the timestamp of an individual Metric, to the timestamp
+in a Sparkplug Host Application's STATE message, and to any value of the DateTime datatype.
+** Non-normative comment: nanosecond denomination is a property of the encoding and does not require
+an implementation to have a nanosecond resolution time source. An implementation whose time source
+is coarser than one nanosecond expresses its timestamps in nanoseconds all the same, scaled to that
+denomination. For example, an implementation whose time source has a resolution of one millisecond
+expresses a timestamp as the number of milliseconds since epoch multiplied by 1000000.
+** Non-normative comment: an unsigned 64-bit integer of nanoseconds since epoch covers a range of
+approximately 584 years, reaching the year 2554. Implementers should note that this range is only
+available to a genuinely unsigned representation. The Google Protocol Buffers uint64 type is
+represented as a signed 64-bit long in Java, and several widely used nanosecond time representations
+are signed 64-bit as well, which reduces the reachable range to approximately 292 years, ending on
+2262-04-11. This is the practical ceiling for such implementations.
+
+Non-normative comment: the resolution of a timestamp is not the same as its accuracy. Denominating a
+timestamp in nanoseconds says how finely a value can be expressed, not how closely it corresponds to
+true time. The accuracy that can be achieved depends on the time source. Network Time Protocol
+typically synchronizes to within a few milliseconds over a local network, which is coarser than the
+resolution of the encoding, while Global Positioning System receivers and the Precision Time
+Protocol can achieve considerably better. A consuming application should not infer the accuracy of a
+timestamp from the resolution at which it is expressed, and an application that requires timestamps
+to be comparable across Edge Nodes at better than the accuracy of its time synchronization mechanism
+needs to address that outside of Sparkplug.
 
 [[operational_behavior_case_sensitivity]]
 === Case Sensitivity in Sparkplug

@@ -390,7 +390,7 @@ A simple Sparkplug B payload with values would be represented as follows:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "seq": 2,
                 "bd_seq": 0,
                 "descriptor_seq": 1,
@@ -400,7 +400,7 @@ A simple Sparkplug B payload with values would be represented as follows:
                 "metrics": [{
                         "name": "My Metric",
                         "alias": 1,
-                        "timestamp": 1479123452194,
+                        "timestamp": 1479123452194000000,
                         "dataType": "String",
                         "value": "Test"
                 }]
@@ -1570,7 +1570,7 @@ Consider the following Sparkplug B payload in the NBIRTH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "definition_id": "9f2c...e2",
                 "seq": 0,
                 "descriptor_seq": 0,
@@ -1579,39 +1579,39 @@ Consider the following Sparkplug B payload in the NBIRTH message shown above:
         "content": {
                 "metrics": [{
                         "name": "Node Control/Reboot",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Rebirth",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Next Server",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Scan Rate",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 3000
                 }, {
                         "name": "Properties/Hardware Make",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Acme"
                 }, {
                         "name": "Properties/Hardware Model",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "EdgeGate 2000"
                 }, {
                         "name": "Properties/OS",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Linux"
                 }, {
                         "name": "Properties/OS Version",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "6.1"
                 }, {
                         "name": "Supply Voltage",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 12.1
                 }]
         }
@@ -1694,7 +1694,7 @@ Consider the following Sparkplug B payload in the NREBIRTH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "definition_id": "9f2c...e2",
                 "seq": 0,
                 "descriptor_seq": 4,
@@ -1703,39 +1703,39 @@ Consider the following Sparkplug B payload in the NREBIRTH message shown above:
         "content": {
                 "metrics": [{
                         "name": "Node Control/Reboot",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Rebirth",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Next Server",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Node Control/Scan Rate",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 3000
                 }, {
                         "name": "Properties/Hardware Make",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Acme"
                 }, {
                         "name": "Properties/Hardware Model",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "EdgeGate 2000"
                 }, {
                         "name": "Properties/OS",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Linux"
                 }, {
                         "name": "Properties/OS Version",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "6.1"
                 }, {
                         "name": "Supply Voltage",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 12.1
                 }]
         }
@@ -1799,7 +1799,7 @@ Consider the following Sparkplug B payload in the DBIRTH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "definition_id": "a1c9...77",
                 "seq": 1,
                 "descriptor_seq": 0,
@@ -1808,39 +1808,39 @@ Consider the following Sparkplug B payload in the DBIRTH message shown above:
         "content": {
                 "metrics": [{
                         "name": "Running",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Faulted",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Speed",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0
                 }, {
                         "name": "Fill/Setpoint",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 500.0
                 }, {
                         "name": "Fill/Actual",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0.0
                 }, {
                         "name": "Temperature",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 21.5
                 }, {
                         "name": "Motor/Run",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Motor/Speed Setpoint",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0
                 }, {
                         "name": "Properties/Manufacturer",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Acme"
                 }]
         }
@@ -1902,7 +1902,7 @@ Consider the following Sparkplug B payload in the DREBIRTH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "definition_id": "a1c9...77",
                 "seq": 1,
                 "descriptor_seq": 4,
@@ -1911,39 +1911,39 @@ Consider the following Sparkplug B payload in the DREBIRTH message shown above:
         "content": {
                 "metrics": [{
                         "name": "Running",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Faulted",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Speed",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0
                 }, {
                         "name": "Fill/Setpoint",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 500.0
                 }, {
                         "name": "Fill/Actual",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0.0
                 }, {
                         "name": "Temperature",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 21.5
                 }, {
                         "name": "Motor/Run",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": false
                 }, {
                         "name": "Motor/Speed Setpoint",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 0
                 }, {
                         "name": "Properties/Manufacturer",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": "Acme"
                 }]
         }
@@ -2004,7 +2004,7 @@ Consider the following Sparkplug B payload in the NDATA message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122847913,
                 "definition_id": "9f2c...e2",
                 "seq": 2,
                 "descriptor_seq": 1,
@@ -2013,7 +2013,7 @@ Consider the following Sparkplug B payload in the NDATA message shown above:
         "content": {
                 "metrics": [{
                         "name": "Supply Voltage",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122847913,
                         "value": 12.3
                 }]
         }
@@ -2068,7 +2068,7 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "definition_id": "a1c9...77",
                 "seq": 0,
                 "descriptor_seq": 1,
@@ -2077,11 +2077,11 @@ Consider the following Sparkplug B payload in the DDATA message shown above:
         "content": {
                 "metrics": [{
                         "name": "Running",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": true
                 }, {
                         "name": "Speed",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "value": 120
                 }]
         }
@@ -2124,7 +2124,7 @@ Consider the following Sparkplug B payload in the REBIRTH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "source" : "IamHost"
         }
 }
@@ -2173,13 +2173,13 @@ Consider the following Sparkplug B payload in the NCMD message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "source": "IamHost"
         },
         "content": {
                 "metrics": [{
                         "name": "DIGITAL_OUT_1",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Boolean",
                         "value": true
                 }]
@@ -2204,13 +2204,13 @@ The following is a representation of an NCMD payload that invokes the 'Calibrate
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "source": "IamHost"
         },
         "content": {
                 "metrics": [{
                         "name": "Calibrate",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Command",
                         "command": {
                                 "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
@@ -2268,18 +2268,18 @@ Consider the following Sparkplug B payload in the DCMD message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "source": "IamHost"
         },
         "content": {
                 "metrics": [{
                         "name": "Motor/Run",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Boolean",
                         "value": true
                 }, {
                         "name": "Motor/Speed Setpoint",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Int32",
                         "value": 120
                 }]
@@ -2330,7 +2330,7 @@ Consider the following Sparkplug B payload in the NRESP message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "seq": 3,
                 "descriptor_seq": 2,
                 "bd_seq": 0
@@ -2338,7 +2338,7 @@ Consider the following Sparkplug B payload in the NRESP message shown above:
         "content": {
                 "metrics": [{
                         "name": "Calibrate",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Command",
                         "command": {
                                 "correlation_id": "5d7c1f6e-9c2a-4f1b-8f3a-1c9d2e6b4a01",
@@ -2394,7 +2394,7 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "seq": 4,
                 "descriptor_seq": 2,
                 "bd_seq": 0
@@ -2402,7 +2402,7 @@ Consider the following Sparkplug B payload in the DRESP message shown above:
         "content": {
                 "metrics": [{
                         "name": "Reset",
-                        "timestamp": 1486144502122,
+                        "timestamp": 1486144502122000000,
                         "dataType": "Command",
                         "command": {
                                 "correlation_id": "a1b2c3d4-0001",
@@ -2488,7 +2488,7 @@ Consider the following Sparkplug B payload in the NDEATH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "bd_seq": 0
         }
 }
@@ -2531,7 +2531,7 @@ Consider the following Sparkplug B payload in the DDEATH message shown above:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122000000,
                 "seq": 123,
                 "descriptor_seq": 3,
                 "bd_seq": 0
@@ -2656,7 +2656,7 @@ spCv4.0/STATE/my_host_application
 ----
 {
         "online": true,
-        "timestamp": 1486144502122,
+        "timestamp": 1486144502122000000,
         "bd_seq": 12,
         "client_id": "my_host_application_client_1"
 }
@@ -2668,7 +2668,7 @@ packet carries the same timestamp, the same bd_seq number, and the same client_i
 ----
 {
         "online": false,
-        "timestamp": 1486144502122,
+        "timestamp": 1486144502122000000,
         "bd_seq": 12,
         "client_id": "my_host_application_client_1"
 }
@@ -2731,7 +2731,7 @@ of the serialized Content:
 ----
 {
         "header": {
-                "timestamp": 1486144502122,
+                "timestamp": 1486144502122847913,
                 "definition_id": "9f2c...e2",
                 "seq": 2,
                 "descriptor_seq": 1,
