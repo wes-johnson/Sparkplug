@@ -181,6 +181,9 @@ enum DataType {
 
     // Command Type
     Command         = 35;        // A callable command/function metric - the value is carried in the Metric 'command' field
+
+    // Additional complex list type
+    TemplateList    = 36;        // A list of Template Instances, all of the same template_ref
 }
 
 // Per-metric operation, used only within NMMETA/DMMETA (modified metadata) messages to denote a
@@ -212,13 +215,14 @@ message Payload {
             PropertySet     propertyset_value       = 14;
             PropertySetList propertysets_value      = 15;
             TypedValueExtension extension_value     = 16;
+            TemplateList    templatelist_value      = 17;
         }
 
         message TypedValueExtension {
             extensions  1 to max;
         }
 
-        extensions 17 to max;
+        extensions 18 to max;
     }
 
     message Template {
@@ -234,7 +238,9 @@ message Payload {
         repeated Parameter parameters   = 3;
         optional string template_ref    = 4;          // MUST be a reference to a template definition if this is an instance (i.e. the name of the template definition) - MUST be omitted for template definitions
         optional bool is_definition     = 5;
-        extensions                      6 to max;
+        optional string instance_id     = 6;          // TemplateList elements only - the identity of this element within the list
+        optional MetricOperation operation = 7;       // TemplateList elements in NDATA/DDATA only - ADD, UPDATE, or DELETE of this element
+        extensions                      8 to max;
     }
 
     message Status {
@@ -280,6 +286,11 @@ message Payload {
 
     message PropertySetList {
         repeated PropertySet propertyset = 1;
+        extensions                       2 to max;
+    }
+
+    message TemplateList {
+        repeated Template template       = 1;         // Template Instances, all of the same template_ref
         extensions                       2 to max;
     }
 
@@ -1425,6 +1436,106 @@ https://developers.google.com/protocol-buffers/docs/proto#scalar
 ** For a template definition, this is the default value of the parameter. For a template instance,
 this is the value unique to that instance.
 
+[[payloads_c_templatelist]]
+==== TemplateList
+
+A TemplateList is a metric value carrying a variable number of Template Instances of a single type.
+It allows an Edge Node to report a collection whose size is not known in advance, such as the
+assets presently detected on a line, as one metric rather than as a metric per element.
+
+Non-normative comment: A TemplateList is one declared metric whose value happens to contain several
+Instances, so the number of Instances may change freely without changing the Edge Node's metric
+structure or its definition identifier. This is the respect in which a TemplateList differs from
+declaring a metric per element, which requires every element to be known at the time the metric
+structure is published.
+
+[[payloads_c_templatelist_composition]]
+===== Composition
+
+* [tck-testable tck-id-payloads-templatelist-instances]#[yellow-background]*[tck-id-payloads-templatelist-instances] Every
+Template in a TemplateList MUST be a Template Instance, with is_definition set to false and
+template_ref set.*#
+* [tck-testable tck-id-payloads-templatelist-homogeneous]#[yellow-background]*[tck-id-payloads-templatelist-homogeneous] Every
+Template in a TemplateList MUST have the same template_ref.*#
+** Non-normative comment: A TemplateList is a collection of one type, which is what allows a
+consuming application to present every element the same way. A collection of differing types is
+expressed as separate metrics, one per type.
+* [tck-testable tck-id-payloads-templatelist-definition]#[yellow-background]*[tck-id-payloads-templatelist-definition] The
+Template Definition named by the template_ref of a TemplateList's elements MUST be present in the
+Edge Node's NMETA, as required for any Template Instance.*#
+* [tck-not-testable tck-id-payloads-templatelist-empty]#[yellow-background]*[tck-id-payloads-templatelist-empty] A
+TemplateList MAY contain zero Templates, which denotes a collection that is presently empty rather
+than a collection whose state is unknown.*#
+
+[[payloads_c_templatelist_identity]]
+===== Element Identity
+
+The elements of a TemplateList are identified by instance_id, never by their position in the list.
+A consuming application accumulates the membership of a TemplateList across messages, so an element
+has to remain identifiable from one message to the next.
+
+* [tck-testable tck-id-payloads-templatelist-instance-id]#[yellow-background]*[tck-id-payloads-templatelist-instance-id] Every
+Template in a TemplateList MUST include an instance_id. This applies to every message the element
+appears in, whether it carries all of the element's members or only some of them.*#
+* [tck-testable tck-id-payloads-templatelist-instance-id-unique]#[yellow-background]*[tck-id-payloads-templatelist-instance-id-unique] The
+instance_id of a Template MUST be unique among the Templates of the TemplateList that contains it.*#
+* [tck-not-testable tck-id-payloads-templatelist-identify-by-id]#[yellow-background]*[tck-id-payloads-templatelist-identify-by-id] A
+consuming application MUST identify the elements of a TemplateList by their instance_id, and MUST
+NOT identify them by their position in the list.*#
+* [tck-not-testable tck-id-payloads-templatelist-instance-id-stable]#[yellow-background]*[tck-id-payloads-templatelist-instance-id-stable] The
+instance_id of an element MUST NOT change for as long as that element remains present in the
+TemplateList.*#
+** Non-normative comment: Position cannot serve as identity because a message carrying only the
+elements that changed carries them at positions unrelated to their positions in any previous
+message, and because the Google Protocol Buffers encoding of a repeated field cannot represent an
+omitted element. An instance_id is typically something the Edge Node already holds for the element,
+such as an asset tag or a serial number.
+
+[[payloads_c_templatelist_birth]]
+===== TemplateList in a BIRTH
+
+* [tck-testable tck-id-payloads-templatelist-birth-complete]#[yellow-background]*[tck-id-payloads-templatelist-birth-complete] A
+TemplateList in an NBIRTH, NREBIRTH, DBIRTH, or DREBIRTH message MUST contain every element of the
+collection, and each element MUST include every member of the Template Definition.*#
+* [tck-testable tck-id-payloads-templatelist-birth-no-operation]#[yellow-background]*[tck-id-payloads-templatelist-birth-no-operation] A
+Template in a TemplateList in an NBIRTH, NREBIRTH, DBIRTH, or DREBIRTH message MUST NOT include an
+operation.*#
+** Non-normative comment: A BIRTH establishes the complete membership of the collection, in the same
+way that it establishes the current value of every other metric, so there is no change for an
+operation to describe.
+
+[[payloads_c_templatelist_data]]
+===== TemplateList in a DATA Message
+
+A TemplateList in a DATA message describes changes to the collection rather than its entire
+contents. Each element carries an operation saying what happened to it, and an element may carry
+only the members that changed, as permitted for any Template Instance.
+
+* [tck-testable tck-id-payloads-templatelist-data-changed-only]#[yellow-background]*[tck-id-payloads-templatelist-data-changed-only] A
+TemplateList in an NDATA or DDATA message MAY contain only the elements of the collection that have
+changed.*#
+* [tck-testable tck-id-payloads-templatelist-data-update]#[yellow-background]*[tck-id-payloads-templatelist-data-update] An
+element whose operation is UPDATE, or which omits the operation, updates the element of the
+collection having the same instance_id. It MAY include only the members that changed.*#
+* [tck-not-testable tck-id-payloads-templatelist-data-update-merge]#[yellow-background]*[tck-id-payloads-templatelist-data-update-merge] On
+receiving an element whose operation is UPDATE or omitted, a consuming application MUST merge the
+members present into the state it holds for the element having that instance_id, and MUST leave the
+members that are absent unchanged.*#
+* [tck-testable tck-id-payloads-templatelist-data-add]#[yellow-background]*[tck-id-payloads-templatelist-data-add] An
+element whose operation is ADD adds a new element to the collection and MUST include every member of
+the Template Definition.*#
+* [tck-testable tck-id-payloads-templatelist-data-delete]#[yellow-background]*[tck-id-payloads-templatelist-data-delete] An
+element whose operation is DELETE removes the element of the collection having the same instance_id,
+and MUST NOT include any members.*#
+* [tck-not-testable tck-id-payloads-templatelist-data-desync]#[yellow-background]*[tck-id-payloads-templatelist-data-desync] A
+consuming application that receives an UPDATE or DELETE for an instance_id it does not hold, or an
+ADD for an instance_id it already holds, SHOULD issue a Rebirth Request.*#
+** Non-normative comment: The membership of a TemplateList is state that a consuming application
+accumulates over a Sparkplug session, so it needs a way to recover when that state and the Edge
+Node's diverge. This is the same reasoning behind the handling of a modified metadata message whose
+previous definition identifier does not match, described in the
+link:#operational_behavior_modified_metadata_updates[Modified Metadata Updates] section.
+
 [[payloads_c_command]]
 ==== Command
 
@@ -1567,6 +1678,9 @@ enum DataType {
 
     // Command Type
     Command         = 35;        // A callable command/function metric - the value is carried in the Metric 'command' field
+
+    // Additional complex list type
+    TemplateList    = 36;        // A list of Template Instances, all of the same template_ref
 }
 ----
 
@@ -1656,6 +1770,10 @@ enum DataType {
 *** Template as defined link:#payloads_c_template[here]
 *** Google Protocol Buffer Type: none – defined in Sparkplug
 *** Sparkplug enum value: 19
+** _TemplateList_
+*** TemplateList as defined link:#payloads_c_templatelist[here]
+*** Google Protocol Buffer Type: none – defined in Sparkplug
+*** Sparkplug enum value: 36
 
 [[payloads_c_datatype_propertyvalue]]
 * *Additional PropertyValue Types*
