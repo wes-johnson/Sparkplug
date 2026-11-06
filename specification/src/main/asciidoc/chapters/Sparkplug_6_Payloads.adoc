@@ -816,6 +816,8 @@ can be found here: https://developers.google.com/protocol-buffers/docs/proto#sca
 **** Defined link:#payloads_c_dataset[here].
 *** Sparkplug _Template_
 **** Defined link:#payloads_c_template[here].
+*** Sparkplug _ValueArray_
+**** Defined link:#payloads_c_datatype_array[here].
 
 [[payloads_c_quality]]
 ==== Quality
