@@ -1539,12 +1539,12 @@ MUST be included in every Template Parameter Definition in an NMETA message.*#
 Template Definitions appear only in the NMETA. A Template Instance in a value-carrying message supplies
 parameter values, not parameter definitions.
 * *value*
-** The value of a template parameter utilizes the ‘oneof’ mechanism of Google Protocol Buffers.
-** [tck-testable tck-id-payloads-template-parameter-value]#[yellow-background]*[tck-id-payloads-template-parameter-value] The
-value supplied MUST be one of the following Google Protocol Buffer types: _int32_, _int64_,
-_uint32_, _uint64_, _float_, _double_, _bool_, _string_, or _bytes_.*#
-*** More information on these types can be found here:
-https://developers.google.com/protocol-buffers/docs/proto#scalar
+** This is a TypedValue carrying the parameter's value, as described in the
+link:#payloads_c_typedvalue[TypedValue section]. Which field carries the value is determined by the
+parameter's type, and the value may be omitted altogether if the is_null flag is set to true.
+** A Template.Parameter accepts a narrower set than a TypedValue in general: its type is restricted
+to the Basic Data Types above, so the DataSet, Template, PropertySet, PropertySetList and
+ValueArray fields are not available to a parameter.
 ** For a template definition, this is the default value of the parameter. For a template instance,
 this is the value unique to that instance.
 
